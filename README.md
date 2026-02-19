@@ -7,13 +7,13 @@ Git history is reset but thank you pindour for [catpuccin](https://github.com/X-
 ## With Customization
 
 <p align="center">
-  <img src="assets/preview.png" alt="Main preview"/>
+  <img src="assets/preview.webp" alt="Main preview"/>
 </p>
 
 ## Without Customization
 
 <p align="center">
-  <img src="assets/base.png" alt="Base preview"/>
+  <img src="assets/base.webp" alt="Base preview"/>
 </p>
 
 ## Installation
