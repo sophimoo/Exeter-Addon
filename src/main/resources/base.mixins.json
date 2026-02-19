@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "me.sophimoo.exeter.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixins": [
+    "meteorclient.GuiRendererBlurMixin"
+  ]
+}
