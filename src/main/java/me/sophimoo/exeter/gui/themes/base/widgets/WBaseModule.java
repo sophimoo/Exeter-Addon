@@ -68,13 +68,14 @@ public class WBaseModule extends WPressable implements BaseWidget {
         double deltaY = centerY - lastY;
         
         // Minimum threshold to consider vertical movement (prevents jitter from causing horizontal slides)
-        double minVerticalThreshold = height * 0.3;
+        double minVerticalThreshold = height;
         
-        // Determine primary direction - require strong horizontal movement to trigger horizontal slides
+        // Only trigger horizontal if it's truly dominant (4x+ stronger than vertical)
         boolean isVerticalSignificant = Math.abs(deltaY) >= minVerticalThreshold;
-        boolean isHorizontalDominant = Math.abs(deltaX) > Math.abs(deltaY) * 4.0;
+        boolean isHorizontalDominant = Math.abs(deltaX) > Math.abs(deltaY);
         
-        if (isHorizontalDominant || (!isVerticalSignificant && Math.abs(deltaX) > Math.abs(deltaY))) {
+        // Only use horizontal if it's dominant, otherwise default to vertical
+        if (isHorizontalDominant) {
             // Horizontal movement - animate from opposite direction
             // If last was to the right (deltaX < 0), slide from right
             // If last was to the left (deltaX > 0), slide from left
@@ -102,11 +103,12 @@ public class WBaseModule extends WPressable implements BaseWidget {
         // Minimum threshold to consider vertical movement
         double minVerticalThreshold = height * 0.3;
         
-        // Require strong horizontal movement to trigger horizontal slides
+        // Only trigger horizontal if it's truly dominant (12x+ stronger than vertical)
         boolean isVerticalSignificant = Math.abs(deltaY) >= minVerticalThreshold;
-        boolean isHorizontalDominant = Math.abs(deltaX) > Math.abs(deltaY) * 4.0;
+        boolean isHorizontalDominant = Math.abs(deltaX) > Math.abs(deltaY) * 12.0;
         
-        if (isHorizontalDominant || (!isVerticalSignificant && Math.abs(deltaX) > Math.abs(deltaY))) {
+        // Only use horizontal if it's dominant, otherwise default to vertical
+        if (isHorizontalDominant) {
             // Mouse is heading horizontally - slide out in that direction
             return deltaX > 0 ? ModuleAnimationMode.SLIDE_RIGHT : ModuleAnimationMode.SLIDE_LEFT;
         } else {
