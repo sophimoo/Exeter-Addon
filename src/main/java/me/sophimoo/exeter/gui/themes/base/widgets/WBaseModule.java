@@ -192,8 +192,14 @@ public class WBaseModule extends WPressable implements BaseWidget {
         double fadeInSpeed = theme().moduleFadeInSpeed.get();
         double fadeOutSpeed = theme().moduleFadeOutSpeed.get();
 
-        animationProgress1 += delta * (shouldFadeIn ? fadeInSpeed : fadeOutSpeed) * (shouldFadeIn ? 1 : -1);
-        animationProgress1 = MathHelper.clamp(animationProgress1, 0, 1);
+        if (shouldFadeIn && fadeInSpeed == 0) {
+            animationProgress1 = 1;
+        } else if (!shouldFadeIn && fadeOutSpeed == 0) {
+            animationProgress1 = 0;
+        } else {
+            animationProgress1 += delta * (shouldFadeIn ? fadeInSpeed : fadeOutSpeed) * (shouldFadeIn ? 1 : -1);
+            animationProgress1 = MathHelper.clamp(animationProgress1, 0, 1);
+        }
 
         animationProgress2 += delta * (isActive ? 1 : -1);
         animationProgress2 = MathHelper.clamp(animationProgress2, 0, 1);

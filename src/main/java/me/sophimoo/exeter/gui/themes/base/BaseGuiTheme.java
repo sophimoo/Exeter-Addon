@@ -134,22 +134,22 @@ public class BaseGuiTheme extends GuiTheme {
     );
 
     public final Setting<Double> moduleFadeInSpeed = sgGuiSettings.add(new DoubleSetting.Builder()
-        .name("module-fade-in-speed")
+        .name("module-select-speed")
         .description("Speed of module fade in animation.")
         .defaultValue(6)
-        .min(0.25)
+        .min(0)
         .max(32)
-        .sliderRange(0.25, 32)
+        .sliderRange(0, 32)
         .build()
     );
 
     public final Setting<Double> moduleFadeOutSpeed = sgGuiSettings.add(new DoubleSetting.Builder()
-        .name("module-fade-out-speed")
+        .name("module-deselect-speed")
         .description("Speed of module fade out animation.")
         .defaultValue(4)
-        .min(0.25)
+        .min(0)
         .max(32)
-        .sliderRange(0.25, 32)
+        .sliderRange(0, 32)
         .build()
     );
 
