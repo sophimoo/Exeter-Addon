@@ -35,6 +35,13 @@ import static meteordevelopment.meteorclient.MeteorClient.mc;
 public class BaseGuiTheme extends GuiTheme {
     // Blur capture instance - managed by the theme
     private WorldFramebufferCapture blurCapture;
+
+    // Smart slide tracking - stores last hovered module position for directional animations
+    private double lastHoveredX = -1;
+    private double lastHoveredY = -1;
+    private long lastHoveredTime = 0;
+    private static final long HOVER_TIMEOUT_MS = 500; // Reset after 500ms of no hover
+
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
     private final SettingGroup sgColors = settings.createGroup("Colors");
     private final SettingGroup sgTextColors = settings.createGroup("Text");
@@ -119,10 +126,10 @@ public class BaseGuiTheme extends GuiTheme {
         .build()
     );
 
-    public final Setting<Boolean> moduleHoverOverlay = sgGuiSettings.add(new BoolSetting.Builder()
-        .name("module-hover-overlay")
-        .description("Use overlay effect for module hover. When disabled, uses slide effect.")
-        .defaultValue(false)
+    public final Setting<ModuleAnimationMode> moduleAnimationMode = sgGuiSettings.add(new EnumSetting.Builder<ModuleAnimationMode>()
+        .name("module-animation-mode")
+        .description("Animation style for module hover and active states.")
+        .defaultValue(ModuleAnimationMode.SLIDE_LEFT)
         .build()
     );
 
@@ -130,9 +137,9 @@ public class BaseGuiTheme extends GuiTheme {
         .name("module-fade-in-speed")
         .description("Speed of module fade in animation.")
         .defaultValue(6)
-        .min(1)
+        .min(0.25)
         .max(32)
-        .sliderRange(1, 32)
+        .sliderRange(0.25, 32)
         .build()
     );
 
@@ -141,8 +148,8 @@ public class BaseGuiTheme extends GuiTheme {
         .description("Speed of module fade out animation.")
         .defaultValue(4)
         .min(0.25)
-        .max(8)
-        .sliderRange(0.25, 8)
+        .max(32)
+        .sliderRange(0.25, 32)
         .build()
     );
 
@@ -174,7 +181,7 @@ public class BaseGuiTheme extends GuiTheme {
             new SettingColor(40, 40, 40, 200)
     );
 
-    public final Setting<SettingColor> moduleInactiveBackground = color(sgBackgroundColors, "module-inactive-background", "Color of module background when inactive.", new SettingColor(40, 40, 40));
+    public final Setting<SettingColor> moduleInactiveBackground = color(sgBackgroundColors, "module-inactive-background", "Color of module background when inactive.", new SettingColor(40, 40, 40, 0));
     public final Setting<SettingColor> moduleHoveredBackground = color(sgBackgroundColors, "module-hovered-background", "Color of module background when hovered.", new SettingColor(60, 60, 60));
     public final Setting<SettingColor> moduleActiveBackground = color(sgBackgroundColors, "module-active-background", "Color of module background when active.", new SettingColor(70, 70, 70));
 
@@ -516,6 +523,31 @@ public class BaseGuiTheme extends GuiTheme {
     @Override
     public boolean hideHUD() {
         return hideHUD.get();
+    }
+
+    // Smart slide tracking methods
+
+    public void updateLastHoveredPosition(double x, double y) {
+        this.lastHoveredX = x;
+        this.lastHoveredY = y;
+        this.lastHoveredTime = System.currentTimeMillis();
+    }
+
+    public boolean hasValidLastHover() {
+        return lastHoveredX >= 0 && (System.currentTimeMillis() - lastHoveredTime) < HOVER_TIMEOUT_MS;
+    }
+
+    public double getLastHoveredX() {
+        return lastHoveredX;
+    }
+
+    public double getLastHoveredY() {
+        return lastHoveredY;
+    }
+
+    public void clearLastHoveredPosition() {
+        this.lastHoveredX = -1;
+        this.lastHoveredY = -1;
     }
 
     public class ThreeStateColorSetting {

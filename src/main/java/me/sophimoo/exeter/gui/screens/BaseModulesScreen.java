@@ -15,6 +15,7 @@ import meteordevelopment.meteorclient.systems.modules.Category;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.utils.misc.NbtUtils;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.Pair;
 import net.minecraft.item.Items;
 
@@ -28,6 +29,7 @@ import static meteordevelopment.meteorclient.utils.Utils.getWindowWidth;
 
 public class BaseModulesScreen extends TabScreen {
     private final BaseGuiTheme theme;
+    private WCategoryController controller;
 
     public BaseModulesScreen(GuiTheme theme) {
         super(theme, Tabs.get().getFirst());
@@ -36,7 +38,7 @@ public class BaseModulesScreen extends TabScreen {
 
     @Override
     public void initWidgets() {
-        WCategoryController controller = add(new WCategoryController()).widget();
+        controller = add(new WCategoryController()).widget();
 
         WVerticalList help = add(theme.verticalList()).pad(4).bottom().widget();
         help.add(theme.label("Left click - Toggle module"));
@@ -54,6 +56,7 @@ public class BaseModulesScreen extends TabScreen {
     @Override
     protected void init() {
         super.init();
+        controller.refresh();
     }
 
     private double spacing() {
@@ -77,17 +80,33 @@ public class BaseModulesScreen extends TabScreen {
         WWindow w = theme.window(category.name);
         w.id = category.name;
         w.padding = w.spacing = 0;
-
         if (theme.categoryIcons()) {
+            String iconText = null;
+            ItemStack iconStack = null;
+
+            try {
+                java.lang.reflect.Field iconTextField = Category.class.getField("iconText");
+                iconText = (String) iconTextField.get(category);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+            }
+
             try {
                 java.lang.reflect.Field iconField = Category.class.getField("icon");
                 Object icon = iconField.get(category);
-                w.beforeHeaderInit = wContainer -> addIcon(wContainer, icon);
+                if (icon instanceof ItemStack) {
+                    iconStack = (ItemStack) icon;
+                }
             } catch (NoSuchFieldException | IllegalAccessException e) {
-                // Icon field doesn't exist or isn't accessible, skip adding icon
+            }
+
+            if (iconText != null && !iconText.isEmpty()) {
+                final String text = iconText;
+                w.beforeHeaderInit = wContainer -> wContainer.add(theme.label(text)).pad(2);
+            } else if (iconStack != null) {
+                final ItemStack stack = iconStack;
+                w.beforeHeaderInit = wContainer -> wContainer.add(theme.item(stack)).pad(2);
             }
         }
-
         c.add(w);
         w.view.scrollOnlyWhenMouseOver = true;
         w.view.hasScrollBar = false;
@@ -209,7 +228,7 @@ public class BaseModulesScreen extends TabScreen {
                 }
             }
             windows.add(createSearch(this));
-            refresh();  // <-- Add this
+            refresh();
         }
 
         protected void refresh() {
@@ -218,10 +237,13 @@ public class BaseModulesScreen extends TabScreen {
                 if (favoritesCell != null) windows.add(favoritesCell.widget());
             } else {
                 favoritesCell.widget().clear();
-                if (createFavorites(this) == null) {
-                    remove(favoritesCell);
-                    windows.remove(favoritesCell.widget());
-                    favoritesCell = null;
+                remove(favoritesCell);
+                windows.remove(favoritesCell.widget());
+                favoritesCell = null;
+                Cell<WWindow> newFavoritesCell = createFavorites(this);
+                if (newFavoritesCell != null) {
+                    favoritesCell = newFavoritesCell;
+                    windows.add(favoritesCell.widget());
                 }
             }
         }
