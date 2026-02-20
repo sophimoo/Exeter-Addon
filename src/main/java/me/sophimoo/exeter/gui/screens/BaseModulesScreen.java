@@ -16,6 +16,7 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.utils.misc.NbtUtils;
 import net.minecraft.util.Pair;
+import net.minecraft.item.Items;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -40,6 +41,14 @@ public class BaseModulesScreen extends TabScreen {
         WVerticalList help = add(theme.verticalList()).pad(4).bottom().widget();
         help.add(theme.label("Left click - Toggle module"));
         help.add(theme.label("Right click - Open module settings"));
+    }
+
+    protected void addIcon(WContainer container, Object icon) {
+        if (icon instanceof net.minecraft.item.ItemStack stack) {
+            container.add(theme.item(stack)).pad(2);
+        } else {
+            container.add(theme.label(icon != null ? icon.toString() : "")).pad(2);
+        }
     }
 
     @Override
@@ -69,12 +78,21 @@ public class BaseModulesScreen extends TabScreen {
         w.id = category.name;
         w.padding = w.spacing = 0;
 
+        if (theme.categoryIcons()) {
+            try {
+                java.lang.reflect.Field iconField = Category.class.getField("icon");
+                Object icon = iconField.get(category);
+                w.beforeHeaderInit = wContainer -> addIcon(wContainer, icon);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                // Icon field doesn't exist or isn't accessible, skip adding icon
+            }
+        }
+
         c.add(w);
         w.view.scrollOnlyWhenMouseOver = true;
         w.view.hasScrollBar = false;
         w.view.spacing = spacing();
         addModulesWithPadding(w, modules);
-
         return w;
     }
 
@@ -115,6 +133,10 @@ public class BaseModulesScreen extends TabScreen {
         WWindow w = theme.window("Search");
         w.id = "search";
 
+        if (theme.categoryIcons()) {
+            w.beforeHeaderInit = wContainer -> addIcon(wContainer, Items.COMPASS.getDefaultStack());
+        }
+
         c.add(w);
         w.view.scrollOnlyWhenMouseOver = true;
         w.view.hasScrollBar = false;
@@ -146,6 +168,10 @@ public class BaseModulesScreen extends TabScreen {
         w.id = "favorites";
         w.padding = w.spacing = 0;
 
+        if (theme.categoryIcons()) {
+            w.beforeHeaderInit = wContainer -> addIcon(wContainer, Items.NETHER_STAR.getDefaultStack());
+        }
+
         Cell<WWindow> cell = c.add(w);
         w.view.scrollOnlyWhenMouseOver = true;
         w.view.hasScrollBar = false;
@@ -176,15 +202,14 @@ public class BaseModulesScreen extends TabScreen {
         public void init() {
             for (Category category : Modules.loopCategories()) {
                 List<Module> modules = Modules.get().getGroup(category).stream()
-                    .filter(m -> !Config.get().hiddenModules.get().contains(m))
-                    .toList();
-
+                        .filter(m -> !Config.get().hiddenModules.get().contains(m))
+                        .toList();
                 if (!modules.isEmpty()) {
                     windows.add(createCategory(this, category, modules));
                 }
             }
-
             windows.add(createSearch(this));
+            refresh();  // <-- Add this
         }
 
         protected void refresh() {
