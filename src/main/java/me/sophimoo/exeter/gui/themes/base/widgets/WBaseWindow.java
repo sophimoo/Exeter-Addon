@@ -20,6 +20,10 @@ public class WBaseWindow extends WWindow implements BaseWidget {
 
     @Override
     public boolean render(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
+        if (padding == 0) {
+            padding = theme.scale(theme().windowOutlineThickness.get());
+        }
+        
         if (!visible) return true;
 
         boolean scissor = (animProgress != 0 && animProgress != 1) || (expanded && animProgress != 1);
