@@ -1,10 +1,12 @@
 package me.sophimoo.exeter.gui.screens;
 
 import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
+import me.sophimoo.exeter.gui.themes.base.widgets.WBaseModule;
 import meteordevelopment.meteorclient.gui.GuiTheme;
 import meteordevelopment.meteorclient.gui.tabs.TabScreen;
 import meteordevelopment.meteorclient.gui.tabs.Tabs;
 import meteordevelopment.meteorclient.gui.utils.Cell;
+import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
 import meteordevelopment.meteorclient.gui.widgets.containers.WSection;
 import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
@@ -42,7 +44,24 @@ public class BaseModulesScreen extends TabScreen {
 
         WVerticalList help = add(theme.verticalList()).pad(4).bottom().widget();
         help.add(theme.label("Left click - Toggle module"));
-        help.add(theme.label("Right click - Open module settings"));
+        help.add(theme.label("Right click - Expand module settings"));
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        tickModuleSettings(controller);
+    }
+
+    private void tickModuleSettings(WContainer container) {
+        for (Cell<?> cell : container.cells) {
+            WWidget widget = cell.widget();
+            if (widget instanceof WBaseModule module) {
+                module.tickSettings();
+            } else if (widget instanceof WContainer nested) {
+                tickModuleSettings(nested);
+            }
+        }
     }
 
     protected void addIcon(WContainer container, Object icon) {
