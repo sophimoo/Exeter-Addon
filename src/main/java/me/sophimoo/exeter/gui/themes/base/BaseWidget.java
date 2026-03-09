@@ -34,10 +34,12 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
             renderer.quad(innerX, innerY, innerWidth, innerHeight, backgroundColor);
         }
 
-        renderer.quad(widget.x, widget.y, widget.width, s, outlineColor);
-        renderer.quad(widget.x, widget.y + widget.height - s, widget.width, s, outlineColor);
-        renderer.quad(widget.x, widget.y + s, s, widget.height - s * 2, outlineColor);
-        renderer.quad(widget.x + widget.width - s, widget.y + s, s, widget.height - s * 2, outlineColor);
+        if (outlineColor != null) {
+            renderer.quad(widget.x, widget.y, widget.width, s, outlineColor);
+            renderer.quad(widget.x, widget.y + widget.height - s, widget.width, s, outlineColor);
+            renderer.quad(widget.x, widget.y + s, s, widget.height - s * 2, outlineColor);
+            renderer.quad(widget.x + widget.width - s, widget.y + s, s, widget.height - s * 2, outlineColor);
+        }
     }
 
     default void renderBackground(GuiRenderer renderer, WWidget widget, boolean pressed, boolean mouseOver) {

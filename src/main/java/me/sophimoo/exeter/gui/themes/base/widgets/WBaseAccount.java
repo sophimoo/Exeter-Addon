@@ -24,6 +24,6 @@ public class WBaseAccount extends WAccount implements BaseWidget {
 
     @Override
     protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-        renderBackground(renderer, this, false, mouseOver);
+        renderBackground(renderer, this, null, theme().backgroundColor.get(false, false));
     }
 }
