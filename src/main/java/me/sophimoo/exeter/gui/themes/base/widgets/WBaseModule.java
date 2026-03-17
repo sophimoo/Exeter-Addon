@@ -1,7 +1,10 @@
 package me.sophimoo.exeter.gui.themes.base.widgets;
 
+import me.sophimoo.exeter.gui.renderer.GradientRenderer;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.ModuleAnimationMode;
+import me.sophimoo.exeter.gui.themes.base.ModuleGradientDirection;
+import me.sophimoo.exeter.gui.themes.base.ModuleIndicatorPosition;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WPressable;
@@ -19,9 +22,8 @@ public class WBaseModule extends WPressable implements BaseWidget {
 
     private double titleWidth;
 
-    private double animationProgress1;
-
-    private double animationProgress2;
+    private double animationProgress;
+    private double indicatorProgress;
 
     // Smart slide tracking
     private boolean wasHovered = false;
@@ -34,11 +36,11 @@ public class WBaseModule extends WPressable implements BaseWidget {
         this.tooltip = module.description;
 
         if (module.isActive()) {
-            animationProgress1 = 1;
-            animationProgress2 = 1;
+            animationProgress = 1;
+            indicatorProgress = 1;
         } else {
-            animationProgress1 = 0;
-            animationProgress2 = 0;
+            animationProgress = 0;
+            indicatorProgress = 0;
         }
     }
 
@@ -180,7 +182,7 @@ public class WBaseModule extends WPressable implements BaseWidget {
             }
 
             // Clear cache when animation fully completes
-            if (animationProgress1 <= 0 && !mouseOver) {
+            if (animationProgress <= 0 && !mouseOver) {
                 cachedSlideInDirection = null;
                 cachedSlideOutDirection = null;
             }
@@ -189,61 +191,34 @@ public class WBaseModule extends WPressable implements BaseWidget {
         // Track hover state for next frame
         wasHovered = mouseOver;
 
-        double fadeInSpeed = theme().moduleFadeInSpeed.get();
-        double fadeOutSpeed = theme().moduleFadeOutSpeed.get();
+        double fadeInSpeed = theme().moduleSelectSpeed.get();
+        double fadeOutSpeed = theme().moduleDeselectSpeed.get();
 
         if (shouldFadeIn && fadeInSpeed == 0) {
-            animationProgress1 = 1;
+            animationProgress = 1;
         } else if (!shouldFadeIn && fadeOutSpeed == 0) {
-            animationProgress1 = 0;
+            animationProgress = 0;
         } else {
-            animationProgress1 += delta * (shouldFadeIn ? fadeInSpeed : fadeOutSpeed) * (shouldFadeIn ? 1 : -1);
-            animationProgress1 = MathHelper.clamp(animationProgress1, 0, 1);
+            animationProgress += delta * (shouldFadeIn ? fadeInSpeed : fadeOutSpeed) * (shouldFadeIn ? 1 : -1);
+            animationProgress = MathHelper.clamp(animationProgress, 0, 1);
         }
 
-        animationProgress2 += delta * (isActive ? 1 : -1);
-        animationProgress2 = MathHelper.clamp(animationProgress2, 0, 1);
+        // Update indicator animation (separate from main animation)
+        indicatorProgress += delta * (isActive ? fadeInSpeed : fadeOutSpeed) * (isActive ? 1 : -1);
+        indicatorProgress = MathHelper.clamp(indicatorProgress, 0, 1);
 
-        Color bgColor = isActive ? theme().moduleActiveBackground.get() : theme().moduleHoveredBackground.get();
+        Color bgColor = isActive ? theme().moduleActiveColor.get() : theme().moduleHoveredColor.get();
 
         // Always draw inactive background first
-        renderer.quad(x, y, width, height, theme().moduleInactiveBackground.get());
+        renderer.quad(x, y, width, height, theme().moduleInactiveColor.get());
+
+        // Get gradient direction setting
+        ModuleGradientDirection gradientDir = theme().moduleGradientDirection.get();
+        Color gradientColor = theme().moduleGradientColor.get();
 
         // Apply animation based on selected mode
-        if (animationProgress1 > 0) {
-            switch (effectiveAnimationMode) {
-                case FADE -> {
-                    // Fade effect - overlays with faded color
-                    Color fadedColor = new Color(bgColor.r, bgColor.g, bgColor.b, (int) (bgColor.a * animationProgress1));
-                    renderer.quad(x, y, width, height, fadedColor);
-                }
-                case SLIDE_LEFT -> {
-                    // Slide from left - animates width from left
-                    renderer.quad(x, y, width * animationProgress1, height, bgColor);
-                }
-                case SLIDE_RIGHT -> {
-                    // Slide from right - animates width from right
-                    double slideWidth = width * animationProgress1;
-                    renderer.quad(x + width - slideWidth, y, slideWidth, height, bgColor);
-                }
-                case SLIDE_UP -> {
-                    // Slide from top - animates height from top
-                    renderer.quad(x, y, width, height * animationProgress1, bgColor);
-                }
-                case SLIDE_DOWN -> {
-                    // Slide from bottom - animates height from bottom
-                    double slideHeight = height * animationProgress1;
-                    renderer.quad(x, y + height - slideHeight, width, slideHeight, bgColor);
-                }
-                default -> {
-                    // Default to slide left for unknown modes
-                    renderer.quad(x, y, width * animationProgress1, height, bgColor);
-                }
-            }
-        }
-
-        if (animationProgress2 > 0) {
-            renderer.quad(x, y + height * (1 - animationProgress2), theme().scale(2), height * animationProgress2, theme().accentColor.get());
+        if (animationProgress > 0) {
+            renderAnimation(renderer, effectiveAnimationMode, animationProgress, bgColor, gradientColor, gradientDir);
         }
 
         double thickness = theme().scale(theme().moduleOutlineThickness.get());
@@ -253,6 +228,11 @@ public class WBaseModule extends WPressable implements BaseWidget {
             renderer.quad(this.x, this.y + height - thickness, width, thickness, outlineColor);
             renderer.quad(this.x, this.y + thickness, thickness, height - 2 * thickness, outlineColor);
             renderer.quad(this.x + width - thickness, this.y + thickness, thickness, height - 2 * thickness, outlineColor);
+        }
+
+        // Render active module indicator
+        if (indicatorProgress > 0) {
+            renderIndicator(renderer, indicatorProgress);
         }
 
         double x = this.x + pad;
@@ -266,5 +246,63 @@ public class WBaseModule extends WPressable implements BaseWidget {
         }
 
         renderer.text(title, x, y + pad, theme().textColor.get(), false);
+    }
+
+    /**
+     * Renders the active module indicator bar.
+     * The indicator slides in from the edge when module is active,
+     * and slides out to the same edge when module is deactivated.
+     *
+     * @param renderer The GUI renderer instance
+     * @param progress Animation progress (0.0 = hidden, 1.0 = fully visible)
+     */
+    private void renderIndicator(GuiRenderer renderer, double progress) {
+        ModuleIndicatorPosition position = theme().moduleIndicatorPosition.get();
+        if (position == ModuleIndicatorPosition.None) return;
+
+        double thickness = theme().scale(theme().moduleIndicatorThickness.get());
+        if (thickness <= 0) return;
+
+        Color accentColor = theme().accentColor.get();
+        double size = thickness * progress;
+
+        // Calculate indicator position and dimensions based on position type
+        double ix = this.x, iy = this.y, iw = this.width, ih = this.height;
+
+        switch (position) {
+            case Left -> iw = size;
+            case Right -> { ix = this.x + this.width - size; iw = size; }
+            case Top -> ih = size;
+            case Bottom -> { iy = this.y + this.height - size; ih = size; }
+        }
+
+        renderer.quad(ix, iy, iw, ih, accentColor);
+    }
+
+    /**
+     * Renders the module animation effect based on the selected animation mode.
+     *
+     * @param renderer The GUI renderer
+     * @param mode The animation mode
+     * @param progress Animation progress (0.0 to 1.0)
+     * @param bgColor The background color for the animation
+     * @param gradientColor The gradient color
+     * @param gradientDir The gradient direction
+     */
+    private void renderAnimation(GuiRenderer renderer, ModuleAnimationMode mode, double progress,
+                                   Color bgColor, Color gradientColor, ModuleGradientDirection gradientDir) {
+        double rx = x, ry = y, rw = width, rh = height;
+        Color renderColor = bgColor;
+
+        switch (mode) {
+            case FADE -> renderColor = new Color(bgColor.r, bgColor.g, bgColor.b, (int) (bgColor.a * progress));
+            case SLIDE_LEFT -> rw = width * progress;
+            case SLIDE_RIGHT -> { rw = width * progress; rx = x + width - rw; }
+            case SLIDE_UP -> rh = height * progress;
+            case SLIDE_DOWN -> { rh = height * progress; ry = y + height - rh; }
+            default -> rw = width * progress;
+        }
+
+        GradientRenderer.render(renderer, rx, ry, rw, rh, gradientColor, renderColor, gradientDir);
     }
 }

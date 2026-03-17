@@ -50,7 +50,8 @@ public class BaseGuiTheme extends GuiTheme {
     private final SettingGroup sgSeparator = settings.createGroup("Separator");
     private final SettingGroup sgScrollbar = settings.createGroup("Scrollbar");
     private final SettingGroup sgSlider = settings.createGroup("Slider");
-    private final SettingGroup sgGuiSettings = settings.createGroup("Gui");
+    private final SettingGroup sgBlur = settings.createGroup("Blur");
+    private final SettingGroup sgModule = settings.createGroup("Module");
     private final SettingGroup sgStarscript = settings.createGroup("Starscript");
 
     // General
@@ -94,7 +95,7 @@ public class BaseGuiTheme extends GuiTheme {
 
     // Gui
 
-    public final Setting<Integer> widgetBlurStrength = sgGuiSettings.add(new IntSetting.Builder()
+    public final Setting<Integer> widgetBlurStrength = sgBlur.add(new IntSetting.Builder()
         .name("gui-blur")
         .description("Blur strength behind gui. Higher values = more blur.")
         .defaultValue(0)
@@ -105,7 +106,7 @@ public class BaseGuiTheme extends GuiTheme {
         .build()
     );
 
-    public final Setting<Double> blurTextureScale = sgGuiSettings.add(new DoubleSetting.Builder()
+    public final Setting<Double> blurTextureScale = sgBlur.add(new DoubleSetting.Builder()
         .name("blur-texture-scale")
         .description("Scale of the blur texture. Lower values = blurrier but faster.")
         .defaultValue(0.25)
@@ -116,8 +117,10 @@ public class BaseGuiTheme extends GuiTheme {
         .build()
     );
 
-    public final Setting<Double> moduleSpacing = sgGuiSettings.add(new DoubleSetting.Builder()
-        .name("module-spacing")
+    // Module
+
+    public final Setting<Double> moduleSpacing = sgModule.add(new DoubleSetting.Builder()
+        .name("spacing")
         .description("Spacing between modules in lists.")
         .defaultValue(0)
         .min(0)
@@ -126,16 +129,39 @@ public class BaseGuiTheme extends GuiTheme {
         .build()
     );
 
-    public final Setting<ModuleAnimationMode> moduleAnimationMode = sgGuiSettings.add(new EnumSetting.Builder<ModuleAnimationMode>()
-        .name("module-animation-mode")
+    public final Setting<ModuleAnimationMode> moduleAnimationMode = sgModule.add(new EnumSetting.Builder<ModuleAnimationMode>()
+        .name("animation-mode")
         .description("Animation style for module hover and active states.")
         .defaultValue(ModuleAnimationMode.SLIDE_LEFT)
         .build()
     );
 
-    public final Setting<Double> moduleFadeInSpeed = sgGuiSettings.add(new DoubleSetting.Builder()
-        .name("module-select-speed")
-        .description("Speed of module fade in animation.")
+    public final Setting<ModuleGradientDirection> moduleGradientDirection = sgModule.add(new EnumSetting.Builder<ModuleGradientDirection>()
+        .name("gradient-direction")
+        .description("Gradient direction for active module background. 'None' uses solid color.")
+        .defaultValue(ModuleGradientDirection.None)
+        .build()
+    );
+
+    public final Setting<ModuleIndicatorPosition> moduleIndicatorPosition = sgModule.add(new EnumSetting.Builder<ModuleIndicatorPosition>()
+        .name("indicator-position")
+        .description("Position of the active module indicator bar. 'None' to disable.")
+        .defaultValue(ModuleIndicatorPosition.Left)
+        .build()
+    );
+
+    public final Setting<Double> moduleIndicatorThickness = sgModule.add(new DoubleSetting.Builder()
+        .name("indicator-thickness")
+        .description("Thickness of the active module indicator bar.")
+        .defaultValue(2)
+        .min(1)
+        .sliderRange(1, 8)
+        .build()
+    );
+
+    public final Setting<Double> moduleSelectSpeed = sgModule.add(new DoubleSetting.Builder()
+        .name("select-speed")
+        .description("Speed of module select animation.")
         .defaultValue(6)
         .min(0)
         .max(32)
@@ -143,15 +169,30 @@ public class BaseGuiTheme extends GuiTheme {
         .build()
     );
 
-    public final Setting<Double> moduleFadeOutSpeed = sgGuiSettings.add(new DoubleSetting.Builder()
-        .name("module-deselect-speed")
-        .description("Speed of module fade out animation.")
+    public final Setting<Double> moduleDeselectSpeed = sgModule.add(new DoubleSetting.Builder()
+        .name("deselect-speed")
+        .description("Speed of module deselect animation.")
         .defaultValue(4)
         .min(0)
         .max(32)
         .sliderRange(0, 32)
         .build()
     );
+
+    public final Setting<Double> moduleOutlineThickness = sgModule.add(new DoubleSetting.Builder()
+            .name("outline-thickness")
+            .description("Thickness of module outlines.")
+            .defaultValue(0)
+            .min(0)
+            .max(5)
+            .sliderRange(0, 5)
+            .build()
+    );
+
+    public final Setting<SettingColor> moduleInactiveColor = color(sgModule, "inactive", "Color of module when inactive.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> moduleHoveredColor = color(sgModule, "hovered", "Color of module when hovered.", new SettingColor(60, 60, 60));
+    public final Setting<SettingColor> moduleActiveColor = color(sgModule, "active", "Color of module when active.", new SettingColor(70, 70, 70));
+    public final Setting<SettingColor> moduleGradientColor = color(sgModule, "gradient", "Color to fade from in gradient animations. 'None' uses inactive color.", new SettingColor(40, 40, 40, 0));
 
     // Colors
 
@@ -181,10 +222,6 @@ public class BaseGuiTheme extends GuiTheme {
             new SettingColor(40, 40, 40, 200)
     );
 
-    public final Setting<SettingColor> moduleInactiveBackground = color(sgBackgroundColors, "module-inactive-background", "Color of module background when inactive.", new SettingColor(40, 40, 40, 0));
-    public final Setting<SettingColor> moduleHoveredBackground = color(sgBackgroundColors, "module-hovered-background", "Color of module background when hovered.", new SettingColor(60, 60, 60));
-    public final Setting<SettingColor> moduleActiveBackground = color(sgBackgroundColors, "module-active-background", "Color of module background when active.", new SettingColor(70, 70, 70));
-
     // Outline
 
     public final ThreeStateColorSetting outlineColor = new ThreeStateColorSetting(
@@ -196,17 +233,6 @@ public class BaseGuiTheme extends GuiTheme {
     );
 
     public final Setting<SettingColor> windowOutlineColor = color(sgOutline, "window-outline", "Color of window outlines.", new SettingColor(145, 61, 226));
-
-
-    public final Setting<Double> moduleOutlineThickness = sgOutline.add(new DoubleSetting.Builder()
-            .name("module-outline-thickness")
-            .description("Thickness of module outlines.")
-            .defaultValue(0)
-            .min(0)
-            .max(5)
-            .sliderRange(0, 5)
-            .build()
-    );
 
     public final Setting<Double> windowOutlineThickness = sgOutline.add(new DoubleSetting.Builder()
             .name("window-outline-thickness")
