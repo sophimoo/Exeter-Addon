@@ -6,6 +6,7 @@ import com.mojang.blaze3d.textures.GpuTextureView;
 import me.sophimoo.exeter.gui.renderer.BlurQuadRequest;
 import me.sophimoo.exeter.gui.renderer.BlurRendererAccess;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
+import meteordevelopment.meteorclient.gui.renderer.packer.GuiTexture;
 import meteordevelopment.meteorclient.gui.renderer.Scissor;
 import meteordevelopment.meteorclient.gui.renderer.operations.TextOperation;
 import meteordevelopment.meteorclient.renderer.Renderer2D;
@@ -134,6 +135,11 @@ public abstract class GuiRendererBlurMixin implements BlurRendererAccess {
 
     @Inject(method = "quad(DDDDLmeteordevelopment/meteorclient/utils/render/color/Color;)V", at = @At("HEAD"))
     private void onQuad(double x, double y, double width, double height, Color color, CallbackInfo ci) {
+        flushBlurredQuads();
+    }
+
+    @Inject(method = "rotatedQuad", at = @At("HEAD"))
+    private void onRotatedQuad(double x, double y, double width, double height, double rotation, GuiTexture texture, Color color, CallbackInfo ci) {
         flushBlurredQuads();
     }
 
