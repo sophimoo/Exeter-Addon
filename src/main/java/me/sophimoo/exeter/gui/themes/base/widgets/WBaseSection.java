@@ -46,6 +46,10 @@ public class WBaseSection extends WSection implements BaseWidget {
     protected class WHeaderTriangle extends WBaseTriangle {
         @Override
         protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
+            // Render a small background behind the triangle when blur is enabled to ensure visibility
+            if (theme().widgetBlurStrength.get() > 0) {
+                renderer.quad(x, y, width, height, theme().backgroundColor.get());
+            }
             renderer.rotatedQuad(x, y, width, height, rotation, GuiRenderer.TRIANGLE, theme().textColor.get());
         }
     }

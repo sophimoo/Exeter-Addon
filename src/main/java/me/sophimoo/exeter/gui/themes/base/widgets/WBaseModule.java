@@ -2,6 +2,7 @@ package me.sophimoo.exeter.gui.themes.base.widgets;
 
 import me.sophimoo.exeter.gui.renderer.GradientRenderer;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
+import me.sophimoo.exeter.gui.themes.base.GradientApplicationMode;
 import me.sophimoo.exeter.gui.themes.base.ModuleAnimationMode;
 import me.sophimoo.exeter.gui.themes.base.ModuleGradientDirection;
 import me.sophimoo.exeter.gui.themes.base.ModuleIndicatorPosition;
@@ -207,18 +208,30 @@ public class WBaseModule extends WPressable implements BaseWidget {
         indicatorProgress += delta * (isActive ? fadeInSpeed : fadeOutSpeed) * (isActive ? 1 : -1);
         indicatorProgress = MathHelper.clamp(indicatorProgress, 0, 1);
 
-        Color bgColor = isActive ? theme().moduleActiveColor.get() : theme().moduleHoveredColor.get();
+        // Get gradient direction setting
+        ModuleGradientDirection gradientDir = theme().moduleGradientDirection.get();
+        Color activeGradientColor = theme().moduleActiveGradientColor.get();
+        Color inactiveGradientColor = theme().moduleInactiveGradientColor.get();
+        GradientApplicationMode applyMode = theme().gradientApplicationMode.get();
 
         // Always draw inactive background first
         renderer.quad(x, y, width, height, theme().moduleInactiveColor.get());
 
-        // Get gradient direction setting
-        ModuleGradientDirection gradientDir = theme().moduleGradientDirection.get();
-        Color gradientColor = theme().moduleGradientColor.get();
+        // Render inactive module gradient (when mode is INACTIVE or BOTH)
+        if (!isActive && applyMode.appliesToInactive() && gradientDir != ModuleGradientDirection.None) {
+            renderAnimation(renderer, ModuleAnimationMode.FADE, 1.0, theme().moduleInactiveColor.get(), inactiveGradientColor, gradientDir);
+        }
 
-        // Apply animation based on selected mode
+        // Render active/hovered animation overlay
         if (animationProgress > 0) {
-            renderAnimation(renderer, effectiveAnimationMode, animationProgress, bgColor, gradientColor, gradientDir);
+            Color bgColor = isActive ? theme().moduleActiveColor.get() : theme().moduleHoveredColor.get();
+            Color gradientColor = isActive ? activeGradientColor : inactiveGradientColor;
+
+            // Determine if gradient should be applied to this state
+            boolean shouldApplyGradient = isActive ? applyMode.appliesToActive() : applyMode.appliesToInactive();
+            ModuleGradientDirection effectiveGradientDir = shouldApplyGradient ? gradientDir : ModuleGradientDirection.None;
+
+            renderAnimation(renderer, effectiveAnimationMode, animationProgress, bgColor, gradientColor, effectiveGradientDir);
         }
 
         double thickness = theme().scale(theme().moduleOutlineThickness.get());
