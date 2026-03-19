@@ -31,15 +31,7 @@ public class WBaseDropdown<T> extends WDropdown<T> implements BaseWidget {
         double w = theme().textWidth(text);
         renderer.text(text, x + pad + maxValueWidth / 2 - w / 2, y + pad, theme().textColor.get(), false);
 
-        double arrowX = x + pad + maxValueWidth + pad;
-        double arrowY = y + pad;
-        
-        // Render a small background behind the arrow when blur is enabled to ensure visibility
-        if (theme().widgetBlurStrength.get() > 0) {
-            renderer.quad(arrowX, arrowY, s, s, theme().backgroundColor.get());
-        }
-        
-        renderer.rotatedQuad(arrowX, arrowY, s, s, 0, GuiRenderer.TRIANGLE, theme().textColor.get());
+        renderer.rotatedQuad(x + pad + maxValueWidth + pad, y + pad, s, s, 0, GuiRenderer.TRIANGLE, theme().textColor.get());
     }
 
     private static class WRoot extends WDropdownRoot implements BaseWidget {
