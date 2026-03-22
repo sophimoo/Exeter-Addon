@@ -24,7 +24,9 @@ import meteordevelopment.meteorclient.gui.widgets.pressable.*;
 import meteordevelopment.meteorclient.renderer.text.TextRenderer;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.accounts.Account;
+import meteordevelopment.meteorclient.systems.modules.Category;
 import meteordevelopment.meteorclient.systems.modules.Module;
+import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 import net.minecraft.client.gui.screen.Screen;
@@ -54,7 +56,9 @@ public class BaseGuiTheme extends GuiTheme {
     private final SettingGroup sgModuleAnimation = settings.createGroup("Module Animation");
     private final SettingGroup sgModuleRender = settings.createGroup("Module Rendering");
     private final SettingGroup sgModuleColor = settings.createGroup("Module Colors");
+    private final SettingGroup sgTextShadow = settings.createGroup("Text Shadow");
     private final SettingGroup sgStarscript = settings.createGroup("Starscript");
+
 
     // General
 
@@ -73,8 +77,23 @@ public class BaseGuiTheme extends GuiTheme {
 
     public final Setting<AlignmentX> moduleAlignment = sgGeneral.add(new EnumSetting.Builder<AlignmentX>()
         .name("module-alignment")
-        .description("How module titles are aligned.")
+        .description("How module titles are aligned horizontally.")
         .defaultValue(AlignmentX.Center)
+        .build()
+    );
+
+    public final Setting<AlignmentY> moduleAlignmentY = sgGeneral.add(new EnumSetting.Builder<AlignmentY>()
+        .name("module-vertical-alignment")
+        .description("How module titles are aligned vertically.")
+        .defaultValue(AlignmentY.Center)
+        .build()
+    );
+
+    public final Setting<AlignmentX> categoryTitleAlignment = sgGeneral.add(new EnumSetting.Builder<AlignmentX>()
+        .name("category-title-alignment")
+        .description("How category window titles are aligned.")
+        .defaultValue(AlignmentX.Center)
+        .onChanged(v -> invalidateCurrentScreen())
         .build()
     );
 
@@ -82,6 +101,24 @@ public class BaseGuiTheme extends GuiTheme {
         .name("category-icons")
         .description("Adds item icons to module categories.")
         .defaultValue(false)
+        .build()
+    );
+
+    public final Setting<Boolean> fixedCategorySize = sgGeneral.add(new BoolSetting.Builder()
+        .name("fixed-category-size")
+        .description("Forces category windows to a fixed width.")
+        .defaultValue(false)
+        .onChanged(v -> invalidateCurrentScreen())
+        .build()
+    );
+
+    public final Setting<Integer> fixedCategoryWidth = sgGeneral.add(new IntSetting.Builder()
+        .name("fixed-category-width")
+        .description("Width used for category windows when fixed sizing is enabled.")
+        .defaultValue(180)
+        .range(1, 400)
+        .sliderRange(1, 400)
+        .onChanged(v -> invalidateCurrentScreen())
         .build()
     );
 
@@ -202,13 +239,31 @@ public class BaseGuiTheme extends GuiTheme {
             .build()
     );
 
-    // Module colors
+    public final Setting<Double> moduleHeight = sgModuleRender.add(new DoubleSetting.Builder()
+            .name("module-height")
+            .description("Height of module buttons.")
+            .defaultValue(0)
+            .min(0)
+            .max(50)
+            .sliderRange(0, 50)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
 
-    public final Setting<SettingColor> moduleHoveredColor = color(sgModuleColor, "module-hovered", "Color of module when hovered.", new SettingColor(60, 60, 60));
+    // Module colors
     public final Setting<SettingColor> moduleInactiveColor = color(sgModuleColor, "module-inactive", "Color of module when inactive.", new SettingColor(40, 40, 40, 0));
-    public final Setting<SettingColor> moduleActiveColor = color(sgModuleColor, "module-active", "Color of module when active.", new SettingColor(70, 70, 70));
     public final Setting<SettingColor> moduleInactiveGradientColor = color(sgModuleColor, "module-inactive-gradient", "Gradient color for inactive modules. 'None' uses inactive color.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> moduleActiveColor = color(sgModuleColor, "module-active", "Color of module when active.", new SettingColor(70, 70, 70));
     public final Setting<SettingColor> moduleActiveGradientColor = color(sgModuleColor, "module-active-gradient", "Gradient color for active modules. 'None' uses inactive color.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> moduleHoveredColor = color(sgModuleColor, "module-hovered", "Color of module when hovered.", new SettingColor(60, 60, 60));
+    public final Setting<SettingColor> moduleHoveredGradientColor = color(sgModuleColor, "module-hovered-gradient", "Gradient color for hovered modules.", new SettingColor(40, 40, 40, 0));
+
+    // Module text colors
+    public final Setting<SettingColor> moduleTextInactiveColor = color(sgModuleColor, "module-text-inactive", "Color of module text when inactive.", new SettingColor(255, 255, 255));
+    public final Setting<SettingColor> moduleTextActiveColor = color(sgModuleColor, "module-text-active", "Color of module text when active.", new SettingColor(255, 255, 255));
+    public final Setting<SettingColor> moduleTextHoveredColor = color(sgModuleColor, "module-text-hovered", "Color of module text when hovered.", new SettingColor(255, 255, 255));
+
+
 
 
 
@@ -229,6 +284,31 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<SettingColor> loggedInColor = color(sgTextColors, "logged-in-text", "Color of logged in account name.", new SettingColor(45, 225, 45));
     public final Setting<SettingColor> placeholderColor = color(sgTextColors, "placeholder", "Color of placeholder text.", new SettingColor(255, 255, 255, 20));
 
+    // Text Shadow
+
+    public final Setting<Boolean> textShadow = sgTextShadow.add(new BoolSetting.Builder()
+        .name("text-shadow")
+        .description("Renders shadow behind text (like Meteor HUD).")
+        .defaultValue(false)
+        .build()
+    );
+
+    public final Setting<Double> textShadowOffset = sgTextShadow.add(new DoubleSetting.Builder()
+        .name("text-shadow-offset")
+        .description("Offset of the text shadow.")
+        .defaultValue(1.0)
+        .min(0.5)
+        .max(3.0)
+        .sliderRange(0.5, 3.0)
+        .build()
+    );
+
+    public final Setting<SettingColor> textShadowColor = sgTextShadow.add(new ColorSetting.Builder()
+        .name("text-shadow-color")
+        .description("Color of the text shadow.")
+        .defaultValue(new SettingColor(60, 60, 60, 180))
+        .build()
+    );
 
     // Background
 
@@ -350,6 +430,10 @@ public class BaseGuiTheme extends GuiTheme {
     }
     private Setting<SettingColor> color(String name, String description, SettingColor color) {
         return color(sgColors, name, description, color);
+    }
+
+    private void invalidateCurrentScreen() {
+        if (mc.currentScreen instanceof WidgetScreen screen) screen.invalidate();
     }
 
     // Widgets
@@ -592,6 +676,22 @@ public class BaseGuiTheme extends GuiTheme {
     public void clearLastHoveredPosition() {
         this.lastHoveredX = -1;
         this.lastHoveredY = -1;
+    }
+
+    public boolean shouldUseFixedCategoryWidth(String windowId) {
+        if (!fixedCategorySize.get()) return false;
+        if (windowId == null || windowId.isEmpty()) return false;
+        if ("search".equals(windowId) || "favorites".equals(windowId)) return false;
+
+        for (Category category : Modules.loopCategories()) {
+            if (category.name.equals(windowId)) return true;
+        }
+
+        return false;
+    }
+
+    public double scaledFixedCategoryWidth() {
+        return Math.round(scale(fixedCategoryWidth.get()));
     }
 
     public class ThreeStateColorSetting {

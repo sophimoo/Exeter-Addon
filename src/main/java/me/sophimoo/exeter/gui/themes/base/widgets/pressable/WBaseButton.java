@@ -17,7 +17,7 @@ public class WBaseButton extends WButton implements BaseWidget {
         renderBackground(renderer, this, pressed, mouseOver);
 
         if (text != null) {
-            renderer.text(text, x + width / 2 - textWidth / 2, y + pad, theme().textColor.get(), false);
+            renderText(renderer, text, x + width / 2 - textWidth / 2, y + pad, theme().textColor.get());
         }
         else {
             double ts = theme().textHeight();

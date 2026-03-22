@@ -1,9 +1,10 @@
 package me.sophimoo.exeter.gui.themes.base.widgets;
 
-import me.sophimoo.exeter.gui.renderer.BlurRendererAccess;
-import me.sophimoo.exeter.gui.renderer.WorldFramebufferCapture;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
+import meteordevelopment.meteorclient.gui.utils.Cell;
+import meteordevelopment.meteorclient.gui.utils.AlignmentX;
+import meteordevelopment.meteorclient.gui.widgets.WLabel;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WWindow;
 import meteordevelopment.meteorclient.utils.render.color.Color;
@@ -19,6 +20,15 @@ public class WBaseWindow extends WWindow implements BaseWidget {
     }
 
     @Override
+    public void calculateSize() {
+        super.calculateSize();
+
+        if (theme().shouldUseFixedCategoryWidth(id)) {
+            width = theme().scaledFixedCategoryWidth();
+        }
+    }
+
+    @Override
     public boolean render(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
         if (padding == 0) {
             padding = theme.scale(theme().windowOutlineThickness.get());
@@ -30,16 +40,7 @@ public class WBaseWindow extends WWindow implements BaseWidget {
         if (scissor) renderer.scissorStart(x, y, width, (height - header.height) * animProgress + header.height);
 
         if (expanded || animProgress > 0) {
-            if (theme().widgetBlurStrength.get() > 0 && WorldFramebufferCapture.getInstance() != null) {
-                ((BlurRendererAccess) renderer).blurredQuad(
-                    x, y + header.height,
-                    width, height - header.height,
-                    WorldFramebufferCapture.getInstance().getBlurredTexture(),
-                    theme().backgroundColor.get()
-                );
-            } else {
-                renderer.quad(x, y + header.height, width, height - header.height, theme().backgroundColor.get());
-            }
+            renderQuadWithOptionalBlur(renderer, x, y + header.height, width, height - header.height, theme().backgroundColor.get());
         }
 
         super.render(renderer, mouseX, mouseY, delta);
@@ -53,13 +54,7 @@ public class WBaseWindow extends WWindow implements BaseWidget {
                 double contentHeight = (height - header.height) * animProgress;
                 Color outlineColor = theme().windowOutlineColor.get();
 
-                renderer.quad(x, contentY, width, thickness, outlineColor);
-
-                if (animProgress > 0) {
-                    renderer.quad(x, contentY + contentHeight - thickness, width, thickness, outlineColor);
-                    renderer.quad(x, contentY + thickness, thickness, contentHeight - 2 * thickness, outlineColor);
-                    renderer.quad(x + width - thickness, contentY + thickness, thickness, contentHeight - 2 * thickness, outlineColor);
-                }
+                if (animProgress > 0) renderOutline(renderer, x, contentY, width, contentHeight, thickness, outlineColor);
             }
         }
 
@@ -72,18 +67,43 @@ public class WBaseWindow extends WWindow implements BaseWidget {
         }
 
         @Override
-        protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-            // Apply blur behind the header if enabled
-            if (theme().widgetBlurStrength.get() > 0 && WorldFramebufferCapture.getInstance() != null) {
-                ((BlurRendererAccess) renderer).blurredQuad(
-                    x, y,
-                    width, height,
-                    WorldFramebufferCapture.getInstance().getBlurredTexture(),
-                    theme().accentColor.get()
-                );
-            } else {
-                renderer.quad(this, theme().accentColor.get());
+        public void init() {
+            super.init();
+
+            Cell<?> titleCell = getTitleLabelCell();
+            if (titleCell == null) return;
+
+            AlignmentX alignment = theme().categoryTitleAlignment.get();
+            if (alignment == AlignmentX.Center) {
+                titleCell.center();
+            } else if (alignment == AlignmentX.Right) {
+                titleCell.right().centerY();
             }
+        }
+
+        @Override
+        protected void onCalculateWidgetPositions() {
+            super.onCalculateWidgetPositions();
+
+            if (theme().categoryTitleAlignment.get() == AlignmentX.Left) {
+                Cell<?> titleCell = getTitleLabelCell();
+                if (titleCell != null && titleCell.widget() instanceof WLabel label) {
+                    label.x = titleCell.x + titleCell.padLeft();
+                }
+            }
+        }
+
+        private Cell<?> getTitleLabelCell() {
+            for (Cell<?> cell : cells) {
+                if (cell.widget() instanceof WLabel) return cell;
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
+            renderQuadWithOptionalBlur(renderer, x, y, width, height, theme().accentColor.get());
         }
     }
 }

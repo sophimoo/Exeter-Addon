@@ -5,6 +5,7 @@ import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.GradientApplicationMode;
 import me.sophimoo.exeter.gui.themes.base.ModuleAnimationMode;
 import me.sophimoo.exeter.gui.themes.base.ModuleGradientDirection;
+import me.sophimoo.exeter.gui.themes.base.AlignmentY;
 import me.sophimoo.exeter.gui.themes.base.ModuleIndicatorPosition;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
@@ -18,6 +19,9 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 
 public class WBaseModule extends WPressable implements BaseWidget {
+    private static final double MARQUEE_SPEED = 35;
+    private static final double MARQUEE_EDGE_PAUSE = 0.4;
+
     private final Module module;
     private final String title;
 
@@ -25,6 +29,9 @@ public class WBaseModule extends WPressable implements BaseWidget {
 
     private double animationProgress;
     private double indicatorProgress;
+    private double marqueeOffset;
+    private int marqueeDirection = 1;
+    private double marqueePause;
 
     // Smart slide tracking
     private boolean wasHovered = false;
@@ -70,11 +77,7 @@ public class WBaseModule extends WPressable implements BaseWidget {
         double deltaX = centerX - lastX;
         double deltaY = centerY - lastY;
         
-        // Minimum threshold to consider vertical movement (prevents jitter from causing horizontal slides)
-        double minVerticalThreshold = height;
-        
         // Only trigger horizontal if it's truly dominant (4x+ stronger than vertical)
-        boolean isVerticalSignificant = Math.abs(deltaY) >= minVerticalThreshold;
         boolean isHorizontalDominant = Math.abs(deltaX) > Math.abs(deltaY);
         
         // Only use horizontal if it's dominant, otherwise default to vertical
@@ -103,11 +106,7 @@ public class WBaseModule extends WPressable implements BaseWidget {
         double deltaX = mouseX - centerX;
         double deltaY = mouseY - centerY;
         
-        // Minimum threshold to consider vertical movement
-        double minVerticalThreshold = height * 0.3;
-        
         // Only trigger horizontal if it's truly dominant (12x+ stronger than vertical)
-        boolean isVerticalSignificant = Math.abs(deltaY) >= minVerticalThreshold;
         boolean isHorizontalDominant = Math.abs(deltaX) > Math.abs(deltaY) * 12.0;
         
         // Only use horizontal if it's dominant, otherwise default to vertical
@@ -120,27 +119,22 @@ public class WBaseModule extends WPressable implements BaseWidget {
         }
     }
 
-    /**
-     * Returns the inverse/opposite direction for slide-out animations.
-     */
-    private ModuleAnimationMode getInverseDirection(ModuleAnimationMode direction) {
-        return switch (direction) {
-            case SLIDE_LEFT -> ModuleAnimationMode.SLIDE_RIGHT;
-            case SLIDE_RIGHT -> ModuleAnimationMode.SLIDE_LEFT;
-            case SLIDE_UP -> ModuleAnimationMode.SLIDE_DOWN;
-            case SLIDE_DOWN -> ModuleAnimationMode.SLIDE_UP;
-            default -> direction;
-        };
-    }
-
     @Override
     protected void onCalculateSize() {
         double pad = pad();
 
         if (titleWidth == 0) titleWidth = theme().textWidth(title);
 
-        width = pad + titleWidth + pad;
-        height = pad + theme().textHeight() + pad;
+        if (theme().fixedCategorySize.get()) width = pad + pad;
+        else width = pad + titleWidth + pad;
+
+        // Apply custom module height if set, otherwise use default
+        double customHeight = theme().moduleHeight.get();
+        if (customHeight > 0) {
+            height = theme().scale(customHeight);
+        } else {
+            height = pad + theme().textHeight() + pad;
+        }
     }
 
     @Override
@@ -225,7 +219,7 @@ public class WBaseModule extends WPressable implements BaseWidget {
         // Render active/hovered animation overlay
         if (animationProgress > 0) {
             Color bgColor = isActive ? theme().moduleActiveColor.get() : theme().moduleHoveredColor.get();
-            Color gradientColor = isActive ? activeGradientColor : inactiveGradientColor;
+            Color gradientColor = isActive ? activeGradientColor : theme().moduleHoveredGradientColor.get();
 
             // Determine if gradient should be applied to this state
             boolean shouldApplyGradient = isActive ? applyMode.appliesToActive() : applyMode.appliesToInactive();
@@ -248,17 +242,83 @@ public class WBaseModule extends WPressable implements BaseWidget {
             renderIndicator(renderer, indicatorProgress);
         }
 
-        double x = this.x + pad;
-        double w = width - pad * 2;
-
-        if (theme().moduleAlignment.get() == AlignmentX.Center) {
-            x += w / 2 - titleWidth / 2;
+        // Determine text color based on module state
+        Color textColor;
+        if (module.isActive()) {
+            textColor = theme().moduleTextActiveColor.get();
+        } else if (mouseOver) {
+            textColor = theme().moduleTextHoveredColor.get();
+        } else {
+            textColor = theme().moduleTextInactiveColor.get();
         }
-        else if (theme().moduleAlignment.get() == AlignmentX.Right) {
-            x += w - titleWidth;
+
+        // Calculate vertical text position based on alignment
+        double textY;
+        double textHeight = theme().textHeight();
+        double availableHeight = height - pad * 2;
+        AlignmentY vAlign = theme().moduleAlignmentY.get();
+        if (vAlign == AlignmentY.Top) {
+            textY = y + pad;
+        } else if (vAlign == AlignmentY.Bottom) {
+            textY = y + pad + availableHeight - textHeight;
+        } else {
+            // Center
+            textY = y + pad + (availableHeight - textHeight) / 2;
         }
 
-        renderer.text(title, x, y + pad, theme().textColor.get(), false);
+        double textAreaX = this.x + pad;
+        double textAreaW = Math.max(0, width - pad * 2);
+        double overflow = Math.max(0, titleWidth - textAreaW);
+
+        double textX;
+        boolean needsMarquee = overflow > 0 && theme().fixedCategorySize.get();
+
+        if (needsMarquee) {
+            if (mouseOver) {
+                if (marqueePause > 0) marqueePause = Math.max(0, marqueePause - delta);
+                else {
+                    marqueeOffset += marqueeDirection * delta * MARQUEE_SPEED;
+
+                    if (marqueeOffset >= overflow) {
+                        marqueeOffset = overflow;
+                        marqueeDirection = -1;
+                        marqueePause = MARQUEE_EDGE_PAUSE;
+                    } else if (marqueeOffset <= 0) {
+                        marqueeOffset = 0;
+                        marqueeDirection = 1;
+                        marqueePause = MARQUEE_EDGE_PAUSE;
+                    }
+                }
+            } else {
+                if (marqueeOffset > 0) {
+                    marqueeOffset = Math.max(0, marqueeOffset - delta * MARQUEE_SPEED * 2);
+                    if (marqueeOffset <= 0) {
+                        marqueeOffset = 0;
+                        marqueeDirection = 1;
+                        marqueePause = 0;
+                    }
+                }
+            }
+
+            textX = textAreaX - marqueeOffset;
+            renderer.scissorStart(textAreaX, this.y, textAreaW, height);
+            renderText(renderer, title, textX, textY, textColor);
+            renderer.scissorEnd();
+        } else {
+            marqueeOffset = 0;
+            marqueeDirection = 1;
+            marqueePause = 0;
+
+            textX = textAreaX;
+            if (theme().moduleAlignment.get() == AlignmentX.Center) {
+                textX += textAreaW / 2 - titleWidth / 2;
+            }
+            else if (theme().moduleAlignment.get() == AlignmentX.Right) {
+                textX += textAreaW - titleWidth;
+            }
+
+            renderText(renderer, title, textX, textY, textColor);
+        }
     }
 
     /**

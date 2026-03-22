@@ -29,7 +29,7 @@ public class WBaseDropdown<T> extends WDropdown<T> implements BaseWidget {
 
         String text = get().toString();
         double w = theme().textWidth(text);
-        renderer.text(text, x + pad + maxValueWidth / 2 - w / 2, y + pad, theme().textColor.get(), false);
+        renderText(renderer, text, x + pad + maxValueWidth / 2 - w / 2, y + pad, theme().textColor.get());
 
         renderer.rotatedQuad(x + pad + maxValueWidth + pad, y + pad, s, s, 0, GuiRenderer.TRIANGLE, theme().textColor.get());
     }
@@ -67,7 +67,7 @@ public class WBaseDropdown<T> extends WDropdown<T> implements BaseWidget {
             color.a = preA;
 
             String text = value.toString();
-            renderer.text(text, x + width / 2 - theme().textWidth(text) / 2, y + pad(), theme().textColor.get(), false);
+            renderText(renderer, text, x + width / 2 - theme().textWidth(text) / 2, y + pad(), theme().textColor.get());
         }
     }
 }

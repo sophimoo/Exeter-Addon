@@ -64,7 +64,8 @@ public class WBaseMultiLabel extends WMultiLabel implements BaseWidget {
         double h = theme.textHeight(title);
         Color defaultColor = theme().textColor.get();
         for (int i = 0; i < lines.size(); i++) {
-            renderer.text(lines.get(i), x, y + h * i, color != null ? color : defaultColor, false);
+            Color lineColor = color != null ? color : defaultColor;
+            renderText(renderer, lines.get(i), x, y + h * i, lineColor);
         }
     }
 }

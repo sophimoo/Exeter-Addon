@@ -28,7 +28,7 @@ public class WBaseHorizontalSeparator extends WHorizontalSeparator implements Ba
             renderer.quad(x, y + halfHeight - s / 2, leftWidth, s, theme().separatorEdges.get());
             renderer.quad(x + width - rightWidth, y + halfHeight - s / 2, rightWidth, s, theme().separatorEdges.get());
 
-            renderer.text(text, x + width / 2 - textWidth / 2, textY, theme().separatorText.get(), false);
+            renderText(renderer, text, x + width / 2 - textWidth / 2, textY, theme().separatorText.get());
         }
     }
 }
