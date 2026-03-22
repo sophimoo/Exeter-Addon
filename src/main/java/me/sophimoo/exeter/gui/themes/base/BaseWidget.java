@@ -59,7 +59,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
             Color shadowColor = theme().textShadowColor.get();
             int shadowAlpha = (int) ((color.a / 255.0) * shadowColor.a);
             Color adjustedShadowColor = new Color(shadowColor.r, shadowColor.g, shadowColor.b, shadowAlpha);
-            double offset = theme().textShadowOffset.get();
+            double offset = theme().scale(theme().textShadowOffset.get());
             renderer.text(text, x + offset, y + offset, adjustedShadowColor, false);
         }
 
