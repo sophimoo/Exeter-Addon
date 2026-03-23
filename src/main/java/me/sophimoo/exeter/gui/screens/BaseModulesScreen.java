@@ -76,6 +76,7 @@ public class BaseModulesScreen extends TabScreen {
     protected void init() {
         super.init();
         controller.refresh();
+        invalidate();
     }
 
     private double spacing() {
@@ -141,8 +142,12 @@ public class BaseModulesScreen extends TabScreen {
         int max = Config.get().moduleSearchCount.get();
 
         for (int i = 0; i < Math.min(items.size(), max); i++) {
-            Module m = toModule.apply(items.get(i));
-            String highlight = items.get(i) instanceof Pair ? ((Pair<Module, String>) items.get(i)).getRight() : null;
+            T item = items.get(i);
+            Module m = toModule.apply(item);
+            String highlight = null;
+            if (item instanceof Pair<?, ?> pair && pair.getRight() instanceof String right) {
+                highlight = right;
+            }
             var cell = container.add(highlight != null ? theme.module(m, highlight) : theme.module(m)).expandX();
             if (i == 0) cell.padTop(scaled);
             if (i == Math.min(items.size(), max) - 1) cell.padBottom(scaled);

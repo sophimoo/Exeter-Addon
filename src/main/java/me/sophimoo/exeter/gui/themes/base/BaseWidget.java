@@ -21,29 +21,48 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
         double innerWidth = widget.width - s * 2;
         double innerHeight = widget.height - s * 2;
 
-        if (theme.widgetBlurStrength.get() > 0) {
-            WorldFramebufferCapture capture = WorldFramebufferCapture.getInstance();
-            GpuTextureView blurTexture = capture != null ? capture.getBlurredTexture() : null;
-
-            if (blurTexture != null) {
-                ((BlurRendererAccess) renderer).blurredQuad(innerX, innerY, innerWidth, innerHeight, blurTexture, backgroundColor);
-            } else {
-                renderer.quad(innerX, innerY, innerWidth, innerHeight, backgroundColor);
-            }
-        } else {
-            renderer.quad(innerX, innerY, innerWidth, innerHeight, backgroundColor);
-        }
+        renderQuadWithOptionalBlur(renderer, innerX, innerY, innerWidth, innerHeight, backgroundColor);
 
         if (outlineColor != null) {
-            renderer.quad(widget.x, widget.y, widget.width, s, outlineColor);
-            renderer.quad(widget.x, widget.y + widget.height - s, widget.width, s, outlineColor);
-            renderer.quad(widget.x, widget.y + s, s, widget.height - s * 2, outlineColor);
-            renderer.quad(widget.x + widget.width - s, widget.y + s, s, widget.height - s * 2, outlineColor);
+            renderOutline(renderer, widget.x, widget.y, widget.width, widget.height, s, outlineColor);
         }
     }
 
     default void renderBackground(GuiRenderer renderer, WWidget widget, boolean pressed, boolean mouseOver) {
         BaseGuiTheme theme = theme();
         renderBackground(renderer, widget, theme.outlineColor.get(pressed, mouseOver), theme.backgroundColor.get(pressed, mouseOver));
+    }
+
+    default void renderQuadWithOptionalBlur(GuiRenderer renderer, double x, double y, double width, double height, Color color) {
+        if (theme().widgetBlurStrength.get() > 0) {
+            WorldFramebufferCapture capture = WorldFramebufferCapture.getInstance();
+            GpuTextureView blurTexture = capture != null ? capture.getBlurredTexture() : null;
+
+            if (blurTexture != null) {
+                ((BlurRendererAccess) renderer).blurredQuad(x, y, width, height, blurTexture, color);
+                return;
+            }
+        }
+
+        renderer.quad(x, y, width, height, color);
+    }
+
+    default void renderOutline(GuiRenderer renderer, double x, double y, double width, double height, double thickness, Color color) {
+        renderer.quad(x, y, width, thickness, color);
+        renderer.quad(x, y + height - thickness, width, thickness, color);
+        renderer.quad(x, y + thickness, thickness, height - 2 * thickness, color);
+        renderer.quad(x + width - thickness, y + thickness, thickness, height - 2 * thickness, color);
+    }
+
+    default void renderText(GuiRenderer renderer, String text, double x, double y, Color color) {
+        if (theme().textShadow.get()) {
+            Color shadowColor = theme().textShadowColor.get();
+            int shadowAlpha = (int) ((color.a / 255.0) * shadowColor.a);
+            Color adjustedShadowColor = new Color(shadowColor.r, shadowColor.g, shadowColor.b, shadowAlpha);
+            double offset = theme().scale(theme().textShadowOffset.get());
+            renderer.text(text, x + offset, y + offset, adjustedShadowColor, false);
+        }
+
+        renderer.text(text, x, y, color, false);
     }
 }

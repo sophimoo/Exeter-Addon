@@ -38,6 +38,8 @@ public class WorldFramebufferCapture {
     private float blurOffset;
     private boolean initialized = false;
     private boolean capturedThisTick = false;
+    private boolean hudBlurRequested = false;
+    private boolean blurAppliedThisTick = false;
     private float previousOffset = -1;
 
     private ConsumerListener<RenderAfterWorldEvent> renderListener;
@@ -125,26 +127,33 @@ public class WorldFramebufferCapture {
     }
 
     private void onRenderAfterWorld(RenderAfterWorldEvent event) {
-        if (!(mc.currentScreen instanceof WidgetScreen)) {
-            return;
-        }
-
         ensureInitialized();
         if (!initialized) return;
 
-        if (blurIterations > 0) {
+        boolean needsBlur = hudBlurRequested || (mc.currentScreen instanceof WidgetScreen);
+        hudBlurRequested = false; // consume — next frame's HUD must re-request if still needed
+
+        if (blurIterations > 0 && needsBlur) {
             applyBlur();
+            blurAppliedThisTick = true;
+        } else {
+            blurAppliedThisTick = false;
         }
 
-        capturedThisTick = true;
+        if (mc.currentScreen instanceof WidgetScreen) {
+            capturedThisTick = true;
+        }
     }
 
     private void onTickPost(TickEvent.Post event) {
         capturedThisTick = false;
+        blurAppliedThisTick = false;
     }
 
     private void onGameLeft(GameLeftEvent event) {
         capturedThisTick = false;
+        blurAppliedThisTick = false;
+        hudBlurRequested = false;
     }
 
     private void onResolutionChanged(ResolutionChangedEvent event) {
@@ -253,6 +262,30 @@ public class WorldFramebufferCapture {
             return blurFbos[0];
         }
         return null;
+    }
+
+    /**
+     * Gets the blurred world texture for HUD rendering.
+     * Unlike {@link #getBlurredTexture()}, this does not require a WidgetScreen to be open.
+     * Returns null if blur was not requested or did not run this frame.
+     */
+    public GpuTextureView getBlurredTextureForHud() {
+        if (!initialized) return null;
+        if (!blurAppliedThisTick) return null;
+
+        if (blurFbos != null && blurFbos.length > 0 && blurFbos[0] != null) {
+            return blurFbos[0];
+        }
+        return null;
+    }
+
+    /**
+     * Signals that a HUD element needs the blur texture this frame.
+     * Must be called before {@link RenderAfterWorldEvent} fires (e.g. during the HUD render pass pre-tick).
+     * Has no effect if blur iterations are zero.
+     */
+    public void requestHudBlur() {
+        hudBlurRequested = true;
     }
 
     /**

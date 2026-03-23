@@ -24,7 +24,7 @@ public class WBaseConfirmedButton extends WConfirmedButton implements BaseWidget
         String text = getText();
 
         if (text != null) {
-            renderer.text(text, x + width / 2 - textWidth / 2, y + pad, fg, false);
+            renderText(renderer, text, x + width / 2 - textWidth / 2, y + pad, fg);
         }
         else {
             double ts = theme().textHeight();
