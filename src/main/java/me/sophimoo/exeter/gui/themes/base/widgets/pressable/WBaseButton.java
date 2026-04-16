@@ -1,6 +1,7 @@
 package me.sophimoo.exeter.gui.themes.base.widgets.pressable;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
+import me.sophimoo.exeter.gui.themes.base.WidgetSizeDebug;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.renderer.packer.GuiTexture;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WButton;
@@ -14,14 +15,16 @@ public class WBaseButton extends WButton implements BaseWidget {
     protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
         double pad = pad();
 
-        renderBackground(renderer, this, pressed, mouseOver);
+        WidgetSizeDebug.log(
+            theme(),
+            this,
+            "Button",
+            width,
+            height,
+            "pad=" + String.format(java.util.Locale.US, "%.2f", pad)
+        );
 
-        if (text != null) {
-            renderText(renderer, text, x + width / 2 - textWidth / 2, y + pad, theme().textColor.get());
-        }
-        else {
-            double ts = theme().textHeight();
-            renderer.quad(x + width / 2 - ts / 2, y + pad, ts, ts, texture, theme().textColor.get());
-        }
+        renderBackground(renderer, this, pressed, mouseOver);
+        renderCenteredTextOrTexture(renderer, text, textWidth, texture, x, y, width, pad, theme().textColor.get());
     }
 }

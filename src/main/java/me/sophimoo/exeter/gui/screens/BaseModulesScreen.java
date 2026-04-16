@@ -32,6 +32,8 @@ import static meteordevelopment.meteorclient.utils.Utils.getWindowWidth;
 public class BaseModulesScreen extends TabScreen {
     private final BaseGuiTheme theme;
     private WCategoryController controller;
+    private final List<WBaseModule> expandedModules = new ArrayList<>();
+    private boolean expandedModulesDirty;
 
     public BaseModulesScreen(GuiTheme theme) {
         super(theme, Tabs.get().getFirst());
@@ -50,16 +52,34 @@ public class BaseModulesScreen extends TabScreen {
     @Override
     public void tick() {
         super.tick();
-        tickModuleSettings(controller);
+        if (expandedModulesDirty) {
+            refreshExpandedModules();
+            expandedModulesDirty = false;
+        }
+
+        for (WBaseModule module : expandedModules) {
+            module.tickSettings();
+        }
     }
 
-    private void tickModuleSettings(WContainer container) {
+    public void requestExpandedModulesRefresh() {
+        expandedModulesDirty = true;
+    }
+
+    private void refreshExpandedModules() {
+        if (controller == null) return;
+        expandedModules.clear();
+        collectExpandedModules(controller, expandedModules);
+    }
+
+    private void collectExpandedModules(WContainer container, List<WBaseModule> out) {
+        if (container == null) return;
         for (Cell<?> cell : container.cells) {
             WWidget widget = cell.widget();
             if (widget instanceof WBaseModule module) {
-                module.tickSettings();
+                if (module.isSettingsExpanded()) out.add(module);
             } else if (widget instanceof WContainer nested) {
-                tickModuleSettings(nested);
+                collectExpandedModules(nested, out);
             }
         }
     }
@@ -76,6 +96,8 @@ public class BaseModulesScreen extends TabScreen {
     protected void init() {
         super.init();
         controller.refresh();
+        refreshExpandedModules();
+        expandedModulesDirty = false;
         invalidate();
     }
 
@@ -87,12 +109,13 @@ public class BaseModulesScreen extends TabScreen {
         double s = spacing();
         double outline = theme.scale(theme.windowOutlineThickness.get());
         double scaled = s + outline / theme.scale(1);
+        double edgePadding = Math.max(scaled, 1);
 
         for (int i = 0; i < modules.size(); i++) {
             var cell = container.add(theme.module(modules.get(i))).expandX();
             cell.padLeft(scaled).padRight(scaled);
-            if (i == 0) cell.padTop(scaled);
-            if (i == modules.size() - 1) cell.padBottom(scaled);
+            if (i == 0) cell.padTop(edgePadding);
+            if (i == modules.size() - 1) cell.padBottom(edgePadding);
         }
     }
 
@@ -139,6 +162,7 @@ public class BaseModulesScreen extends TabScreen {
         double s = spacing();
         double outline = theme.scale(theme.windowOutlineThickness.get());
         double scaled = s + outline / theme.scale(1);
+        double edgePadding = Math.max(scaled, 1);
         int max = Config.get().moduleSearchCount.get();
 
         for (int i = 0; i < Math.min(items.size(), max); i++) {
@@ -149,8 +173,8 @@ public class BaseModulesScreen extends TabScreen {
                 highlight = right;
             }
             var cell = container.add(highlight != null ? theme.module(m, highlight) : theme.module(m)).expandX();
-            if (i == 0) cell.padTop(scaled);
-            if (i == Math.min(items.size(), max) - 1) cell.padBottom(scaled);
+            if (i == 0) cell.padTop(edgePadding);
+            if (i == Math.min(items.size(), max) - 1) cell.padBottom(edgePadding);
         }
     }
 
@@ -187,7 +211,6 @@ public class BaseModulesScreen extends TabScreen {
 
         WVerticalList l = theme.verticalList();
         WTextBox text = w.add(theme.textBox("")).minWidth(140).expandX().widget();
-        text.setFocused(true);
         text.action = () -> {
             l.clear();
             createSearchW(l, text.get());
@@ -235,6 +258,11 @@ public class BaseModulesScreen extends TabScreen {
     }
 
     @Override
+    public boolean shouldCloseOnEsc() {
+        return !Modules.get().isBinding();
+    }
+
+    @Override
     public void reload() {}
 
     protected class WCategoryController extends WContainer {
@@ -270,6 +298,8 @@ public class BaseModulesScreen extends TabScreen {
                     windows.add(favoritesCell.widget());
                 }
             }
+
+            BaseModulesScreen.this.requestExpandedModulesRefresh();
         }
 
         @Override

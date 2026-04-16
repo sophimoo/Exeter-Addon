@@ -16,19 +16,11 @@ public class WBaseConfirmedButton extends WConfirmedButton implements BaseWidget
         double pad = pad();
 
         Color outline = theme().outlineColor.get(pressed, mouseOver);
-        Color fg = pressedOnce ? theme().backgroundColor.get(pressed, mouseOver) : theme().textColor.get();
-        Color bg = pressedOnce ? theme().textColor.get() : theme().backgroundColor.get(pressed, mouseOver);
+        ConfirmColors colors = confirmedColors(theme().textColor.get(), pressed, mouseOver, pressedOnce);
 
-        renderBackground(renderer, this, outline, bg);
+        renderBackground(renderer, this, outline, colors.bg());
 
         String text = getText();
-
-        if (text != null) {
-            renderText(renderer, text, x + width / 2 - textWidth / 2, y + pad, fg);
-        }
-        else {
-            double ts = theme().textHeight();
-            renderer.quad(x + width / 2 - ts / 2, y + pad, ts, ts, texture, fg);
-        }
+        renderCenteredTextOrTexture(renderer, text, textWidth, texture, x, y, width, pad, colors.fg());
     }
 }

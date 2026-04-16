@@ -1,19 +1,23 @@
 package me.sophimoo.exeter.gui.themes.base.widgets.input;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
-import me.sophimoo.exeter.gui.themes.base.widgets.WBaseLabel;
-import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
-import meteordevelopment.meteorclient.gui.utils.CharFilter;
-import meteordevelopment.meteorclient.gui.widgets.WWidget;
-import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
-import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
-import meteordevelopment.meteorclient.gui.widgets.input.WTextBox;
-import meteordevelopment.meteorclient.utils.render.color.Color;
-import net.minecraft.util.math.MathHelper;
+ import me.sophimoo.exeter.gui.themes.base.widgets.WBaseLabel;
+ import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
+ import meteordevelopment.meteorclient.gui.utils.CharFilter;
+ import meteordevelopment.meteorclient.gui.widgets.WWidget;
+ import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
+ import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
+ import meteordevelopment.meteorclient.gui.widgets.input.WTextBox;
+ import meteordevelopment.meteorclient.utils.render.color.Color;
+ import net.minecraft.client.gui.Click;
+ import net.minecraft.util.math.MathHelper;
+ 
+ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 
 public class WBaseTextBox extends WTextBox implements BaseWidget {
     private boolean cursorVisible;
     private double cursorTimer;
+    private boolean textAnchorBottomLeft;
 
     private double animProgress;
 
@@ -21,8 +25,22 @@ public class WBaseTextBox extends WTextBox implements BaseWidget {
         super(text, placeholder, filter, renderer);
     }
 
-    @Override
-    protected WContainer createCompletionsRootWidget() {
+    public void setTextAnchorBottomLeft(boolean textAnchorBottomLeft) {
+         this.textAnchorBottomLeft = textAnchorBottomLeft;
+     }
+ 
+     @Override
+     public boolean onMouseClicked(Click click, boolean doubled) {
+         if (mouseOver && click.button() == GLFW_MOUSE_BUTTON_RIGHT) {
+             // Focus without clearing text (unlike base WTextBox)
+             setFocused(true);
+             return true;
+         }
+         return super.onMouseClicked(click, doubled);
+     }
+ 
+     @Override
+     protected WContainer createCompletionsRootWidget() {
         return new WVerticalList() {
             @Override
             protected void onRender(GuiRenderer renderer1, double mouseX, double mouseY, double delta) {
@@ -101,24 +119,29 @@ public class WBaseTextBox extends WTextBox implements BaseWidget {
         renderBackground(renderer, this, false, false);
 
         double pad = pad();
-        double overflowWidth = getOverflowWidthForRender();
+        double textY = textAnchorBottomLeft ? y + height - pad - theme().textHeight() : y + pad;
 
         renderer.scissorStart(x + pad, y + pad, width - pad * 2, height - pad * 2);
 
+        // Calculate text X position (center if fits, left align if overflows)
+        double textX = x + pad - getOverflowWidthForRender();
+
         // Text content
         if (!text.isEmpty()) {
-            this.renderer.render(renderer, x + pad - overflowWidth, y + pad, text, theme().textColor.get());
+            this.renderer.render(renderer, textX, textY, text, theme().textColor.get());
         }
         else if (placeholder != null) {
-            this.renderer.render(renderer, x + pad - overflowWidth, y + pad, placeholder, theme().placeholderColor.get());
+            double placeholderWidth = theme().textWidth(placeholder);
+            double placeholderX = placeholderWidth > width - pad * 2 ? x + pad : x + (width - placeholderWidth) / 2;
+            this.renderer.render(renderer, placeholderX, textY, placeholder, theme().placeholderColor.get());
         }
 
         // Text highlighting
         if (focused && (cursor != selectionStart || cursor != selectionEnd)) {
-            double selStart = x + pad + getTextWidth(selectionStart) - overflowWidth;
-            double selEnd = x + pad + getTextWidth(selectionEnd) - overflowWidth;
+            double selStart = textX + getTextWidth(selectionStart);
+            double selEnd = textX + getTextWidth(selectionEnd);
 
-            renderer.quad(selStart, y + pad, selEnd - selStart, theme().textHeight(), theme().textHighlightColor.get());
+            renderer.quad(selStart, textY, selEnd - selStart, theme().textHeight(), theme().textHighlightColor.get());
         }
 
         // Cursor
@@ -127,10 +150,20 @@ public class WBaseTextBox extends WTextBox implements BaseWidget {
 
         if ((focused && cursorVisible) || animProgress > 0) {
             renderer.setAlpha(animProgress);
-            renderer.quad(x + pad + getTextWidth(cursor) - overflowWidth, y + pad, theme().scale(1), theme().textHeight(), theme().textColor.get());
+            renderer.quad(textX + getTextWidth(cursor), textY, theme().scale(1), theme().textHeight(), theme().textColor.get());
             renderer.setAlpha(1);
         }
 
         renderer.scissorEnd();
+    }
+
+    @Override
+    protected double getOverflowWidthForRender() {
+        double textWidth = getTextWidth(text.length());
+        double maxTextWidth = width - pad() * 2;
+        if (textWidth > maxTextWidth) return textStart;
+
+        double centeredTextX = x + (width - textWidth) / 2;
+        return x + pad() - centeredTextX;
     }
 }

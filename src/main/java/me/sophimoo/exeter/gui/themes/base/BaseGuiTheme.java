@@ -6,7 +6,8 @@ import me.sophimoo.exeter.gui.themes.base.widgets.input.WBaseDropdown;
 import me.sophimoo.exeter.gui.themes.base.widgets.input.WBaseSlider;
 import me.sophimoo.exeter.gui.themes.base.widgets.input.WBaseTextBox;
 import me.sophimoo.exeter.gui.themes.base.widgets.pressable.*;
-import meteordevelopment.meteorclient.gui.DefaultSettingsWidgetFactory;
+import meteordevelopment.meteorclient.MeteorClient;
+import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.gui.GuiTheme;
 import meteordevelopment.meteorclient.gui.WidgetScreen;
 import meteordevelopment.meteorclient.gui.renderer.packer.GuiTexture;
@@ -29,8 +30,12 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
+import meteordevelopment.orbit.listeners.ConsumerListener;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.MacWindowUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
@@ -44,18 +49,24 @@ public class BaseGuiTheme extends GuiTheme {
     private long lastHoveredTime = 0;
     private static final long HOVER_TIMEOUT_MS = 500; // Reset after 500ms of no hover
 
+    private final List<Setting<SettingColor>> accentHueLinkedColors = new ArrayList<>();
+    private boolean updatingAccentHueLinkedColors;
+    private float lastAppliedAccentHue = Float.NaN;
+    private final ConsumerListener<TickEvent.Post> accentHueTickListener;
+
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
     private final SettingGroup sgColors = settings.createGroup("Colors");
     private final SettingGroup sgTextColors = settings.createGroup("Text");
     private final SettingGroup sgBackgroundColors = settings.createGroup("Background");
     private final SettingGroup sgOutline = settings.createGroup("Outline");
-    private final SettingGroup sgSeparator = settings.createGroup("Separator");
     private final SettingGroup sgScrollbar = settings.createGroup("Scrollbar");
     private final SettingGroup sgSlider = settings.createGroup("Slider");
     private final SettingGroup sgBlur = settings.createGroup("Blur");
     private final SettingGroup sgModuleAnimation = settings.createGroup("Module Animation");
     private final SettingGroup sgModuleRender = settings.createGroup("Module Rendering");
     private final SettingGroup sgModuleColor = settings.createGroup("Module Colors");
+    private final SettingGroup sgSeparator = settings.createGroup("Separator");
+    private final SettingGroup sgSettingsColors = settings.createGroup("Settings");
     private final SettingGroup sgTextShadow = settings.createGroup("Text Shadow");
     private final SettingGroup sgStarscript = settings.createGroup("Starscript");
 
@@ -132,6 +143,26 @@ public class BaseGuiTheme extends GuiTheme {
         .build()
     );
 
+    // Padding
+
+    public final Setting<Double> globalPadding = sgGeneral.add(new DoubleSetting.Builder()
+            .name("global-padding")
+            .description("Global padding applied to all GUI elements.")
+            .defaultValue(6)
+            .min(0)
+            .max(20)
+            .sliderRange(0, 20)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<Boolean> debugWidgetSizes = sgGeneral.add(new BoolSetting.Builder()
+        .name("debug-widget-sizes")
+        .description("Prints button and setting row sizes to the game log.")
+        .defaultValue(false)
+        .build()
+    );
+
     // Gui
 
     public final Setting<Integer> widgetBlurStrength = sgBlur.add(new IntSetting.Builder()
@@ -153,6 +184,13 @@ public class BaseGuiTheme extends GuiTheme {
         .max(1)
         .sliderRange(0.01, 1)
         .onChanged(v -> updateBlurCapture())
+        .build()
+    );
+
+    public final Setting<Boolean> modalDarkening = sgBlur.add(new BoolSetting.Builder()
+        .name("modal-darkening")
+        .description("Darkens the background when popups are open.")
+        .defaultValue(true)
         .build()
     );
 
@@ -231,7 +269,7 @@ public class BaseGuiTheme extends GuiTheme {
 
     public final Setting<Double> moduleSpacing = sgModuleRender.add(new DoubleSetting.Builder()
             .name("module-spacing")
-            .description("Spacing between modules in lists.")
+            .description("Spacing between modules in module lists.")
             .defaultValue(0)
             .min(0)
             .max(10)
@@ -239,15 +277,80 @@ public class BaseGuiTheme extends GuiTheme {
             .build()
     );
 
+    public final Setting<Double> itemSpacing = sgSettingsColors.add(new DoubleSetting.Builder()
+            .name("item-spacing")
+            .description("Spacing between items in settings lists.")
+            .defaultValue(0)
+            .min(0)
+            .max(10)
+            .sliderRange(0, 10)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<Double> moduleSettingsPaddingX = sgModuleRender.add(new DoubleSetting.Builder()
+            .name("module-settings-padding-x")
+            .description("Horizontal padding for module settings menus.")
+            .defaultValue(6)
+            .min(0)
+            .max(30)
+            .sliderRange(0, 30)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
     public final Setting<Double> moduleHeight = sgModuleRender.add(new DoubleSetting.Builder()
             .name("module-height")
-            .description("Height of module buttons.")
+            .description("Height of module buttons in module lists.")
             .defaultValue(0)
             .min(0)
             .max(50)
             .sliderRange(0, 50)
             .onChanged(v -> invalidateCurrentScreen())
             .build()
+    );
+
+    public final Setting<Double> itemHeight = sgSettingsColors.add(new DoubleSetting.Builder()
+            .name("item-height")
+            .description("Height of settings items.")
+            .defaultValue(0)
+            .min(0)
+            .max(50)
+            .sliderRange(0, 50)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<String> moduleCollapsedIndicator = sgModuleRender.add(new StringSetting.Builder()
+        .name("module-collapsed-indicator")
+        .description("Text shown on module rows when settings are collapsed.")
+        .defaultValue("⋮")
+        .onChanged(v -> invalidateCurrentScreen())
+        .build()
+    );
+
+    public final Setting<String> moduleExpandedIndicator = sgModuleRender.add(new StringSetting.Builder()
+        .name("module-expanded-indicator")
+        .description("Text shown on module rows when settings are expanded.")
+        .defaultValue(".")
+        .onChanged(v -> invalidateCurrentScreen())
+        .build()
+    );
+
+    public final Setting<Boolean> showModuleIndicator = sgModuleRender.add(new BoolSetting.Builder()
+        .name("show-module-indicator")
+        .description("Shows the module row indicator text used for collapsing and expanding settings.")
+        .defaultValue(true)
+        .onChanged(v -> invalidateCurrentScreen())
+        .build()
+    );
+
+    public final Setting<Boolean> exeterIndicator = sgModuleRender.add(new BoolSetting.Builder()
+        .name("exeter-indicator")
+        .description("Overrides the module indicator text with the Exeter icon.")
+        .defaultValue(false)
+        .onChanged(v -> invalidateCurrentScreen())
+        .build()
     );
 
     // Module colors
@@ -269,7 +372,15 @@ public class BaseGuiTheme extends GuiTheme {
 
     // Colors
 
-    public final Setting<SettingColor> accentColor = color("accent", "Main color of the GUI.", new SettingColor(145, 61, 226));
+    public final Setting<Boolean> followAccentHue = sgColors.add(new BoolSetting.Builder()
+        .name("follow-accent-hue")
+        .description("Affects all GUI colors, disabling it after restarting will reset a lot of settings")
+        .defaultValue(false)
+        .onChanged(this::onFollowAccentHueChanged)
+        .build()
+    );
+
+    public final Setting<SettingColor> accentColor = color("accent", "Main color of the GUI.", new SettingColor(145, 61, 226), false);
     public final Setting<SettingColor> checkboxColor = color("checkbox", "Color of checkbox.", new SettingColor(145, 61, 226));
     public final Setting<SettingColor> plusColor = color("plus", "Color of plus button.", new SettingColor(50, 255, 50));
     public final Setting<SettingColor> minusColor = color("minus", "Color of minus button.", new SettingColor(255, 50, 50));
@@ -296,19 +407,14 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<Double> textShadowOffset = sgTextShadow.add(new DoubleSetting.Builder()
         .name("text-shadow-offset")
         .description("Offset of the text shadow.")
-        .defaultValue(1.0)
+        .defaultValue(2.0)
         .min(0.5)
         .max(3.0)
         .sliderRange(0.5, 3.0)
         .build()
     );
 
-    public final Setting<SettingColor> textShadowColor = sgTextShadow.add(new ColorSetting.Builder()
-        .name("text-shadow-color")
-        .description("Color of the text shadow.")
-        .defaultValue(new SettingColor(60, 60, 60, 180))
-        .build()
-    );
+    public final Setting<SettingColor> textShadowColor = color(sgTextShadow, "text-shadow", "Color of the text shadow.", new SettingColor(60, 60, 60, 180));
 
     // Background
 
@@ -319,6 +425,14 @@ public class BaseGuiTheme extends GuiTheme {
             new SettingColor(30, 30, 30, 200),
             new SettingColor(40, 40, 40, 200)
     );
+
+    public final Setting<SettingColor> itemBackgroundColor = color(sgSettingsColors, "item-background", "Color of items.", new SettingColor(20, 20, 20, 200));
+    public final Setting<SettingColor> itemBackgroundGradientColor = color(sgSettingsColors, "item-background-gradient", "Gradient color of items.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> itemHoveredBackgroundColor = color(sgSettingsColors, "hovered-item-background", "Color of items when hovered.", new SettingColor(30, 30, 30, 200));
+    public final Setting<SettingColor> itemHoveredBackgroundGradientColor = color(sgSettingsColors, "hovered-item-background-gradient", "Gradient color of items when hovered.", new SettingColor(40, 40, 40, 0));
+
+    public final Setting<SettingColor> itemActiveColor = color(sgSettingsColors, "item-active", "Color of items when active.", new SettingColor(70, 70, 70, 200));
+    public final Setting<SettingColor> itemActiveGradientColor = color(sgSettingsColors, "item-active-gradient", "Gradient color of items when active.", new SettingColor(40, 40, 40, 0));
 
     // Outline
 
@@ -345,8 +459,30 @@ public class BaseGuiTheme extends GuiTheme {
     // Separator
 
     public final Setting<SettingColor> separatorText = color(sgSeparator, "separator-text", "Color of separator text", new SettingColor(255, 255, 255));
-    public final Setting<SettingColor> separatorCenter = color(sgSeparator, "separator-center", "Center color of separators.", new SettingColor(255, 255, 255));
-    public final Setting<SettingColor> separatorEdges = color(sgSeparator, "separator-edges", "Color of separator edges.", new SettingColor(225, 225, 225, 150));
+    public final Setting<Double> separatorHeight = sgSeparator.add(new DoubleSetting.Builder()
+            .name("separator-height")
+            .description("Height of separator rows.")
+            .defaultValue(0)
+            .min(0)
+            .max(50)
+            .sliderRange(0, 50)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+    public final Setting<Double> separatorPaddingY = sgSeparator.add(new DoubleSetting.Builder()
+            .name("separator-padding-y")
+            .description("Vertical padding for separators in module settings.")
+            .defaultValue(6)
+            .min(0)
+            .max(30)
+            .sliderRange(0, 30)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+    public final Setting<SettingColor> separatorColor = color(sgSeparator, "separator", "Color of separator rows.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> separatorGradientColor = color(sgSeparator, "separator-gradient", "Gradient color of separator rows.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> separatorHoveredColor = color(sgSeparator, "separator-hovered", "Color of separator rows when hovered.", new SettingColor(60, 60, 60));
+    public final Setting<SettingColor> separatorHoveredGradientColor = color(sgSeparator, "separator-hovered-gradient", "Gradient color of separator rows when hovered.", new SettingColor(40, 40, 40, 0));
 
     // Scrollbar
 
@@ -368,8 +504,28 @@ public class BaseGuiTheme extends GuiTheme {
             new SettingColor(150, 60, 255)
     );
 
+
     public final Setting<SettingColor> sliderLeft = color(sgSlider, "slider-left", "Color of slider left part.", new SettingColor(100,35,170));
     public final Setting<SettingColor> sliderRight = color(sgSlider, "slider-right", "Color of slider right part.", new SettingColor(50, 50, 50));
+
+    public final Setting<SliderStyle> sliderStyle = sgSlider.add(new EnumSetting.Builder<SliderStyle>()
+            .name("slider-style")
+            .description("Visual style of setting sliders.")
+            .defaultValue(SliderStyle.BottomBar)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<Double> sliderSpacing = sgSlider.add(new DoubleSetting.Builder()
+            .name("slider-spacing")
+            .description("How many pixels the slider bar is inset from the edges in FullBar mode.")
+                .defaultValue(0)
+            .min(0)
+            .max(10)
+            .sliderRange(0, 10)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
 
     // Starscript
 
@@ -387,7 +543,10 @@ public class BaseGuiTheme extends GuiTheme {
     public BaseGuiTheme() {
         super("Exeter");
 
-        settingsFactory = new DefaultSettingsWidgetFactory(this);
+        settingsFactory = new BaseSettingsWidgetFactory(this);
+
+        accentHueTickListener = new ConsumerListener<>(TickEvent.Post.class, event -> tickDynamicColors());
+        MeteorClient.EVENT_BUS.subscribe(accentHueTickListener);
     }
 
     /**
@@ -422,16 +581,95 @@ public class BaseGuiTheme extends GuiTheme {
     }
 
     private Setting<SettingColor> color(SettingGroup group, String name, String description, SettingColor color) {
-        return group.add(new ColorSetting.Builder()
-                .name(name + "-color")
-                .description(description)
-                .defaultValue(color)
-                .build());
+        return color(group, name, description, color, true);
     }
+
+    private Setting<SettingColor> color(SettingGroup group, String name, String description, SettingColor color, boolean linkAccentHue) {
+        Setting<SettingColor> setting = group.add(new ColorSetting.Builder()
+            .name(name + "-color")
+            .description(description)
+            .defaultValue(color)
+            .onChanged(c -> onAnyColorChanged())
+            .build());
+
+        if (linkAccentHue) accentHueLinkedColors.add(setting);
+
+        return setting;
+    }
+
     private Setting<SettingColor> color(String name, String description, SettingColor color) {
         return color(sgColors, name, description, color);
     }
 
+    private Setting<SettingColor> color(String name, String description, SettingColor color, boolean linkAccentHue) {
+        return color(sgColors, name, description, color, linkAccentHue);
+    }
+
+    private void onAnyColorChanged() {
+        if (!followAccentHue.get() || updatingAccentHueLinkedColors) return;
+        applyAccentHueToLinkedColors();
+    }
+
+    public void tickDynamicColors() {
+        if (!followAccentHue.get() || updatingAccentHueLinkedColors) return;
+
+        float accentHueValue = hue(accentColor.get());
+        if (Float.compare(accentHueValue, lastAppliedAccentHue) != 0) {
+            applyAccentHueToLinkedColors(accentHueValue);
+        }
+    }
+
+    private void onFollowAccentHueChanged(boolean enabled) {
+        if (updatingAccentHueLinkedColors) return;
+
+        if (enabled) {
+            lastAppliedAccentHue = Float.NaN;
+            applyAccentHueToLinkedColors();
+        } else {
+            lastAppliedAccentHue = Float.NaN;
+        }
+
+        invalidateCurrentScreen();
+    }
+
+    private void applyAccentHueToLinkedColors() {
+        applyAccentHueToLinkedColors(hue(accentColor.get()));
+    }
+
+    private void applyAccentHueToLinkedColors(float accentHueValue) {
+        if (updatingAccentHueLinkedColors) return;
+
+        updatingAccentHueLinkedColors = true;
+        try {
+            for (Setting<SettingColor> setting : accentHueLinkedColors) {
+                SettingColor current = setting.get();
+                SettingColor updated = withHue(current, accentHueValue);
+
+                if (current.r != updated.r || current.g != updated.g || current.b != updated.b) {
+                    setting.set(updated);
+                }
+            }
+            lastAppliedAccentHue = accentHueValue;
+        } finally {
+            updatingAccentHueLinkedColors = false;
+        }
+    }
+
+    private float hue(SettingColor color) {
+        float[] hsb = java.awt.Color.RGBtoHSB(color.r, color.g, color.b, null);
+        return hsb[0];
+    }
+
+    private SettingColor withHue(SettingColor color, float hue) {
+        float[] hsb = java.awt.Color.RGBtoHSB(color.r, color.g, color.b, null);
+        int rgb = java.awt.Color.HSBtoRGB(hue, hsb[1], hsb[2]);
+
+        int r = (rgb >> 16) & 0xFF;
+        int g = (rgb >> 8) & 0xFF;
+        int b = rgb & 0xFF;
+
+        return new SettingColor(r, g, b, color.a);
+    }
     private void invalidateCurrentScreen() {
         if (mc.currentScreen instanceof WidgetScreen screen) screen.invalidate();
     }
@@ -502,6 +740,11 @@ public class BaseGuiTheme extends GuiTheme {
     @Override
     public <T> WDropdown<T> dropdown(T[] values, T value) {
         return w(new WBaseDropdown<>(values, value));
+    }
+
+    @Override
+    public WKeybind keybind(meteordevelopment.meteorclient.utils.misc.Keybind keybind, meteordevelopment.meteorclient.utils.misc.Keybind defaultValue) {
+        return w(new WBaseKeybind(keybind, defaultValue));
     }
 
     @Override
@@ -633,6 +876,11 @@ public class BaseGuiTheme extends GuiTheme {
     }
 
     @Override
+    public double pad() {
+        return scale(globalPadding.get());
+    }
+
+    @Override
     public double scale(double value) {
         double scaled = value * scale.get();
 
@@ -694,6 +942,54 @@ public class BaseGuiTheme extends GuiTheme {
         return Math.round(scale(fixedCategoryWidth.get()));
     }
 
+    public double scaledPx(double value) {
+        return scale(value);
+    }
+
+    public double rowPadX() {
+        return scale(moduleSettingsPaddingX.get());
+    }
+
+    public double rowPadY() {
+        return pad();
+    }
+
+    public double smallGap() {
+        return scale(4);
+    }
+
+    public double moduleRowExtraHeight() {
+        return scale(2);
+    }
+
+    public double separatorThickness() {
+        return scale(2);
+    }
+
+    public double glyphThickness() {
+        return scale(3);
+    }
+
+    public double sliderTrackHeight() {
+        return scale(3);
+    }
+
+    public double sliderBottomGap() {
+        return scale(5);
+    }
+
+    public double sliderMinTrackWidth() {
+        return scale(16);
+    }
+
+    public double sliderInset() {
+        return scale(sliderSpacing.get());
+    }
+
+    public double sliderFullBarMinTrackHeight() {
+        return scale(4);
+    }
+
     public class ThreeStateColorSetting {
         private final Setting<SettingColor> normal, hovered, pressed;
 
@@ -714,6 +1010,27 @@ public class BaseGuiTheme extends GuiTheme {
 
         public SettingColor get(boolean pressed, boolean hovered) {
             return get(pressed, hovered, false);
+        }
+    }
+
+    public class TwoStateColorSetting {
+        private final Setting<SettingColor> normal, hovered;
+
+        public TwoStateColorSetting(SettingGroup group, String name, SettingColor c1, SettingColor c2) {
+            normal = color(group, name, "Color of " + name + ".", c1);
+            hovered = color(group, "hovered-" + name, "Color of " + name + " when hovered.", c2);
+        }
+
+        public SettingColor get() {
+            return normal.get();
+        }
+
+        public SettingColor get(boolean hovered, boolean bypassDisableHoverColor) {
+            return (hovered && (bypassDisableHoverColor || !disableHoverColor)) ? this.hovered.get() : this.normal.get();
+        }
+
+        public SettingColor get(boolean hovered) {
+            return get(hovered, false);
         }
     }
 }

@@ -12,10 +12,9 @@ public class WBaseConfirmedMinus extends WConfirmedMinus implements BaseWidget {
         double s = theme().scale(3);
 
         Color outline = theme().outlineColor.get(pressed, mouseOver);
-        Color fg = pressedOnce ? theme().backgroundColor.get(pressed, mouseOver) : theme().minusColor.get();
-        Color bg = pressedOnce ? theme().minusColor.get() : theme().backgroundColor.get(pressed, mouseOver);
+        ConfirmColors colors = confirmedColors(theme().minusColor.get(), pressed, mouseOver, pressedOnce);
 
-        renderBackground(renderer, this, outline, bg);
-        renderer.quad(x + pad, y + height / 2 - s / 2, width - pad * 2, s, fg);
+        renderBackground(renderer, this, outline, colors.bg());
+        renderHorizontalGlyph(renderer, x, y, width, height, pad, s, colors.fg());
     }
 }

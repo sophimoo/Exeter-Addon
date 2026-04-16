@@ -1,0 +1,633 @@
+package me.sophimoo.exeter.gui.screens.settings;
+
+import me.sophimoo.exeter.gui.themes.base.widgets.settings.WBaseSettingSlider;
+import meteordevelopment.meteorclient.gui.GuiTheme;
+import meteordevelopment.meteorclient.gui.WidgetScreen;
+import meteordevelopment.meteorclient.gui.WindowScreen;
+import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
+import meteordevelopment.meteorclient.gui.widgets.WQuad;
+import meteordevelopment.meteorclient.gui.widgets.WWidget;
+import meteordevelopment.meteorclient.gui.widgets.containers.WHorizontalList;
+import meteordevelopment.meteorclient.gui.widgets.input.WIntEdit;
+import meteordevelopment.meteorclient.gui.widgets.pressable.WButton;
+import meteordevelopment.meteorclient.gui.widgets.pressable.WCheckbox;
+import meteordevelopment.meteorclient.settings.IntSetting;
+import meteordevelopment.meteorclient.settings.Setting;
+import meteordevelopment.meteorclient.utils.misc.NbtUtils;
+import meteordevelopment.meteorclient.utils.render.color.Color;
+import meteordevelopment.meteorclient.utils.render.color.SettingColor;
+import net.minecraft.client.gui.Click;
+import net.minecraft.util.math.MathHelper;
+
+import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
+
+import static meteordevelopment.meteorclient.MeteorClient.mc;
+
+public class ExeterColorSettingScreen extends WindowScreen {
+    private static final Color[] HUE_COLORS = { new Color(255, 0, 0), new Color(255, 255, 0), new Color(0, 255, 0), new Color(0, 255, 255), new Color(0, 0, 255), new Color(255, 0, 255), new Color(255, 0, 0) };
+    private static final Color WHITE = new Color(255, 255, 255);
+    private static final Color BLACK = new Color(0, 0, 0);
+
+    public Runnable action;
+
+    private final Setting<SettingColor> setting;
+
+    private WQuad displayQuad;
+
+    private WBrightnessQuad brightnessQuad;
+    private WHueQuad hueQuad;
+
+    private IntSetting rSetting;
+    private IntSetting gSetting;
+    private IntSetting bSetting;
+    private IntSetting aSetting;
+    private boolean syncingChannels;
+
+    private WCheckbox rainbow;
+
+    public ExeterColorSettingScreen(GuiTheme theme, Setting<SettingColor> setting) {
+        super(theme, "Select Color");
+
+        this.setting = setting;
+    }
+
+    @Override
+    public void initWidgets() {
+        displayQuad = add(theme.quad(setting.get())).expandX().widget();
+
+        brightnessQuad = add(new WBrightnessQuad()).expandX().widget();
+
+        hueQuad = add(new WHueQuad()).expandX().widget();
+
+        rSetting = createChannelSetting("R", () -> setting.get().r, value -> setting.get().r = value);
+        gSetting = createChannelSetting("G", () -> setting.get().g, value -> setting.get().g = value);
+        bSetting = createChannelSetting("B", () -> setting.get().b, value -> setting.get().b = value);
+        aSetting = createChannelSetting("A", () -> setting.get().a, value -> setting.get().a = value);
+
+        add(new WBaseSettingSlider(rSetting)).expandX();
+        add(new WBaseSettingSlider(gSetting)).expandX();
+        add(new WBaseSettingSlider(bSetting)).expandX();
+        add(new WBaseSettingSlider(aSetting)).expandX();
+
+        WHorizontalList rainbowList = add(theme.horizontalList()).expandX().widget();
+        rainbowList.add(theme.label("Rainbow: "));
+        rainbow = theme.checkbox(setting.get().rainbow);
+        rainbow.action = () -> {
+            setting.get().rainbow = rainbow.checked;
+            setting.onChanged();
+        };
+        rainbowList.add(rainbow).expandCellX().right();
+
+        WHorizontalList bottomList = add(theme.horizontalList()).expandX().widget();
+
+        WButton backButton = bottomList.add(theme.button("Back")).expandX().widget();
+        backButton.action = this::close;
+
+        WButton copyButton = bottomList.add(theme.button(GuiRenderer.COPY)).widget();
+        copyButton.action = this::toClipboard;
+        copyButton.tooltip = "Copy config";
+
+        WButton pasteButton = bottomList.add(theme.button(GuiRenderer.PASTE)).widget();
+        pasteButton.action = this::fromClipboard;
+        pasteButton.tooltip = "Paste config";
+
+        WButton resetButton = bottomList.add(theme.button(GuiRenderer.RESET)).widget();
+        resetButton.action = () -> {
+            setting.reset();
+            setFromSetting();
+            callAction();
+        };
+        resetButton.tooltip = "Reset";
+
+        hueQuad.calculateFromSetting(false);
+        brightnessQuad.calculateFromColor(setting.get(), false);
+    }
+
+    private IntSetting createChannelSetting(String name, IntSupplier getter, IntConsumer setter) {
+        return new IntSetting.Builder()
+            .name(name)
+            .description("Color channel")
+            .defaultValue(getter.getAsInt())
+            .range(0, 255)
+            .sliderRange(0, 255)
+            .onChanged(value -> {
+                if (syncingChannels) return;
+
+                setter.accept(value);
+                rgbaChanged();
+            })
+            .build();
+    }
+
+    private void setFromSetting() {
+        SettingColor c = setting.get();
+
+        syncingChannels = true;
+        rSetting.set(c.r);
+        gSetting.set(c.g);
+        bSetting.set(c.b);
+        aSetting.set(c.a);
+        syncingChannels = false;
+
+        rainbow.checked = c.rainbow;
+
+        displayQuad.color.set(setting.get());
+        hueQuad.calculateFromSetting(true);
+        brightnessQuad.calculateFromColor(setting.get(), true);
+    }
+
+    private void callAction() {
+        if (action != null) action.run();
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (setting.get().rainbow) setFromSetting();
+    }
+
+    private void rgbaChanged() {
+        Color c = setting.get();
+
+        c.r = rSetting.get();
+        c.g = gSetting.get();
+        c.b = bSetting.get();
+        c.a = aSetting.get();
+
+        c.validate();
+
+        syncingChannels = true;
+        rSetting.set(c.r);
+        gSetting.set(c.g);
+        bSetting.set(c.b);
+        aSetting.set(c.a);
+        syncingChannels = false;
+
+        displayQuad.color.set(c);
+        hueQuad.calculateFromSetting(true);
+        brightnessQuad.calculateFromColor(setting.get(), true);
+
+        setting.onChanged();
+        callAction();
+    }
+
+    private void hsvChanged() {
+        double hh, p, q, t, ff;
+        int i;
+
+        double r = 0;
+        double g = 0;
+        double b = 0;
+        boolean calculated = false;
+
+        if (brightnessQuad.saturation <= 0.0) {
+            r = brightnessQuad.value;
+            g = brightnessQuad.value;
+            b = brightnessQuad.value;
+            calculated = true;
+        }
+
+        if (!calculated) {
+            hh = hueQuad.hueAngle;
+            if (hh >= 360.0) hh = 0.0;
+            hh /= 60.0;
+            i = (int) hh;
+            ff = hh - i;
+            p = brightnessQuad.value * (1.0 - brightnessQuad.saturation);
+            q = brightnessQuad.value * (1.0 - (brightnessQuad.saturation * ff));
+            t = brightnessQuad.value * (1.0 - (brightnessQuad.saturation * (1.0 - ff)));
+
+            switch (i) {
+                case 0 -> {
+                    r = brightnessQuad.value;
+                    g = t;
+                    b = p;
+                }
+                case 1 -> {
+                    r = q;
+                    g = brightnessQuad.value;
+                    b = p;
+                }
+                case 2 -> {
+                    r = p;
+                    g = brightnessQuad.value;
+                    b = t;
+                }
+                case 3 -> {
+                    r = p;
+                    g = q;
+                    b = brightnessQuad.value;
+                }
+                case 4 -> {
+                    r = t;
+                    g = p;
+                    b = brightnessQuad.value;
+                }
+                default -> {
+                    r = brightnessQuad.value;
+                    g = p;
+                    b = q;
+                }
+            }
+        }
+
+        Color c = setting.get();
+
+        c.r = (int) (r * 255);
+        c.g = (int) (g * 255);
+        c.b = (int) (b * 255);
+        c.validate();
+
+        syncingChannels = true;
+        rSetting.set(c.r);
+        gSetting.set(c.g);
+        bSetting.set(c.b);
+        syncingChannels = false;
+
+        displayQuad.color.set(c);
+        setting.onChanged();
+        callAction();
+    }
+
+    private class WBrightnessQuad extends WWidget {
+        double saturation, value;
+
+        double handleX, handleY;
+
+        boolean dragging;
+        double lastMouseX, lastMouseY;
+
+        double fixedHeight = -1;
+
+        @Override
+        protected void onCalculateSize() {
+            double s = theme.scale(75);
+
+            width = s;
+            height = s;
+
+            if (fixedHeight != -1) {
+                height = fixedHeight;
+                fixedHeight = -1;
+            }
+        }
+
+        void calculateFromColor(Color c, boolean calculateNow) {
+            double min = Math.min(Math.min(c.r, c.g), c.b);
+            double max = Math.max(Math.max(c.r, c.g), c.b);
+            double delta = max - min;
+
+            value = max / 255;
+
+            if (delta == 0) saturation = 0;
+            else saturation = delta / max;
+
+            if (calculateNow) {
+                handleX = saturation * width;
+                handleY = (1 - value) * height;
+            }
+        }
+
+        @Override
+        public boolean onMouseClicked(Click click, boolean doubled) {
+            if (doubled) return false;
+
+            if (mouseOver) {
+                dragging = true;
+                setFocused(true);
+
+                handleX = lastMouseX - x;
+                handleY = lastMouseY - y;
+                handleMoved();
+
+                return true;
+            }
+
+            return false;
+        }
+
+        @Override
+        public boolean onMouseReleased(Click click) {
+            if (dragging) {
+                dragging = false;
+                setFocused(false);
+            }
+
+            return false;
+        }
+
+        @Override
+        public void onMouseMoved(double mouseX, double mouseY, double lastMouseX, double lastMouseY) {
+            if (dragging) {
+                if (mouseX >= this.x && mouseX <= this.x + width) {
+                    handleX += mouseX - lastMouseX;
+                }
+                else {
+                    if (handleX > 0 && mouseX < this.x) handleX = 0;
+                    else if (handleX < width && mouseX > this.x + width) handleX = width;
+                }
+
+                if (mouseY >= this.y && mouseY <= this.y + height) {
+                    handleY += mouseY - lastMouseY;
+                }
+                else {
+                    if (handleY > 0 && mouseY < this.y) handleY = 0;
+                    else if (handleY < height && mouseY > this.y + height) handleY = height;
+                }
+
+                handleMoved();
+            }
+
+            this.lastMouseX = mouseX;
+            this.lastMouseY = mouseY;
+        }
+
+        void handleMoved() {
+            double handleXPercentage = handleX / width;
+            double handleYPercentage = handleY / height;
+
+            saturation = handleXPercentage;
+            value = 1 - handleYPercentage;
+
+            hsvChanged();
+        }
+
+        @Override
+        protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
+            if (height != width) {
+                fixedHeight = width;
+                invalidate();
+
+                handleX = saturation * width;
+                handleY = (1 - value) * fixedHeight;
+            }
+
+            hueQuad.calculateColor();
+
+            renderer.quad(x, y, width, height, WHITE, hueQuad.color, BLACK, BLACK);
+
+            double s = theme.scale(2);
+            renderer.quad(x + handleX - s / 2, y + handleY - s / 2, s, s, WHITE);
+        }
+    }
+
+    @Override
+    public boolean toClipboard() {
+        return NbtUtils.toClipboard(setting.get());
+    }
+
+    @Override
+    public boolean fromClipboard() {
+        if (!NbtUtils.fromClipboard(setting.get())) {
+            String clipboard = mc.keyboard.getClipboard().trim();
+            SettingColor parsed;
+
+            parsed = parseRGBA(clipboard);
+            if (parsed == null) {
+                parsed = parseHex(clipboard);
+                if (parsed == null) return false;
+            }
+
+            setting.set(parsed);
+        }
+
+        setting.get().validate();
+
+        if (parent instanceof WidgetScreen p) {
+            p.reload();
+        }
+        reload();
+
+        return true;
+    }
+
+    private SettingColor parseRGBA(String string) {
+        String[] rgba = string.replaceAll("[^0-9|,]", "").split(",");
+        if (rgba.length < 3 || rgba.length > 4) return null;
+
+        SettingColor color;
+        try {
+            color = new SettingColor(Integer.parseInt(rgba[0]), Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]));
+            if (rgba.length == 4) color.a = Integer.parseInt(rgba[3]);
+        }
+        catch (NumberFormatException e) {
+            return null;
+        }
+
+        return color;
+    }
+
+    private SettingColor parseHex(String string) {
+        if (!string.startsWith("#")) return null;
+        String hex = string.toLowerCase().replaceAll("[^0-9a-f]", "");
+        if (hex.length() != 6 && hex.length() != 8) return null;
+
+        SettingColor color;
+        try {
+            color = new SettingColor(Integer.parseInt(hex.substring(0, 2), 16), Integer.parseInt(hex.substring(2, 4), 16), Integer.parseInt(hex.substring(4, 6), 16));
+            if (hex.length() == 8) color.a = Integer.parseInt(hex.substring(6, 8), 16);
+        }
+        catch (NumberFormatException e) {
+            return null;
+        }
+
+        return color;
+    }
+
+    private class WHueQuad extends WWidget {
+        private double hueAngle;
+        private double handleX;
+
+        private final Color color = new Color();
+
+        private boolean dragging;
+        private double lastMouseX;
+
+        private boolean calculateHandleXOnLayout;
+
+        @Override
+        protected void onCalculateSize() {
+            width = theme.scale(75);
+            height = theme.scale(10);
+        }
+
+        void calculateFromSetting(boolean calculateNow) {
+            Color c = setting.get();
+            boolean calculated = false;
+
+            double min, max, delta;
+
+            min = Math.min(c.r, c.g);
+            min = min  < c.b ? min  : c.b;
+
+            max = Math.max(c.r, c.g);
+            max = max  > c.b ? max  : c.b;
+
+            delta = max - min;
+            if (delta < 0.00001) {
+                hueAngle = 0;
+                calculated = true;
+            }
+
+            if (!calculated) {
+                if (max <= 0.0) {
+                    hueAngle = 0;
+                    calculated = true;
+                }
+
+                if (!calculated) {
+                    if (c.r >= max) hueAngle = (c.g - c.b) / delta;
+                    else if (c.g >= max) hueAngle = 2.0 + (c.b - c.r) / delta;
+                    else hueAngle = 4.0 + (c.r - c.g) / delta;
+
+                    hueAngle *= 60.0;
+
+                    if (hueAngle < 0.0) hueAngle += 360.0;
+                }
+            }
+
+            if (calculateNow) {
+                double huePercentage = hueAngle / 360;
+                handleX = huePercentage * width;
+            }
+            else {
+                calculateHandleXOnLayout = true;
+            }
+        }
+
+        @Override
+        protected void onCalculateWidgetPositions() {
+            if (calculateHandleXOnLayout) {
+                double huePercentage = hueAngle / 360;
+                handleX = huePercentage * width;
+
+                calculateHandleXOnLayout = false;
+            }
+
+            super.onCalculateWidgetPositions();
+        }
+
+        void calculateColor() {
+            double hh, p, q, t, ff;
+            int i;
+
+            hh = hueAngle;
+            if (hh >= 360.0) hh = 0.0;
+            hh /= 60.0;
+            i = (int) hh;
+            ff = hh - i;
+            p = 1 * (1.0 - 1);
+            q = 1 * (1.0 - (1 * ff));
+            t = 1 * (1.0 - (1 * (1.0 - ff)));
+
+            double r;
+            double g;
+            double b;
+
+            switch (i) {
+                case 0 -> {
+                    r = 1;
+                    g = t;
+                    b = p;
+                }
+                case 1 -> {
+                    r = q;
+                    g = 1;
+                    b = p;
+                }
+                case 2 -> {
+                    r = p;
+                    g = 1;
+                    b = t;
+                }
+                case 3 -> {
+                    r = p;
+                    g = q;
+                    b = 1;
+                }
+                case 4 -> {
+                    r = t;
+                    g = p;
+                    b = 1;
+                }
+                default -> {
+                    r = 1;
+                    g = p;
+                    b = q;
+                }
+            }
+
+            color.r = (int) (r * 255);
+            color.g = (int) (g * 255);
+            color.b = (int) (b * 255);
+            color.validate();
+        }
+
+        @Override
+        public boolean onMouseClicked(Click click, boolean doubled) {
+            if (doubled) return false;
+
+            if (mouseOver) {
+                dragging = true;
+                setFocused(true);
+
+                handleX = lastMouseX - x;
+                calculateHueAngleFromHandleX();
+                hsvChanged();
+
+                return true;
+            }
+
+            return false;
+        }
+
+        @Override
+        public boolean onMouseReleased(Click click) {
+            if (dragging) {
+                dragging = false;
+                setFocused(false);
+            }
+
+            return mouseOver;
+        }
+
+        @Override
+        public void onMouseMoved(double mouseX, double mouseY, double lastMouseX, double lastMouseY) {
+            if (dragging) {
+                if (mouseX >= this.x && mouseX <= this.x + width) {
+                    handleX += mouseX - lastMouseX;
+                    handleX = MathHelper.clamp(handleX, 0, width);
+                }
+                else {
+                    if (handleX > 0 && mouseX < this.x) handleX = 0;
+                    else if (handleX < width && mouseX > this.x + width) handleX = width;
+                }
+
+                calculateHueAngleFromHandleX();
+                hsvChanged();
+            }
+
+            this.lastMouseX = mouseX;
+        }
+
+        void calculateHueAngleFromHandleX() {
+            double handleXPercentage = handleX / (width - 4);
+            hueAngle = handleXPercentage * 360;
+        }
+
+        @Override
+        protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
+            double sectionWidth = (width) / (HUE_COLORS.length - 1);
+            double sectionX = x;
+
+            for (int i = 0; i < HUE_COLORS.length - 1; i++) {
+                renderer.quad(sectionX, y, sectionWidth, height, HUE_COLORS[i], HUE_COLORS[i + 1], HUE_COLORS[i + 1], HUE_COLORS[i]);
+                sectionX += sectionWidth;
+            }
+
+            double s = theme.scale(2);
+            renderer.quad(x + handleX - s / 2, y, s, height, WHITE);
+        }
+    }
+}

@@ -18,7 +18,7 @@ public class WBaseSlider extends WSlider implements BaseWidget {
     }
 
     private void renderBar(GuiRenderer renderer, double valueWidth) {
-        double s = theme().scale(3);
+        double s = sliderTrackHeight();
         double handleSize = handleSize();
 
         double x = this.x + handleSize / 2;

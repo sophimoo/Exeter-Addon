@@ -5,30 +5,20 @@ import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.widgets.WHorizontalSeparator;
 
 public class WBaseHorizontalSeparator extends WHorizontalSeparator implements BaseWidget {
-    public WBaseHorizontalSeparator(String text) {
-        super(text);
-    }
+    public WBaseHorizontalSeparator(String text) { super(text); }
 
     @Override
     protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-        double s = theme().scale(2);
-        double halfHeight = height / 2;
+        double s = separatorStroke(), halfHeight = height / 2, sepY = y + halfHeight - s / 2;
 
         if (text == null) {
-            renderer.quad(x, y + halfHeight - s / 2, width, s, theme().separatorEdges.get());
-        }
-        else {
-            double textWidth = theme().textWidth(text);
-            double textHeight = theme().textHeight();
-            double textY = y + halfHeight - textHeight / 2;
-
-            double leftWidth = width / 2 - textWidth / 2 - theme().pad() * 2;
-            double rightWidth = width / 2 - textWidth / 2 - theme().pad() * 2;
-
-            renderer.quad(x, y + halfHeight - s / 2, leftWidth, s, theme().separatorEdges.get());
-            renderer.quad(x + width - rightWidth, y + halfHeight - s / 2, rightWidth, s, theme().separatorEdges.get());
-
-            renderText(renderer, text, x + width / 2 - textWidth / 2, textY, theme().separatorText.get());
+            renderer.quad(x, sepY, width, s, theme().separatorColor.get());
+        } else {
+            double textWidth = theme().textWidth(text), textHeight = theme().textHeight();
+            double sideWidth = width / 2 - textWidth / 2 - theme().pad() * 2;
+            renderer.quad(x, sepY, sideWidth, s, theme().separatorColor.get());
+            renderer.quad(x + width - sideWidth, sepY, sideWidth, s, theme().separatorColor.get());
+            renderText(renderer, text, x + width / 2 - textWidth / 2, y + halfHeight - textHeight / 2, theme().separatorText.get());
         }
     }
 }
