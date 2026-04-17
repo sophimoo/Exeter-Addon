@@ -86,7 +86,7 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
         if (settingsContainer == null) {
 
-            double paddingY = (theme instanceof BaseGuiTheme) ? ((BaseGuiTheme) theme).separatorPaddingY.get() : 6;
+            double paddingY = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.scale(baseTheme.separatorPaddingY.get()) : 6;
 
             settingsContainer = new WSettingsDropdown();
             settingsContainer.theme = theme;
@@ -143,7 +143,7 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
     private void addBindSection(WVerticalList container) {
         double paddingX = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.moduleSettingsPaddingX.get() : 6;
-        double separatorPaddingY = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.separatorPaddingY.get() : 6;
+        double separatorPaddingY = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.scale(baseTheme.separatorPaddingY.get()) : 6;
         double itemSpacing = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.itemSpacing.get() : 0;
 
         Cell<WSection> bindSectionCell = container.add(theme.section("Bind", false)).expandX().padHorizontal(paddingX).padBottom(separatorPaddingY);
@@ -582,7 +582,7 @@ mouseOver, delta, needsMarquee, staticTextX, textColor);
             int padTopPx = 0;
             boolean relayoutNeeded = false;
             if (settingsContainerCell != null) {
-                padTopPx = MathHelper.floor(theme().separatorPaddingY.get() * animProgress + 0.5);
+                padTopPx = MathHelper.floor(theme().scale(theme().separatorPaddingY.get()) * animProgress + 0.5);
                 int relayoutPadTopPx = quantizeForAnimation(padTopPx, animating);
                 if (relayoutPadTopPx != lastPadTopPx) {
                     settingsContainerCell.padTop(relayoutPadTopPx);

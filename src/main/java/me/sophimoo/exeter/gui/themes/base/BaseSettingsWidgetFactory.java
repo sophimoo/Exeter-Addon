@@ -92,7 +92,7 @@ public class BaseSettingsWidgetFactory extends SettingsWidgetFactory {
     @Override
     public WWidget create(GuiTheme theme, Settings settings, String filter) {
         WVerticalList list = theme.verticalList();
-        if (theme instanceof BaseGuiTheme baseTheme) list.spacing = baseTheme.separatorPaddingY.get();
+        if (theme instanceof BaseGuiTheme baseTheme) list.spacing = baseTheme.scale(baseTheme.separatorPaddingY.get());
 
         for (SettingGroup group : settings.groups) {
             group(list, group, filter);
@@ -450,7 +450,7 @@ public class BaseSettingsWidgetFactory extends SettingsWidgetFactory {
 
     private double separatorPaddingY() {
         BaseGuiTheme baseTheme = baseTheme();
-        return baseTheme != null ? baseTheme.separatorPaddingY.get() : 3;
+        return baseTheme != null ? baseTheme.scale(baseTheme.separatorPaddingY.get()) : 3;
     }
 
     @FunctionalInterface
