@@ -17,6 +17,8 @@ import meteordevelopment.meteorclient.systems.modules.Category;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.utils.misc.NbtUtils;
+import net.minecraft.client.input.KeyInput;
+import net.minecraft.client.util.MacWindowUtil;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Pair;
 import net.minecraft.item.Items;
@@ -28,10 +30,15 @@ import java.util.Set;
 
 import static meteordevelopment.meteorclient.utils.Utils.getWindowHeight;
 import static meteordevelopment.meteorclient.utils.Utils.getWindowWidth;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_F;
+import static org.lwjgl.glfw.GLFW.GLFW_MOD_CONTROL;
+import static org.lwjgl.glfw.GLFW.GLFW_MOD_SUPER;
 
 public class BaseModulesScreen extends TabScreen {
     private final BaseGuiTheme theme;
     private WCategoryController controller;
+    private WWindow searchWindow;
+    private WTextBox searchTextBox;
     private final List<WBaseModule> expandedModules = new ArrayList<>();
     private boolean expandedModulesDirty;
 
@@ -199,6 +206,7 @@ public class BaseModulesScreen extends TabScreen {
     protected WWindow createSearch(WContainer c) {
         WWindow w = theme.window("Search");
         w.id = "search";
+        searchWindow = w;
 
         if (theme.categoryIcons()) {
             w.beforeHeaderInit = wContainer -> addIcon(wContainer, Items.COMPASS.getDefaultStack());
@@ -211,6 +219,8 @@ public class BaseModulesScreen extends TabScreen {
 
         WVerticalList l = theme.verticalList();
         WTextBox text = w.add(theme.textBox("")).minWidth(140).expandX().widget();
+        text.setFocused(true);
+        searchTextBox = text;
         text.action = () -> {
             l.clear();
             createSearchW(l, text.get());
@@ -220,6 +230,24 @@ public class BaseModulesScreen extends TabScreen {
         createSearchW(l, text.get());
 
         return w;
+    }
+
+    @Override
+    public boolean keyPressed(KeyInput input) {
+        if (locked) return false;
+
+        boolean control = MacWindowUtil.IS_MAC ? input.modifiers() == GLFW_MOD_SUPER : input.modifiers() == GLFW_MOD_CONTROL;
+        if (control && input.key() == GLFW_KEY_F) {
+            if (searchWindow != null) searchWindow.setExpanded(true);
+            if (searchTextBox != null) {
+                searchTextBox.setFocused(true);
+                searchTextBox.setCursorMax();
+            }
+
+            return true;
+        }
+
+        return super.keyPressed(input);
     }
 
     protected Cell<WWindow> createFavorites(WContainer c) {

@@ -11,6 +11,8 @@
     "minecraft.MinecraftClientModalSetScreenMixin",
     "meteorclient.GuiRendererBlurMixin",
     "meteorclient.InventoryHudMixin",
+    "meteorclient.WWindowAccessor",
+    "meteorclient.WindowScreenAccessor",
     "meteorclient.WidgetScreenModalMixin"
   ]
 }

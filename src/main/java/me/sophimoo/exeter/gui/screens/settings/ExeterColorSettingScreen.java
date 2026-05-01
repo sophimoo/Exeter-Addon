@@ -379,7 +379,9 @@ public class ExeterColorSettingScreen extends WindowScreen {
 
     @Override
     public boolean fromClipboard() {
-        if (!NbtUtils.fromClipboard(setting.get())) {
+        boolean pastedNbt = NbtUtils.fromClipboard(setting.get());
+
+        if (!pastedNbt) {
             String clipboard = mc.keyboard.getClipboard().trim();
             SettingColor parsed;
 
@@ -393,6 +395,8 @@ public class ExeterColorSettingScreen extends WindowScreen {
         }
 
         setting.get().validate();
+        if (pastedNbt) setting.onChanged();
+        callAction();
 
         if (parent instanceof WidgetScreen p) {
             p.reload();

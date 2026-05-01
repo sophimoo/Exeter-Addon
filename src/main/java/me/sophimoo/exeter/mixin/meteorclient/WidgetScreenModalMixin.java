@@ -20,7 +20,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,131 +44,51 @@ public abstract class WidgetScreenModalMixin implements WidgetScreenModalBridge 
     private WidgetScreen exeter$modalHost;
 
     @Unique
-    private static Field exeter$windowScreenWindowField;
-
-    @Unique
-    private static Field exeter$wWindowMovedField;
-
-    @Unique
-    private static Field exeter$wWindowMovedXField;
-
-    @Unique
-    private static Field exeter$wWindowMovedYField;
-
-    @Unique
-    private static Field exeter$getWindowScreenWindowField() {
-        if (exeter$windowScreenWindowField == null) {
-            try {
-                exeter$windowScreenWindowField = WindowScreen.class.getDeclaredField("window");
-                exeter$windowScreenWindowField.setAccessible(true);
-            } catch (NoSuchFieldException ignored) {}
-        }
-        return exeter$windowScreenWindowField;
+    private static WWidget exeter$getWindow(WidgetScreen screen) {
+        if (!(screen instanceof WindowScreen windowScreen)) return null;
+        return ((WindowScreenAccessor) windowScreen).exeter$getWindow();
     }
 
     @Unique
-    private static Field exeter$getWWindowMovedField() {
-        if (exeter$wWindowMovedField == null) {
-            try {
-                exeter$wWindowMovedField = Class.forName("meteordevelopment.meteorclient.gui.widgets.containers.WWindow").getDeclaredField("moved");
-                exeter$wWindowMovedField.setAccessible(true);
-            }
-            catch (ReflectiveOperationException ignored) {}
-        }
-
-        return exeter$wWindowMovedField;
-    }
-
-    @Unique
-    private static Field exeter$getWWindowMovedXField() {
-        if (exeter$wWindowMovedXField == null) {
-            try {
-                exeter$wWindowMovedXField = Class.forName("meteordevelopment.meteorclient.gui.widgets.containers.WWindow").getDeclaredField("movedX");
-                exeter$wWindowMovedXField.setAccessible(true);
-            }
-            catch (ReflectiveOperationException ignored) {}
-        }
-
-        return exeter$wWindowMovedXField;
-    }
-
-    @Unique
-    private static Field exeter$getWWindowMovedYField() {
-        if (exeter$wWindowMovedYField == null) {
-            try {
-                exeter$wWindowMovedYField = Class.forName("meteordevelopment.meteorclient.gui.widgets.containers.WWindow").getDeclaredField("movedY");
-                exeter$wWindowMovedYField.setAccessible(true);
-            }
-            catch (ReflectiveOperationException ignored) {}
-        }
-
-        return exeter$wWindowMovedYField;
+    private static void exeter$moveWindow(WWidget window, double targetX, double targetY) {
+        ((WWindowAccessor) window).exeter$setMoved(true);
+        ((WWindowAccessor) window).exeter$setMovedX(targetX);
+        ((WWindowAccessor) window).exeter$setMovedY(targetY);
+        window.move(targetX - window.x, targetY - window.y);
     }
 
     @Unique
     private static void exeter$positionWindowTopLeftAtCursor(WidgetScreen modal) {
-        if (!(modal instanceof WindowScreen ws)) return;
+        WWidget window = exeter$getWindow(modal);
+        if (window == null) return;
 
-        try {
-            Field windowField = exeter$getWindowScreenWindowField();
-            Field movedField = exeter$getWWindowMovedField();
-            Field movedXField = exeter$getWWindowMovedXField();
-            Field movedYField = exeter$getWWindowMovedYField();
-            if (windowField == null || movedField == null || movedXField == null || movedYField == null) return;
-
-            WWidget window = (WWidget) windowField.get(ws);
-            double targetX = Math.max(0, Math.min(mc.mouse.getX(), Utils.getWindowWidth() - window.width));
-            double targetY = Math.max(0, Math.min(mc.mouse.getY(), Utils.getWindowHeight() - window.height));
-
-            movedField.setBoolean(window, true);
-            movedXField.setDouble(window, targetX);
-            movedYField.setDouble(window, targetY);
-
-            window.move(targetX - window.x, targetY - window.y);
-        }
-        catch (IllegalAccessException ignored) {}
+        double targetX = Math.max(0, Math.min(mc.mouse.getX(), Utils.getWindowWidth() - window.width));
+        double targetY = Math.max(0, Math.min(mc.mouse.getY(), Utils.getWindowHeight() - window.height));
+        exeter$moveWindow(window, targetX, targetY);
     }
 
     @Unique
     private static void exeter$clampWindowToScreen(WidgetScreen modal) {
-        if (!(modal instanceof WindowScreen ws)) return;
+        WWidget window = exeter$getWindow(modal);
+        if (window == null) return;
 
-        try {
-            Field windowField = exeter$getWindowScreenWindowField();
-            Field movedField = exeter$getWWindowMovedField();
-            Field movedXField = exeter$getWWindowMovedXField();
-            Field movedYField = exeter$getWWindowMovedYField();
-            if (windowField == null || movedField == null || movedXField == null || movedYField == null) return;
+        double maxX = Math.max(0, Utils.getWindowWidth() - window.width);
+        double maxY = Math.max(0, Utils.getWindowHeight() - window.height);
 
-            WWidget window = (WWidget) windowField.get(ws);
+        double clampedX = Math.max(0, Math.min(window.x, maxX));
+        double clampedY = Math.max(0, Math.min(window.y, maxY));
 
-            double maxX = Math.max(0, Utils.getWindowWidth() - window.width);
-            double maxY = Math.max(0, Utils.getWindowHeight() - window.height);
-
-            double clampedX = Math.max(0, Math.min(window.x, maxX));
-            double clampedY = Math.max(0, Math.min(window.y, maxY));
-
-            if (clampedX != window.x || clampedY != window.y) {
-                movedField.setBoolean(window, true);
-                movedXField.setDouble(window, clampedX);
-                movedYField.setDouble(window, clampedY);
-                window.move(clampedX - window.x, clampedY - window.y);
-            }
+        if (clampedX != window.x || clampedY != window.y) {
+            exeter$moveWindow(window, clampedX, clampedY);
         }
-        catch (IllegalAccessException ignored) {}
     }
 
     @Unique
     private static boolean exeter$isInsideModalContent(WidgetScreen modal, double mouseX, double mouseY) {
-        if (modal instanceof WindowScreen ws) {
-            try {
-                Field f = exeter$getWindowScreenWindowField();
-                if (f != null) {
-                    WWidget window = (WWidget) f.get(ws);
-                    return mouseX >= window.x && mouseX <= window.x + window.width &&
-                           mouseY >= window.y && mouseY <= window.y + window.height;
-                }
-            } catch (IllegalAccessException ignored) {}
+        WWidget window = exeter$getWindow(modal);
+        if (window != null) {
+            return mouseX >= window.x && mouseX <= window.x + window.width &&
+                mouseY >= window.y && mouseY <= window.y + window.height;
         }
         return true;
     }
