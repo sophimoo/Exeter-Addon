@@ -148,7 +148,7 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<Double> globalPadding = sgGeneral.add(new DoubleSetting.Builder()
             .name("global-padding")
             .description("Global padding applied to all GUI elements.")
-            .defaultValue(6)
+            .defaultValue(4)
             .min(0)
             .max(20)
             .sliderRange(0, 20)

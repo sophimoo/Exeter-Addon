@@ -21,6 +21,7 @@ import meteordevelopment.meteorclient.gui.utils.Cell;
 import meteordevelopment.meteorclient.gui.widgets.WKeybind;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
+import meteordevelopment.meteorclient.gui.widgets.containers.WHorizontalList;
 import meteordevelopment.meteorclient.gui.widgets.containers.WSection;
 import meteordevelopment.meteorclient.gui.widgets.containers.WTable;
 import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
@@ -177,7 +178,8 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
         table.row();
 
         // Copy/Paste/Reset buttons
-        WContainer sharing = theme.horizontalList();
+        WHorizontalList sharing = theme.horizontalList();
+        sharing.spacing = 0;
         
         WButton copy = sharing.add(theme.button(GuiRenderer.COPY)).expandX().widget();
         copy.action = () -> {
@@ -418,7 +420,7 @@ mouseOver, delta, needsMarquee, staticTextX, textColor);
                 }
             } else {
                 String settingsIcon = settingsExpanded ? layout.expandedIndicator : layout.collapsedIndicator;
-                Color settingsIconColor = theme().textColor();
+                Color settingsIconColor = resolveTextColor();
                 renderText(renderer, settingsIcon, settingsIconX, textY, settingsIconColor);
             }
         }
