@@ -24,6 +24,16 @@ public class WBaseSection extends WSection implements BaseWidget {
     }
 
     @Override
+    public void setExpanded(boolean expanded) {
+        if (this.expanded == expanded) return;
+        // Snap animation if mid-flight so repeated toggles feel instant.
+        if (animProgress > 0 && animProgress < 1) {
+            animProgress = this.expanded ? 1 : 0;
+        }
+        super.setExpanded(expanded);
+    }
+
+    @Override
     protected WHeader createHeader() {
         return new WBaseHeader(title);
     }
@@ -46,7 +56,7 @@ public class WBaseSection extends WSection implements BaseWidget {
 
         @Override
         public boolean onMouseClicked(Click click, boolean doubled) {
-            if (mouseOver && !doubled) {
+            if (mouseOver) {
                 if (click.button() == GLFW_MOUSE_BUTTON_LEFT || click.button() == GLFW_MOUSE_BUTTON_RIGHT) {
                     onClick();
                     return true;

@@ -548,10 +548,15 @@ mouseOver, delta, needsMarquee, staticTextX, textColor);
         private boolean expanded;
         private double animProgress;
         private double expandedHeight;
-        private int lastAnimatedHeightPx = -1;
-        private int lastPadTopPx = -1;
+        private double cachedExpandedHeight = -1;
+        private double cachedExpandedWidth = -1;
 
         public void setExpanded(boolean expanded) {
+            if (this.expanded == expanded) return;
+            // If animation is mid-flight, snap it so repeated toggles feel instant.
+            if (animProgress > 0 && animProgress < 1) {
+                animProgress = this.expanded ? 1 : 0;
+            }
             this.expanded = expanded;
             if (expanded) settingsTickCooldown = 0;
         }
@@ -561,41 +566,41 @@ mouseOver, delta, needsMarquee, staticTextX, textColor);
         }
 
         @Override
-        protected void onCalculateSize() {
-            super.onCalculateSize();
-            expandedHeight = height;
-            height = expandedHeight * animProgress;
+        public void calculateSize() {
+            boolean animating = animProgress > 0 && animProgress < 1;
+
+            if (!animating || cachedExpandedHeight < 0 || cachedExpandedWidth < 0) {
+                super.calculateSize();
+                cachedExpandedWidth = width;
+                cachedExpandedHeight = height;
+            } else {
+                width = cachedExpandedWidth;
+                height = cachedExpandedHeight;
+            }
+
+            expandedHeight = cachedExpandedHeight;
+            height = Math.round(expandedHeight * animProgress);
         }
 
         @Override
         public boolean render(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
             if (!visible) return true;
 
+            double previousAnimProgress = animProgress;
             animProgress += (expanded ? 1 : -1) * delta * 14;
             animProgress = MathHelper.clamp(animProgress, 0, 1);
 
             double animatedHeight = expandedHeight * animProgress;
-            int animatedHeightPx = MathHelper.floor(animatedHeight + 0.5);
-            boolean animating = animProgress > 0 && animProgress < 1;
-            int relayoutHeightPx = quantizeForAnimation(animatedHeightPx, animating);
-
-            int padTopPx = 0;
-            boolean relayoutNeeded = false;
+            boolean animationChanged = previousAnimProgress != animProgress;
             if (settingsContainerCell != null) {
-                padTopPx = MathHelper.floor(theme().scale(theme().separatorPaddingY.get()) * animProgress + 0.5);
-                int relayoutPadTopPx = quantizeForAnimation(padTopPx, animating);
-                if (relayoutPadTopPx != lastPadTopPx) {
-                    settingsContainerCell.padTop(relayoutPadTopPx);
-                    lastPadTopPx = relayoutPadTopPx;
-                    relayoutNeeded = true;
+                int padTopPx = (animProgress > 0) ? MathHelper.floor(theme().scale(theme().separatorPaddingY.get()) + 0.5) : 0;
+                if (settingsContainerCell.padTop() != padTopPx) {
+                    settingsContainerCell.padTop(padTopPx);
+                    animationChanged = true;
                 }
             }
 
-            if (relayoutHeightPx != lastAnimatedHeightPx) {
-                lastAnimatedHeightPx = relayoutHeightPx;
-                relayoutNeeded = true;
-            }
-            if (relayoutNeeded) invalidate();
+            if (animationChanged) invalidate();
             if (animProgress <= 0) return false;
 
             boolean scissor = animProgress != 1;
@@ -604,10 +609,6 @@ mouseOver, delta, needsMarquee, staticTextX, textColor);
             if (scissor) renderer.scissorEnd();
 
             return toReturn;
-        }
-
-        private int quantizeForAnimation(int valuePx, boolean animating) {
-            return animating ? (valuePx / 2) * 2 : valuePx;
         }
 
         @Override
