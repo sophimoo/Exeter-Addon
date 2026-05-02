@@ -118,7 +118,7 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<Boolean> fixedCategorySize = sgGeneral.add(new BoolSetting.Builder()
         .name("fixed-category-size")
         .description("Forces category windows to a fixed width.")
-        .defaultValue(false)
+        .defaultValue(true)
         .onChanged(v -> invalidateCurrentScreen())
         .build()
     );
@@ -126,7 +126,7 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<Integer> fixedCategoryWidth = sgGeneral.add(new IntSetting.Builder()
         .name("fixed-category-width")
         .description("Width used for category windows when fixed sizing is enabled.")
-        .defaultValue(180)
+        .defaultValue(220)
         .range(1, 400)
         .sliderRange(1, 400)
         .onChanged(v -> invalidateCurrentScreen())
@@ -190,7 +190,7 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<Boolean> modalDarkening = sgBlur.add(new BoolSetting.Builder()
         .name("modal-darkening")
         .description("Darkens the background when popups are open.")
-        .defaultValue(true)
+        .defaultValue(false)
         .build()
     );
 
@@ -291,7 +291,7 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<Double> moduleSettingsPaddingX = sgModuleRender.add(new DoubleSetting.Builder()
             .name("module-settings-padding-x")
             .description("Horizontal padding for module settings menus.")
-            .defaultValue(6)
+            .defaultValue(4)
             .min(0)
             .max(30)
             .sliderRange(0, 30)
@@ -340,7 +340,7 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<Boolean> showModuleIndicator = sgModuleRender.add(new BoolSetting.Builder()
         .name("show-module-indicator")
         .description("Shows the module row indicator text used for collapsing and expanding settings.")
-        .defaultValue(true)
+        .defaultValue(false)
         .onChanged(v -> invalidateCurrentScreen())
         .build()
     );
@@ -400,7 +400,7 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<Boolean> textShadow = sgTextShadow.add(new BoolSetting.Builder()
         .name("text-shadow")
         .description("Renders shadow behind text (like Meteor HUD).")
-        .defaultValue(false)
+        .defaultValue(true)
         .build()
     );
 
@@ -414,7 +414,7 @@ public class BaseGuiTheme extends GuiTheme {
         .build()
     );
 
-    public final Setting<SettingColor> textShadowColor = color(sgTextShadow, "text-shadow", "Color of the text shadow.", new SettingColor(60, 60, 60, 180));
+    public final Setting<SettingColor> textShadowColor = color(sgTextShadow, "text-shadow", "Color of the text shadow.", new SettingColor(0, 0, 0, 150));
 
     // Background
 
@@ -426,9 +426,9 @@ public class BaseGuiTheme extends GuiTheme {
             new SettingColor(40, 40, 40, 200)
     );
 
-    public final Setting<SettingColor> itemBackgroundColor = color(sgSettingsColors, "item-background", "Color of items.", new SettingColor(20, 20, 20, 200));
+    public final Setting<SettingColor> itemBackgroundColor = color(sgSettingsColors, "item-background", "Color of items.", new SettingColor(43, 43, 43, 150));
     public final Setting<SettingColor> itemBackgroundGradientColor = color(sgSettingsColors, "item-background-gradient", "Gradient color of items.", new SettingColor(40, 40, 40, 0));
-    public final Setting<SettingColor> itemHoveredBackgroundColor = color(sgSettingsColors, "hovered-item-background", "Color of items when hovered.", new SettingColor(30, 30, 30, 200));
+    public final Setting<SettingColor> itemHoveredBackgroundColor = color(sgSettingsColors, "hovered-item-background", "Color of items when hovered.", new SettingColor(60, 60, 60, 255));
     public final Setting<SettingColor> itemHoveredBackgroundGradientColor = color(sgSettingsColors, "hovered-item-background-gradient", "Gradient color of items when hovered.", new SettingColor(40, 40, 40, 0));
 
     public final Setting<SettingColor> itemActiveColor = color(sgSettingsColors, "item-active", "Color of items when active.", new SettingColor(70, 70, 70, 200));
@@ -479,7 +479,7 @@ public class BaseGuiTheme extends GuiTheme {
             .onChanged(v -> invalidateCurrentScreen())
             .build()
     );
-    public final Setting<SettingColor> separatorColor = color(sgSeparator, "separator", "Color of separator rows.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> separatorColor = color(sgSeparator, "separator", "Color of separator rows.", new SettingColor(61, 61, 61, 150));
     public final Setting<SettingColor> separatorGradientColor = color(sgSeparator, "separator-gradient", "Gradient color of separator rows.", new SettingColor(40, 40, 40, 0));
     public final Setting<SettingColor> separatorHoveredColor = color(sgSeparator, "separator-hovered", "Color of separator rows when hovered.", new SettingColor(60, 60, 60));
     public final Setting<SettingColor> separatorHoveredGradientColor = color(sgSeparator, "separator-hovered-gradient", "Gradient color of separator rows when hovered.", new SettingColor(40, 40, 40, 0));
@@ -506,12 +506,12 @@ public class BaseGuiTheme extends GuiTheme {
 
 
     public final Setting<SettingColor> sliderLeft = color(sgSlider, "slider-left", "Color of slider left part.", new SettingColor(100,35,170));
-    public final Setting<SettingColor> sliderRight = color(sgSlider, "slider-right", "Color of slider right part.", new SettingColor(50, 50, 50));
+    public final Setting<SettingColor> sliderRight = color(sgSlider, "slider-right", "Color of slider right part.", new SettingColor(50, 50, 50, 0));
 
     public final Setting<SliderStyle> sliderStyle = sgSlider.add(new EnumSetting.Builder<SliderStyle>()
             .name("slider-style")
             .description("Visual style of setting sliders.")
-            .defaultValue(SliderStyle.BottomBar)
+            .defaultValue(SliderStyle.FullBar)
             .onChanged(v -> invalidateCurrentScreen())
             .build()
     );
