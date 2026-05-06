@@ -296,6 +296,8 @@ public class BaseModulesScreen extends TabScreen {
     protected class WCategoryController extends WContainer {
         public final List<WWindow> windows = new ArrayList<>();
         private Cell<WWindow> favoritesCell;
+        private boolean positionsCalculated;
+        private int lastLayoutW = -1, lastLayoutH = -1;
 
         @Override
         public void init() {
@@ -312,6 +314,7 @@ public class BaseModulesScreen extends TabScreen {
         }
 
         protected void refresh() {
+            positionsCalculated = false;
             if (favoritesCell == null) {
                 favoritesCell = createFavorites(this);
                 if (favoritesCell != null) windows.add(favoritesCell.widget());
@@ -332,15 +335,29 @@ public class BaseModulesScreen extends TabScreen {
 
         @Override
         protected void onCalculateWidgetPositions() {
+            int ww = (int) getWindowWidth(), wh = (int) getWindowHeight();
+            boolean resized = lastLayoutW != ww || lastLayoutH != wh;
+            lastLayoutW = ww;
+            lastLayoutH = wh;
+
+            if (positionsCalculated && !resized) {
+                for (Cell<?> cell : cells) {
+                    cell.width = cell.widget().width;
+                    cell.height = cell.widget().height;
+                    cell.alignWidget();
+                }
+                return;
+            }
+
+            positionsCalculated = true;
+
             double pad = theme.scale(4);
             double h = theme.scale(40);
             double x = this.x + pad, y = this.y;
 
             for (Cell<?> cell : cells) {
-                double ww = getWindowWidth(), wh = getWindowHeight();
-
                 if (x + cell.width > ww) {
-                    x = x + pad;
+                    x = this.x + pad;
                     y += h;
                 }
                 if (x > ww) x = Math.max(0, ww / 2.0 - cell.width / 2.0);
