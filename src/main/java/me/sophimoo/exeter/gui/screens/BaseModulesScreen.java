@@ -66,7 +66,7 @@ public class BaseModulesScreen extends TabScreen {
             expandedModulesDirty = false;
         }
 
-        if (theme.inlineModuleSettings.get()) {
+        if (theme.inlineModuleSettings.get() && !expandedModules.isEmpty()) {
             for (WBaseModule module : expandedModules) {
                 module.tickSettings();
             }

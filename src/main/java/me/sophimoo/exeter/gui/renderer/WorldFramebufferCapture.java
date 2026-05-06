@@ -127,18 +127,19 @@ public class WorldFramebufferCapture {
     }
 
     private void onRenderAfterWorld(RenderAfterWorldEvent event) {
-        ensureInitialized();
-        if (!initialized) return;
-
         boolean needsBlur = hudBlurRequested || (mc.currentScreen instanceof WidgetScreen);
         hudBlurRequested = false; // consume — next frame's HUD must re-request if still needed
 
-        if (blurIterations > 0 && needsBlur) {
-            applyBlur();
-            blurAppliedThisTick = true;
-        } else {
+        if (blurIterations <= 0 || !needsBlur) {
             blurAppliedThisTick = false;
+            return;
         }
+
+        ensureInitialized();
+        if (!initialized) return;
+
+        applyBlur();
+        blurAppliedThisTick = true;
 
         if (mc.currentScreen instanceof WidgetScreen) {
             capturedThisTick = true;

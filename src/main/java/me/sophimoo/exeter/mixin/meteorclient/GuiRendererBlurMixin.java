@@ -117,12 +117,14 @@ public abstract class GuiRendererBlurMixin implements BlurRendererAccess {
 
     @Inject(method = "end", at = @At("HEAD"))
     private void onEnd(CallbackInfo ci) {
+        if (blurQueue.isEmpty() && currentBlurTexture == null) return;
         flushBlurredQuads();
         currentBlurTexture = null;
     }
 
     @Inject(method = "endRender(Lmeteordevelopment/meteorclient/gui/renderer/Scissor;)V", at = @At("HEAD"))
     private void onEndRender(Scissor scissor, CallbackInfo ci) {
+        if (blurQueue.isEmpty() && currentBlurTexture == null) return;
         if (!isFlushingBlur) {
             flushBlurredQuads();
         }
@@ -130,16 +132,19 @@ public abstract class GuiRendererBlurMixin implements BlurRendererAccess {
 
     @Inject(method = "scissorEnd", at = @At("HEAD"))
     private void onScissorEnd(CallbackInfo ci) {
+        if (blurQueue.isEmpty() && currentBlurTexture == null) return;
         flushBlurredQuads();
     }
 
     @Inject(method = "quad(DDDDLmeteordevelopment/meteorclient/utils/render/color/Color;)V", at = @At("HEAD"))
     private void onQuad(double x, double y, double width, double height, Color color, CallbackInfo ci) {
+        if (blurQueue.isEmpty() && currentBlurTexture == null) return;
         flushBlurredQuads();
     }
 
     @Inject(method = "rotatedQuad", at = @At("HEAD"))
     private void onRotatedQuad(double x, double y, double width, double height, double rotation, GuiTexture texture, Color color, CallbackInfo ci) {
+        if (blurQueue.isEmpty() && currentBlurTexture == null) return;
         flushBlurredQuads();
     }
 
