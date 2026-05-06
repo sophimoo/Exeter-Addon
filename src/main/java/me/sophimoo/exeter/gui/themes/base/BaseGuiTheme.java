@@ -353,6 +353,21 @@ public class BaseGuiTheme extends GuiTheme {
         .build()
     );
 
+    public final Setting<Boolean> inlineModuleSettings = sgModuleRender.add(new BoolSetting.Builder()
+        .name("inline-module-settings")
+        .description("Shows module settings inline below the module row instead of opening a separate screen.")
+        .defaultValue(true)
+        .onChanged(v -> invalidateCurrentScreen())
+        .build()
+    );
+
+    public final Setting<Boolean> moduleSettingsAsModal = sgModuleRender.add(new BoolSetting.Builder()
+        .name("module-settings-as-modal")
+        .description("Opens module settings as a modal overlay instead of a separate screen.")
+        .defaultValue(false)
+        .build()
+    );
+
     // Module colors
     public final Setting<SettingColor> moduleInactiveColor = color(sgModuleColor, "module-inactive", "Color of module when inactive.", new SettingColor(40, 40, 40, 0));
     public final Setting<SettingColor> moduleInactiveGradientColor = color(sgModuleColor, "module-inactive-gradient", "Gradient color for inactive modules. 'None' uses inactive color.", new SettingColor(40, 40, 40, 0));
@@ -774,7 +789,8 @@ public class BaseGuiTheme extends GuiTheme {
 
     @Override
     public WWidget module(Module module, String title) {
-        return w(new WBaseModule(module, title));
+        if (inlineModuleSettings.get()) return w(new WBaseModule(module, title));
+        return w(new WBaseModuleLegacy(module, title));
     }
 
     @Override
@@ -797,6 +813,11 @@ public class BaseGuiTheme extends GuiTheme {
     @Override
     public TabScreen modulesScreen() {
         return new me.sophimoo.exeter.gui.screens.BaseModulesScreen(this);
+    }
+
+    @Override
+    public meteordevelopment.meteorclient.gui.WindowScreen moduleScreen(Module module) {
+        return new me.sophimoo.exeter.gui.screens.ModuleSettingsScreen(this, module);
     }
 
     @Override

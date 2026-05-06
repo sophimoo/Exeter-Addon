@@ -53,7 +53,9 @@ public class BaseModulesScreen extends TabScreen {
 
         WVerticalList help = add(theme.verticalList()).pad(4).bottom().widget();
         help.add(theme.label("Left click - Toggle module"));
-        help.add(theme.label("Right click - Expand module settings"));
+        help.add(theme.label(theme.inlineModuleSettings.get()
+            ? "Right click - Expand module settings"
+            : "Right click - Open module settings"));
     }
 
     @Override
@@ -64,13 +66,15 @@ public class BaseModulesScreen extends TabScreen {
             expandedModulesDirty = false;
         }
 
-        for (WBaseModule module : expandedModules) {
-            module.tickSettings();
+        if (theme.inlineModuleSettings.get()) {
+            for (WBaseModule module : expandedModules) {
+                module.tickSettings();
+            }
         }
     }
 
     public void requestExpandedModulesRefresh() {
-        expandedModulesDirty = true;
+        if (theme.inlineModuleSettings.get()) expandedModulesDirty = true;
     }
 
     private void refreshExpandedModules() {
@@ -283,6 +287,12 @@ public class BaseModulesScreen extends TabScreen {
     @Override
     public boolean fromClipboard() {
         return NbtUtils.fromClipboard(Modules.get());
+    }
+
+    public void unfocusSearchTextBox() {
+        if (searchTextBox != null) {
+            searchTextBox.setFocused(false);
+        }
     }
 
     @Override
