@@ -2,6 +2,7 @@ package me.sophimoo.exeter.gui.themes.base;
 
 import me.sophimoo.exeter.gui.renderer.WorldFramebufferCapture;
 import me.sophimoo.exeter.gui.themes.base.utils.*;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.*;
 import me.sophimoo.exeter.gui.themes.base.widgets.*;
 import me.sophimoo.exeter.gui.themes.base.widgets.input.WBaseDropdown;
 import me.sophimoo.exeter.gui.themes.base.widgets.input.WBaseSlider;
@@ -246,7 +247,7 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<ModuleGradientDirection> moduleGradientDirection = sgModuleRender.add(new EnumSetting.Builder<ModuleGradientDirection>()
         .name("module-gradient-direction")
         .description("Gradient direction for active module background. 'None' uses solid color.")
-        .defaultValue(ModuleGradientDirection.None)
+        .defaultValue(ModuleGradientDirection.NONE)
         .build()
     );
 
@@ -260,7 +261,7 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<ModuleIndicatorPosition> moduleIndicatorPosition = sgModuleRender.add(new EnumSetting.Builder<ModuleIndicatorPosition>()
         .name("module-indicator-position")
         .description("Position of the active module indicator bar. 'None' to disable.")
-        .defaultValue(ModuleIndicatorPosition.Left)
+        .defaultValue(ModuleIndicatorPosition.LEFT)
         .build()
     );
 
@@ -521,7 +522,7 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<SliderStyle> sliderStyle = sgSlider.add(new EnumSetting.Builder<SliderStyle>()
             .name("slider-style")
             .description("Visual style of setting sliders.")
-            .defaultValue(SliderStyle.FullBar)
+            .defaultValue(SliderStyle.FULL_BAR)
             .onChanged(v -> invalidateCurrentScreen())
             .build()
     );

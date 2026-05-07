@@ -1,8 +1,8 @@
-package me.sophimoo.exeter.gui.themes.base.utils;
+package me.sophimoo.exeter.gui.themes.base.utils.enums;
 
 public enum SliderStyle {
-    BottomBar("Bottom Bar"),
-    FullBar("Full Bar");
+    BOTTOM_BAR("Bottom Bar"),
+    FULL_BAR("Full Bar");
 
     private final String title;
 

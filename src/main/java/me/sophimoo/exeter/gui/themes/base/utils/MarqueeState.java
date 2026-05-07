@@ -29,25 +29,18 @@ public final class MarqueeState {
         offset = Math.min(offset, overflow);
 
         if (animate) {
-            if (pause > 0) pause = Math.max(0, pause - delta);
-            else {
-                offset += direction * delta * speed;
-
-                if (offset >= overflow) {
-                    offset = overflow;
-                    direction = -1;
-                    pause = edgePause;
-                } else if (offset <= 0) {
-                    offset = 0;
-                    direction = 1;
+            if (pause > 0) {
+                pause = Math.max(0, pause - delta);
+            } else {
+                offset = Math.clamp(offset + direction * delta * speed, 0, overflow);
+                if (offset == 0 || offset == overflow) {
+                    direction = -direction;
                     pause = edgePause;
                 }
             }
         } else if (offset > 0) {
-            offset = Math.max(0, offset - delta * speed * 2);
-            if (offset <= 0) {
-                reset();
-            }
+            offset -= delta * speed * 2;
+            if (offset <= 0) reset();
         }
 
         return offset;

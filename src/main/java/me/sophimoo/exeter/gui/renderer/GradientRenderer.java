@@ -1,6 +1,6 @@
 package me.sophimoo.exeter.gui.renderer;
 
-import me.sophimoo.exeter.gui.themes.base.utils.ModuleGradientDirection;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 
@@ -25,22 +25,22 @@ public class GradientRenderer {
      */
     public static void render(GuiRenderer renderer, double x, double y, double width, double height,
                              Color color1, Color color2, ModuleGradientDirection direction) {
-        if (direction == ModuleGradientDirection.None || width <= 0 || height <= 0) {
+        if (direction == ModuleGradientDirection.NONE || width <= 0 || height <= 0) {
             renderer.quad(x, y, width, height, color2);
             return;
         }
 
         switch (direction) {
-            case Horizontal_LeftToRight -> {
+            case HORIZONTAL_LEFT_TO_RIGHT -> {
                 renderer.quad(x, y, width, height, color1, color2);
             }
-            case Horizontal_RightToLeft -> {
+            case HORIZONTAL_RIGHT_TO_LEFT -> {
                 renderer.quad(x, y, width, height, color2, color1);
             }
-            case Vertical_TopToBottom -> {
+            case VERTICAL_TOP_TO_BOTTOM -> {
                 renderer.quad(x, y, width, height, color1, color1, color2, color2);
             }
-            case Vertical_BottomToTop -> {
+            case VERTICAL_BOTTOM_TO_TOP -> {
                 renderer.quad(x, y, width, height, color2, color2, color1, color1);
             }
             default -> renderer.quad(x, y, width, height, color2);

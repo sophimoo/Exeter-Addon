@@ -2,9 +2,9 @@ package me.sophimoo.exeter.gui.themes.base.widgets;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
-import me.sophimoo.exeter.gui.themes.base.utils.GradientApplicationMode;
-import me.sophimoo.exeter.gui.themes.base.utils.ModuleAnimationMode;
-import me.sophimoo.exeter.gui.themes.base.utils.ModuleGradientDirection;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.GradientApplicationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleAnimationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
 import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
@@ -97,10 +97,10 @@ public class WBaseSection extends WSection implements BaseWidget {
             double thickness = theme().scale(theme().moduleOutlineThickness.get());
 
             // Determine render direction for gradients
-            ModuleGradientDirection renderDirection = (gradientDirection != ModuleGradientDirection.None) ? gradientDirection : ModuleGradientDirection.None;
+            ModuleGradientDirection renderDirection = (gradientDirection != ModuleGradientDirection.NONE) ? gradientDirection : ModuleGradientDirection.NONE;
 
             // Base layer - always render separator + separator-gradient (like inactive module base)
-            boolean renderBaseGradient = applyMode.shouldApply(false) && gradientDirection != ModuleGradientDirection.None;
+            boolean renderBaseGradient = applyMode.shouldApply(false) && gradientDirection != ModuleGradientDirection.NONE;
             AnimatedOverlayRenderer.render(
                 renderer,
                 x,
@@ -111,7 +111,7 @@ public class WBaseSection extends WSection implements BaseWidget {
                 1,
                 theme().separatorColor.get(),
                 theme().separatorGradientColor.get(),
-                renderBaseGradient ? renderDirection : ModuleGradientDirection.None
+                renderBaseGradient ? renderDirection : ModuleGradientDirection.NONE
             );
 
             // Hover overlay layer - animated (like hovered/active module overlay)
@@ -140,7 +140,7 @@ public class WBaseSection extends WSection implements BaseWidget {
             hoverProgress = MathHelper.clamp(hoverProgress, 0, 1);
 
             if (hoverProgress > 0) {
-                boolean renderHoverGradient = applyMode.shouldApply(false) && gradientDirection != ModuleGradientDirection.None;
+                boolean renderHoverGradient = applyMode.shouldApply(false) && gradientDirection != ModuleGradientDirection.NONE;
                 AnimatedOverlayRenderer.render(
                     renderer,
                     x,
@@ -151,7 +151,7 @@ public class WBaseSection extends WSection implements BaseWidget {
                     hoverProgress,
                     theme().separatorHoveredColor.get(),
                     theme().separatorHoveredGradientColor.get(),
-                    renderHoverGradient ? renderDirection : ModuleGradientDirection.None
+                    renderHoverGradient ? renderDirection : ModuleGradientDirection.NONE
                 );
             }
 

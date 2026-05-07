@@ -29,7 +29,7 @@ import static meteordevelopment.meteorclient.MeteorClient.mc;
  * Captures the world framebuffer before GUI rendering for use in widget background blur.
  */
 public class WorldFramebufferCapture {
-    private static WorldFramebufferCapture INSTANCE;
+    private static WorldFramebufferCapture instance;
 
     private GpuTextureView[] blurFbos;
     private GpuBufferSlice[] blurUbos;
@@ -83,7 +83,7 @@ public class WorldFramebufferCapture {
         MeteorClient.EVENT_BUS.subscribe(gameLeftListener);
         MeteorClient.EVENT_BUS.subscribe(tickListener);
 
-        INSTANCE = this;
+        instance = this;
     }
 
     public void updateSettings(int iterations, float offset, float scale) {
@@ -293,7 +293,7 @@ public class WorldFramebufferCapture {
      * Gets the capture instance. Returns null if not initialized.
      */
     public static WorldFramebufferCapture getInstance() {
-        return INSTANCE;
+        return instance;
     }
 
     public void close() {
@@ -322,8 +322,8 @@ public class WorldFramebufferCapture {
             }
         }
 
-        if (INSTANCE == this) {
-            INSTANCE = null;
+        if (instance == this) {
+            instance = null;
         }
     }
 }

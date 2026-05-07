@@ -35,7 +35,7 @@ public abstract class WidgetScreenModalMixin implements WidgetScreenModalBridge 
     private final GuiRenderer exeter$overlayRenderer = new GuiRenderer();
 
     @Unique
-    private static final Color exeter$overlayColor = new Color(0, 0, 0, 120);
+    private static final Color exeter$OVERLAY_COLOR = new Color(0, 0, 0, 120);
 
     @Unique
     private final List<WidgetScreen> exeter$modals = new ArrayList<>(2);
@@ -230,7 +230,7 @@ public abstract class WidgetScreenModalMixin implements WidgetScreenModalBridge 
         if (!(theme instanceof BaseGuiTheme baseTheme) || baseTheme.modalDarkening.get()) {
             exeter$overlayRenderer.theme = theme;
             exeter$overlayRenderer.begin(context);
-            exeter$overlayRenderer.quad(0, 0, Utils.getWindowWidth(), Utils.getWindowHeight(), exeter$overlayColor);
+            exeter$overlayRenderer.quad(0, 0, Utils.getWindowWidth(), Utils.getWindowHeight(), exeter$OVERLAY_COLOR);
             exeter$overlayRenderer.end();
         }
 

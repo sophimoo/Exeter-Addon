@@ -1,4 +1,4 @@
-package me.sophimoo.exeter.gui.themes.base.utils;
+package me.sophimoo.exeter.gui.themes.base.utils.enums;
 
 public enum ModuleAnimationMode {
     FADE("Fade"),
@@ -8,14 +8,12 @@ public enum ModuleAnimationMode {
     SLIDE_DOWN("Slide Down"),
     SMART_SLIDE("Smart Slide");
 
-    private final String name;
+    private final String title;
 
-    ModuleAnimationMode(String name) {
-        this.name = name;
-    }
+    ModuleAnimationMode(String title) { this.title = title; }
 
     @Override
     public String toString() {
-        return name;
+        return title;
     }
 }

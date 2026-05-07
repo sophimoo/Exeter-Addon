@@ -2,11 +2,11 @@ package me.sophimoo.exeter.gui.themes.base.widgets.settings;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
-import me.sophimoo.exeter.gui.themes.base.utils.GradientApplicationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.GradientApplicationMode;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.utils.ModuleAnimationMode;
-import me.sophimoo.exeter.gui.themes.base.utils.ModuleGradientDirection;
-import me.sophimoo.exeter.gui.themes.base.utils.SliderStyle;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleAnimationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.SliderStyle;
 import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import me.sophimoo.exeter.gui.themes.base.utils.WidgetSizeDebug;
 import me.sophimoo.exeter.gui.themes.base.widgets.input.WBaseTextBox;
@@ -235,7 +235,7 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
         ModuleGradientDirection gradientDir = theme().moduleGradientDirection.get();
         GradientApplicationMode applyMode = theme().gradientApplicationMode.get();
         Color itemColor = theme().itemBackgroundColor.get();
-        boolean shouldApplyGradient = applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.None;
+        boolean shouldApplyGradient = applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.NONE;
         Color itemGradient = theme().itemBackgroundGradientColor.get();
         Color hoverColor = theme().itemHoveredBackgroundColor.get();
         Color hoverGradient = theme().itemHoveredBackgroundGradientColor.get();
@@ -252,7 +252,7 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
             1,
             itemColor,
             itemGradient,
-            shouldApplyGradient ? gradientDir : ModuleGradientDirection.None
+            shouldApplyGradient ? gradientDir : ModuleGradientDirection.NONE
         );
 
         if (animationProgress > 0) {
@@ -266,7 +266,7 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
                 animationProgress,
                 hoverColor,
                 hoverGradient,
-                shouldApplyGradient ? gradientDir : ModuleGradientDirection.None
+            shouldApplyGradient ? gradientDir : ModuleGradientDirection.NONE
             );
         }
 
@@ -277,7 +277,7 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
         double pad = pad();
         double textHeight = theme().textHeight();
         SliderStyle sliderStyle = theme().sliderStyle.get();
-        double barSpace = sliderStyle == SliderStyle.FullBar ? 0 : pad;
+        double barSpace = sliderStyle == SliderStyle.FULL_BAR ? 0 : pad;
         double textY = y + (height - barSpace - textHeight) / 2;
         Color textColor = mouseOver ? theme().moduleTextHoveredColor.get() : theme().moduleTextInactiveColor.get();
 
@@ -323,7 +323,7 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
     }
 
     private double getBarStartX() {
-        if (theme().sliderStyle.get() == SliderStyle.FullBar) return x + sliderInset();
+        if (theme().sliderStyle.get() == SliderStyle.FULL_BAR) return x + sliderInset();
         return x + pad();
     }
 
@@ -333,17 +333,17 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
     }
 
     private double getBarEndX() {
-        if (theme().sliderStyle.get() == SliderStyle.FullBar) return x + width - sliderInset();
+        if (theme().sliderStyle.get() == SliderStyle.FULL_BAR) return x + width - sliderInset();
         return x + width - pad();
     }
 
     private double getBarY() {
-        if (theme().sliderStyle.get() == SliderStyle.FullBar) return y + sliderInset();
+        if (theme().sliderStyle.get() == SliderStyle.FULL_BAR) return y + sliderInset();
         return y + height - sliderBottomGap();
     }
 
     private double getBarHeight() {
-        if (theme().sliderStyle.get() == SliderStyle.FullBar) {
+        if (theme().sliderStyle.get() == SliderStyle.FULL_BAR) {
             double inset = sliderInset();
             return Math.max(sliderFullBarMinTrackHeight(), height - inset * 2);
         }

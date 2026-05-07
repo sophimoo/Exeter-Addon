@@ -1,11 +1,11 @@
-package me.sophimoo.exeter.gui.themes.base.utils;
+package me.sophimoo.exeter.gui.themes.base.utils.enums;
 
 public enum ModuleIndicatorPosition {
-    None("None"),
-    Left("Left"),
-    Right("Right"),
-    Top("Top"),
-    Bottom("Bottom");
+    NONE("None"),
+    LEFT("Left"),
+    RIGHT("Right"),
+    TOP("Top"),
+    BOTTOM("Bottom");
 
     private final String title;
 

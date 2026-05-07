@@ -2,11 +2,11 @@ package me.sophimoo.exeter.gui.themes.base.widgets.settings;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
-import me.sophimoo.exeter.gui.themes.base.utils.GradientApplicationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.GradientApplicationMode;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.utils.ModuleAnimationMode;
-import me.sophimoo.exeter.gui.themes.base.utils.ModuleGradientDirection;
-import me.sophimoo.exeter.gui.themes.base.utils.ModuleIndicatorPosition;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleAnimationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleIndicatorPosition;
 import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import me.sophimoo.exeter.gui.themes.base.utils.WidgetSizeDebug;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
@@ -133,7 +133,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
                                        ModuleAnimationMode effectiveAnimationMode,
                                        ModuleGradientDirection gradientDir, GradientApplicationMode applyMode) {
         Color inactiveColor = theme().itemBackgroundColor.get();
-        boolean applyInactiveGradient = applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.None;
+        boolean applyInactiveGradient = applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.NONE;
         Color inactiveGradient = theme().itemBackgroundGradientColor.get();
         Color overlayColor = active ? theme().itemActiveColor.get() : theme().itemHoveredBackgroundColor.get();
         Color overlayGradient = active ? theme().itemActiveGradientColor.get() : theme().itemHoveredBackgroundGradientColor.get();
@@ -152,7 +152,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
             1,
             inactiveColor,
             inactiveGradient,
-            applyInactiveGradient ? gradientDir : ModuleGradientDirection.None
+            applyInactiveGradient ? gradientDir : ModuleGradientDirection.NONE
         );
 
         if (animationProgress > 0) {
@@ -166,7 +166,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
                 animationProgress,
                 overlayColor,
                 overlayGradient,
-                applyOverlayGradient ? gradientDir : ModuleGradientDirection.None
+                applyOverlayGradient ? gradientDir : ModuleGradientDirection.NONE
             );
         }
 
@@ -181,7 +181,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
                 hoverOverlayProgress,
                 hoveredOverlayColor,
                 hoveredOverlayGradient,
-                applyHoveredOverlayGradient ? gradientDir : ModuleGradientDirection.None
+                applyHoveredOverlayGradient ? gradientDir : ModuleGradientDirection.NONE
             );
         }
     }
@@ -210,7 +210,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
 
     private void renderIndicator(GuiRenderer renderer) {
         ModuleIndicatorPosition position = theme().moduleIndicatorPosition.get();
-        if (position == ModuleIndicatorPosition.None) return;
+        if (position == ModuleIndicatorPosition.NONE) return;
 
         double thickness = theme().scale(theme().moduleIndicatorThickness.get());
         if (thickness <= 0) return;
@@ -219,13 +219,13 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
         double ix = x, iy = y, iw = width, ih = height;
 
         switch (position) {
-            case Left -> iw = thickness;
-            case Right -> {
+            case LEFT -> iw = thickness;
+            case RIGHT -> {
                 ix = x + width - thickness;
                 iw = thickness;
             }
-            case Top -> ih = thickness;
-            case Bottom -> {
+            case TOP -> ih = thickness;
+            case BOTTOM -> {
                 iy = y + height - thickness;
                 ih = thickness;
             }

@@ -3,11 +3,11 @@ package me.sophimoo.exeter.gui.themes.base.widgets;
 import me.sophimoo.exeter.BaseAddon;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
-import me.sophimoo.exeter.gui.themes.base.utils.GradientApplicationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.GradientApplicationMode;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.utils.ModuleAnimationMode;
-import me.sophimoo.exeter.gui.themes.base.utils.ModuleGradientDirection;
-import me.sophimoo.exeter.gui.themes.base.utils.ModuleIndicatorPosition;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleAnimationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleIndicatorPosition;
 import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import meteordevelopment.meteorclient.gui.utils.AlignmentY;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
@@ -174,7 +174,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         GradientApplicationMode applyMode = theme().gradientApplicationMode.get();
         double thickness = theme().scale(theme().moduleOutlineThickness.get());
         Color baseColor = theme().moduleInactiveColor.get();
-        boolean renderBaseGradient = !isActive && applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.None;
+        boolean renderBaseGradient = !isActive && applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.NONE;
         Color overlayColor = isActive ? theme().moduleActiveColor.get() : theme().moduleHoveredColor.get();
         Color overlayGradient = isActive ? activeGradientColor : theme().moduleHoveredGradientColor.get();
         boolean renderOverlayGradient = applyMode.shouldApply(isActive);
@@ -202,7 +202,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
             progress,
             color,
             gradient,
-            renderGradient ? gradientDir : ModuleGradientDirection.None
+            renderGradient ? gradientDir : ModuleGradientDirection.NONE
         );
     }
 
@@ -282,7 +282,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
 
     protected final void renderIndicator(GuiRenderer renderer, double progress) {
         ModuleIndicatorPosition position = theme().moduleIndicatorPosition.get();
-        if (position == ModuleIndicatorPosition.None) return;
+        if (position == ModuleIndicatorPosition.NONE) return;
 
         double thickness = theme().scale(theme().moduleIndicatorThickness.get());
         if (thickness <= 0) return;
@@ -293,10 +293,10 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         double ix = this.x, iy = this.y, iw = this.width, ih = this.height;
 
         switch (position) {
-            case Left -> iw = size;
-            case Right -> { ix = this.x + this.width - size; iw = size; }
-            case Top -> ih = size;
-            case Bottom -> { iy = this.y + this.height - size; ih = size; }
+            case LEFT -> iw = size;
+            case RIGHT -> { ix = this.x + this.width - size; iw = size; }
+            case TOP -> ih = size;
+            case BOTTOM -> { iy = this.y + this.height - size; ih = size; }
         }
 
         renderer.quad(ix, iy, iw, ih, accentColor);

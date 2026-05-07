@@ -2,10 +2,10 @@ package me.sophimoo.exeter.gui.themes.base.widgets.settings;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
-import me.sophimoo.exeter.gui.themes.base.utils.GradientApplicationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.GradientApplicationMode;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.utils.ModuleAnimationMode;
-import me.sophimoo.exeter.gui.themes.base.utils.ModuleGradientDirection;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleAnimationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
 import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import me.sophimoo.exeter.gui.themes.base.utils.WidgetSizeDebug;
 import me.sophimoo.exeter.gui.themes.base.widgets.pressable.WBaseColorButton;
@@ -143,11 +143,11 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
         ModuleGradientDirection gradientDir = theme().moduleGradientDirection.get();
         GradientApplicationMode applyMode = theme().gradientApplicationMode.get();
         Color itemColor = theme().itemBackgroundColor.get();
-        boolean shouldApplyGradient = applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.None;
+        boolean shouldApplyGradient = applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.NONE;
         Color itemGradient = theme().itemBackgroundGradientColor.get();
         Color hoverColor = theme().itemHoveredBackgroundColor.get();
         Color hoverGradient = theme().itemHoveredBackgroundGradientColor.get();
-        ModuleGradientDirection inactiveGradientDirection = shouldApplyGradient ? gradientDir : ModuleGradientDirection.None;
+        ModuleGradientDirection inactiveGradientDirection = shouldApplyGradient ? gradientDir : ModuleGradientDirection.NONE;
         double outlineThickness = theme().scale(theme().moduleOutlineThickness.get());
         Color outlineColor = theme().outlineColor.get(false, mouseOver);
 
