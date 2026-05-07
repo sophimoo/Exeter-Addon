@@ -1,6 +1,9 @@
 package me.sophimoo.exeter.gui.themes.base;
 
 import me.sophimoo.exeter.gui.modal.ModalScreenOps;
+
+import static meteordevelopment.meteorclient.MeteorClient.mc;
+
 import meteordevelopment.meteorclient.gui.GuiTheme;
 import meteordevelopment.meteorclient.gui.WidgetScreen;
 import meteordevelopment.meteorclient.settings.Setting;
@@ -24,7 +27,11 @@ public final class SettingScreenResolver {
         try {
             Object screen = constructor.newInstance(theme, setting);
             if (screen instanceof WidgetScreen widgetScreen) {
-                ModalScreenOps.open(widgetScreen);
+                if (theme instanceof BaseGuiTheme baseTheme && !baseTheme.modalWindows.get()) {
+                    mc.setScreen(widgetScreen);
+                } else {
+                    ModalScreenOps.open(widgetScreen);
+                }
             }
         } catch (ReflectiveOperationException ignored) {
         }

@@ -2,6 +2,9 @@ package me.sophimoo.exeter.gui.themes.base;
 
 import me.sophimoo.exeter.gui.screens.settings.ExeterColorSettingScreen;
 import me.sophimoo.exeter.gui.modal.ModalScreenOps;
+
+import static meteordevelopment.meteorclient.MeteorClient.mc;
+
 import meteordevelopment.meteorclient.gui.GuiTheme;
 import meteordevelopment.meteorclient.gui.WidgetScreen;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
@@ -431,7 +434,11 @@ public class BaseSettingsWidgetFactory extends SettingsWidgetFactory {
     }
 
     private void openScreen(WidgetScreen screen) {
-        ModalScreenOps.open(screen);
+        if (theme instanceof BaseGuiTheme baseTheme && !baseTheme.modalWindows.get()) {
+            mc.setScreen(screen);
+        } else {
+            ModalScreenOps.open(screen);
+        }
     }
 
     private double itemSpacing() {

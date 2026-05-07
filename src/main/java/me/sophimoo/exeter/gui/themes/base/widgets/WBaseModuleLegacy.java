@@ -16,7 +16,7 @@ public class WBaseModuleLegacy extends WBaseModuleRow {
 
     @Override
     protected void onRightClick() {
-        if (theme().moduleSettingsAsModal.get()) {
+        if (theme().modalWindows.get()) {
             ModalScreenOps.open(theme().moduleScreen(module));
         } else {
             mc.setScreen(theme().moduleScreen(module));

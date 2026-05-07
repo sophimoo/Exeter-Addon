@@ -151,9 +151,9 @@ public class BaseGuiTheme extends GuiTheme {
             .build()
     );
 
-    public final Setting<Boolean> moduleSettingsAsModal = sgGeneral.add(new BoolSetting.Builder()
-            .name("module-settings-as-modal")
-            .description("Op")
+    public final Setting<Boolean> modalWindows = sgGeneral.add(new BoolSetting.Builder()
+            .name("modal-windows")
+            .description("Open elements in modal windows")
             .defaultValue(false)
             .build()
     );
@@ -209,8 +209,6 @@ public class BaseGuiTheme extends GuiTheme {
         .defaultValue(false)
         .build()
     );
-
-    // Module stuff
 
     // Module animation
 
