@@ -118,7 +118,7 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<Boolean> fixedCategorySize = sgGeneral.add(new BoolSetting.Builder()
         .name("fixed-category-size")
         .description("Forces category windows to a fixed width.")
-        .defaultValue(true)
+        .defaultValue(false)
         .onChanged(v -> invalidateCurrentScreen())
         .build()
     );
@@ -142,6 +142,22 @@ public class BaseGuiTheme extends GuiTheme {
         })
         .build()
     );
+
+    public final Setting<Boolean> inlineModuleSettings = sgGeneral.add(new BoolSetting.Builder()
+            .name("inline-module-settings")
+            .description("Open settings in module list")
+            .defaultValue(false)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<Boolean> moduleSettingsAsModal = sgGeneral.add(new BoolSetting.Builder()
+            .name("module-settings-as-modal")
+            .description("Op")
+            .defaultValue(false)
+            .build()
+    );
+
 
     // Padding
 
@@ -350,21 +366,6 @@ public class BaseGuiTheme extends GuiTheme {
         .description("Overrides the module indicator text with the Exeter icon.")
         .defaultValue(false)
         .onChanged(v -> invalidateCurrentScreen())
-        .build()
-    );
-
-    public final Setting<Boolean> inlineModuleSettings = sgModuleRender.add(new BoolSetting.Builder()
-        .name("inline-module-settings")
-        .description("Shows module settings inline below the module row instead of opening a separate screen.")
-        .defaultValue(true)
-        .onChanged(v -> invalidateCurrentScreen())
-        .build()
-    );
-
-    public final Setting<Boolean> moduleSettingsAsModal = sgModuleRender.add(new BoolSetting.Builder()
-        .name("module-settings-as-modal")
-        .description("Opens module settings as a modal overlay instead of a separate screen.")
-        .defaultValue(false)
         .build()
     );
 

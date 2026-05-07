@@ -84,7 +84,7 @@ public class ModuleSettingsScreen extends WindowScreen {
         double separatorPaddingY = baseTheme != null ? baseTheme.scale(baseTheme.separatorPaddingY.get()) : 6;
         double itemSpacing = baseTheme != null ? baseTheme.itemSpacing.get() : 0;
 
-        Cell<WSection> bindSectionCell = container.add(theme.section("Bind", false))
+        Cell<WSection> bindSectionCell = container.add(theme.section("Bind", true))
             .expandX()
             .padTop(separatorPaddingY)
             .padHorizontal(paddingX)
