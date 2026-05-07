@@ -21,6 +21,7 @@ public class ModuleSettingsScreen extends WindowScreen {
     private final Module module;
     private final BaseGuiTheme baseTheme;
     private WKeybind keybindWidget;
+    private WContainer settingsContainer;
 
     public ModuleSettingsScreen(GuiTheme theme, Module module) {
         super(theme, module.name);
@@ -32,11 +33,20 @@ public class ModuleSettingsScreen extends WindowScreen {
     public void initWidgets() {
         WWidget settingsWidget = theme.settings(module.settings);
         if (settingsWidget instanceof WContainer container && !container.cells.isEmpty()) {
+            settingsContainer = container;
             add(settingsWidget).expandX();
         }
 
         addBindSection();
         MeteorClient.EVENT_BUS.subscribe(this);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (settingsContainer != null) {
+            module.settings.tick(settingsContainer, theme);
+        }
     }
 
     @Override
