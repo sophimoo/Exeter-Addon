@@ -12,6 +12,7 @@ import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
 import meteordevelopment.meteorclient.gui.widgets.containers.WSection;
 import meteordevelopment.meteorclient.gui.widgets.containers.WTable;
+import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
 import meteordevelopment.meteorclient.gui.widgets.input.WTextBox;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
@@ -31,13 +32,18 @@ public class ModuleSettingsScreen extends WindowScreen {
 
     @Override
     public void initWidgets() {
+        WVerticalList wrapper = new WVerticalList();
+        wrapper.spacing = 0;
+        wrapper.theme = theme;
+
         WWidget settingsWidget = theme.settings(module.settings);
-        if (settingsWidget instanceof WContainer container && !container.cells.isEmpty()) {
-            settingsContainer = container;
-            add(settingsWidget).expandX();
+        if (settingsWidget instanceof WContainer swContainer && !swContainer.cells.isEmpty()) {
+            settingsContainer = swContainer;
+            wrapper.add(settingsWidget).expandX();
         }
 
-        addBindSection();
+        addBindSection(wrapper);
+        add(wrapper).expandX();
         MeteorClient.EVENT_BUS.subscribe(this);
     }
 
@@ -73,15 +79,15 @@ public class ModuleSettingsScreen extends WindowScreen {
         return super.keyPressed(input);
     }
 
-    private void addBindSection() {
+    private void addBindSection(WVerticalList container) {
         double paddingX = baseTheme != null ? baseTheme.moduleSettingsPaddingX.get() : 6;
         double separatorPaddingY = baseTheme != null ? baseTheme.scale(baseTheme.separatorPaddingY.get()) : 6;
         double itemSpacing = baseTheme != null ? baseTheme.itemSpacing.get() : 0;
 
-        Cell<WSection> bindSectionCell = add(theme.section("Bind", false))
+        Cell<WSection> bindSectionCell = container.add(theme.section("Bind", false))
             .expandX()
-            .padHorizontal(paddingX)
             .padTop(separatorPaddingY)
+            .padHorizontal(paddingX)
             .padBottom(separatorPaddingY);
 
         keybindWidget = ModuleBindUtils.populateBindSection(bindSectionCell, paddingX, separatorPaddingY, itemSpacing, module, theme);
