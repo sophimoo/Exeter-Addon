@@ -1,6 +1,7 @@
-package me.sophimoo.exeter.gui.themes.base;
+package me.sophimoo.exeter.gui.themes.base.utils;
 
 import me.sophimoo.exeter.gui.modal.ModalScreenOps;
+import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 

@@ -1,6 +1,7 @@
 package me.sophimoo.exeter.gui.themes.base;
 
 import me.sophimoo.exeter.gui.renderer.WorldFramebufferCapture;
+import me.sophimoo.exeter.gui.themes.base.utils.*;
 import me.sophimoo.exeter.gui.themes.base.widgets.*;
 import me.sophimoo.exeter.gui.themes.base.widgets.input.WBaseDropdown;
 import me.sophimoo.exeter.gui.themes.base.widgets.input.WBaseSlider;
@@ -13,6 +14,7 @@ import meteordevelopment.meteorclient.gui.WidgetScreen;
 import meteordevelopment.meteorclient.gui.renderer.packer.GuiTexture;
 import meteordevelopment.meteorclient.gui.tabs.TabScreen;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
+import meteordevelopment.meteorclient.gui.utils.AlignmentY;
 import meteordevelopment.meteorclient.gui.utils.CharFilter;
 import meteordevelopment.meteorclient.gui.widgets.*;
 import meteordevelopment.meteorclient.gui.widgets.containers.WSection;
@@ -338,7 +340,7 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<String> moduleCollapsedIndicator = sgModuleRender.add(new StringSetting.Builder()
         .name("module-collapsed-indicator")
         .description("Text shown on module rows when settings are collapsed.")
-        .defaultValue("⋮")
+        .defaultValue("⏵")
         .onChanged(v -> invalidateCurrentScreen())
         .build()
     );
@@ -346,15 +348,15 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<String> moduleExpandedIndicator = sgModuleRender.add(new StringSetting.Builder()
         .name("module-expanded-indicator")
         .description("Text shown on module rows when settings are expanded.")
-        .defaultValue(".")
+        .defaultValue("⏷")
         .onChanged(v -> invalidateCurrentScreen())
         .build()
     );
 
-    public final Setting<Boolean> showModuleIndicator = sgModuleRender.add(new BoolSetting.Builder()
-        .name("show-module-indicator")
+    public final Setting<Boolean> dropdownIndicator = sgModuleRender.add(new BoolSetting.Builder()
+        .name("dropdown-indicator")
         .description("Shows the module row indicator text used for collapsing and expanding settings.")
-        .defaultValue(false)
+        .defaultValue(true)
         .onChanged(v -> invalidateCurrentScreen())
         .build()
     );
@@ -381,11 +383,7 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<SettingColor> moduleTextHoveredColor = color(sgModuleColor, "module-text-hovered", "Color of module text when hovered.", new SettingColor(255, 255, 255));
 
 
-
-
-
     // Colors
-
     public final Setting<Boolean> followAccentHue = sgColors.add(new BoolSetting.Builder()
         .name("follow-accent-hue")
         .description("Affects all GUI colors, disabling it after restarting will reset a lot of settings")
@@ -401,7 +399,6 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<SettingColor> favoriteColor = color("favorite", "Color of checked favorite button.", new SettingColor(250, 215, 0));
 
     // Text
-
     public final Setting<SettingColor> textColor = color(sgTextColors, "text", "Color of text.", new SettingColor(255, 255, 255), false);
     public final Setting<SettingColor> textSecondaryColor = color(sgTextColors, "text-secondary-text", "Color of secondary text.", new SettingColor(150, 150, 150), false);
     public final Setting<SettingColor> textHighlightColor = color(sgTextColors, "text-highlight", "Color of text highlighting.", new SettingColor(45, 125, 245, 100), false);
@@ -410,7 +407,6 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<SettingColor> placeholderColor = color(sgTextColors, "placeholder", "Color of placeholder text.", new SettingColor(255, 255, 255, 20), false);
 
     // Text Shadow
-
     public final Setting<Boolean> textShadow = sgTextShadow.add(new BoolSetting.Builder()
         .name("text-shadow")
         .description("Renders shadow behind text (like Meteor HUD).")
@@ -920,8 +916,6 @@ public class BaseGuiTheme extends GuiTheme {
     public boolean hideHUD() {
         return hideHUD.get();
     }
-
-    // Smart slide tracking methods
 
     public void updateLastHoveredPosition(double x, double y) {
         this.lastHoveredX = x;

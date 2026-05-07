@@ -1,14 +1,14 @@
 package me.sophimoo.exeter.gui.themes.base.widgets;
 
-import me.sophimoo.exeter.gui.themes.base.AnimatedOverlayRenderer;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
-import me.sophimoo.exeter.gui.themes.base.GradientApplicationMode;
-import me.sophimoo.exeter.gui.themes.base.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.ModuleAnimationMode;
-import me.sophimoo.exeter.gui.themes.base.ModuleGradientDirection;
-import me.sophimoo.exeter.gui.themes.base.AlignmentY;
-import me.sophimoo.exeter.gui.themes.base.ModuleIndicatorPosition;
-import me.sophimoo.exeter.gui.themes.base.SmartSlideAnimationState;
+import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
+import me.sophimoo.exeter.gui.themes.base.utils.GradientApplicationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
+import me.sophimoo.exeter.gui.themes.base.utils.ModuleAnimationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.ModuleGradientDirection;
+import me.sophimoo.exeter.gui.themes.base.utils.ModuleIndicatorPosition;
+import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
+import meteordevelopment.meteorclient.gui.utils.AlignmentY;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WPressable;
@@ -182,13 +182,13 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         GradientApplicationMode applyMode = theme().gradientApplicationMode.get();
         double thickness = theme().scale(theme().moduleOutlineThickness.get());
         Color baseColor = theme().moduleInactiveColor.get();
-        boolean renderBaseGradient = !isActive && applyMode.appliesToInactive() && gradientDir != ModuleGradientDirection.None;
+        boolean renderBaseGradient = !isActive && applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.None;
         Color overlayColor = isActive ? theme().moduleActiveColor.get() : theme().moduleHoveredColor.get();
         Color overlayGradient = isActive ? activeGradientColor : theme().moduleHoveredGradientColor.get();
-        boolean renderOverlayGradient = isActive ? applyMode.appliesToActive() : applyMode.appliesToInactive();
+        boolean renderOverlayGradient = applyMode.shouldApply(isActive);
         Color hoveredOverlayColor = theme().moduleHoveredColor.get();
         Color hoveredOverlayGradient = theme().moduleHoveredGradientColor.get();
-        boolean renderHoveredOverlayGradient = applyMode.appliesToInactive();
+        boolean renderHoveredOverlayGradient = applyMode.shouldApply(false);
         Color outlineColor = theme().outlineColor.get(pressed, mouseOver);
 
         return new RenderSettings(
@@ -260,7 +260,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         String collapsedIndicator = safeIndicator(theme().moduleCollapsedIndicator.get());
         String expandedIndicator = safeIndicator(theme().moduleExpandedIndicator.get());
         boolean useExeterIndicator = theme().exeterIndicator.get();
-        boolean showIndicator = useExeterIndicator || theme().showModuleIndicator.get();
+        boolean showIndicator = (useExeterIndicator || theme().dropdownIndicator.get()) && theme().inlineModuleSettings.get();
         double settingsIconWidth = showIndicator
             ? (useExeterIndicator
                 ? theme().textHeight() * EXETER_ICON_SCALE

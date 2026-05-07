@@ -1,4 +1,4 @@
-package me.sophimoo.exeter.gui.themes.base;
+package me.sophimoo.exeter.gui.themes.base.utils;
 
 import me.sophimoo.exeter.gui.renderer.GradientRenderer;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;

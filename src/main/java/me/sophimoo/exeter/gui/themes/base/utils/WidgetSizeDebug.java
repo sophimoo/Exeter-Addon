@@ -1,4 +1,6 @@
-package me.sophimoo.exeter.gui.themes.base;
+package me.sophimoo.exeter.gui.themes.base.utils;
+
+import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;

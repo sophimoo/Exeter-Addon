@@ -1,11 +1,11 @@
 package me.sophimoo.exeter.gui.themes.base.widgets;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
-import me.sophimoo.exeter.gui.themes.base.AnimatedOverlayRenderer;
-import me.sophimoo.exeter.gui.themes.base.GradientApplicationMode;
-import me.sophimoo.exeter.gui.themes.base.ModuleAnimationMode;
-import me.sophimoo.exeter.gui.themes.base.ModuleGradientDirection;
-import me.sophimoo.exeter.gui.themes.base.SmartSlideAnimationState;
+import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
+import me.sophimoo.exeter.gui.themes.base.utils.GradientApplicationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.ModuleAnimationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.ModuleGradientDirection;
+import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
@@ -87,7 +87,7 @@ public class WBaseSection extends WSection implements BaseWidget {
             if (collapsedIndicator == null) collapsedIndicator = "";
             if (expandedIndicator == null) expandedIndicator = "";
 
-            boolean showIndicator = theme().showModuleIndicator.get();
+            boolean showIndicator = theme().dropdownIndicator.get();
             double iconWidth = indicatorWidth();
             double iconGap = indicatorGap();
             double textHeight = theme().textHeight();
@@ -100,7 +100,7 @@ public class WBaseSection extends WSection implements BaseWidget {
             ModuleGradientDirection renderDirection = (gradientDirection != ModuleGradientDirection.None) ? gradientDirection : ModuleGradientDirection.None;
 
             // Base layer - always render separator + separator-gradient (like inactive module base)
-            boolean renderBaseGradient = applyMode.appliesToInactive() && gradientDirection != ModuleGradientDirection.None;
+            boolean renderBaseGradient = applyMode.shouldApply(false) && gradientDirection != ModuleGradientDirection.None;
             AnimatedOverlayRenderer.render(
                 renderer,
                 x,
@@ -140,7 +140,7 @@ public class WBaseSection extends WSection implements BaseWidget {
             hoverProgress = MathHelper.clamp(hoverProgress, 0, 1);
 
             if (hoverProgress > 0) {
-                boolean renderHoverGradient = applyMode.appliesToInactive() && gradientDirection != ModuleGradientDirection.None;
+                boolean renderHoverGradient = applyMode.shouldApply(false) && gradientDirection != ModuleGradientDirection.None;
                 AnimatedOverlayRenderer.render(
                     renderer,
                     x,
@@ -192,7 +192,7 @@ public class WBaseSection extends WSection implements BaseWidget {
         }
 
         private double indicatorWidth() {
-            if (!theme().showModuleIndicator.get()) return 0;
+            if (!theme().dropdownIndicator.get()) return 0;
 
             String collapsedIndicator = theme().moduleCollapsedIndicator.get();
             String expandedIndicator = theme().moduleExpandedIndicator.get();
@@ -203,7 +203,7 @@ public class WBaseSection extends WSection implements BaseWidget {
         }
 
         private double indicatorGap() {
-            return theme().showModuleIndicator.get() ? pad() : 0;
+            return theme().dropdownIndicator.get() ? pad() : 0;
         }
 
         private double indicatorRightInset() {

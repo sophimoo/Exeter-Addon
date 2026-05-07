@@ -1,7 +1,7 @@
 package me.sophimoo.exeter.gui.themes.base.widgets.input;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
-import me.sophimoo.exeter.gui.themes.base.MarqueeState;
+import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.widgets.input.WDropdown;
 import meteordevelopment.meteorclient.utils.render.color.Color;

@@ -1,4 +1,4 @@
-package me.sophimoo.exeter.gui.themes.base;
+package me.sophimoo.exeter.gui.themes.base.utils;
 
 public final class MarqueeState {
     private static final double DEFAULT_SPEED = 35;

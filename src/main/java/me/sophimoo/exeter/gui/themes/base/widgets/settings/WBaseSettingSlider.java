@@ -1,14 +1,14 @@
 package me.sophimoo.exeter.gui.themes.base.widgets.settings;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
-import me.sophimoo.exeter.gui.themes.base.AnimatedOverlayRenderer;
-import me.sophimoo.exeter.gui.themes.base.GradientApplicationMode;
-import me.sophimoo.exeter.gui.themes.base.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.ModuleAnimationMode;
-import me.sophimoo.exeter.gui.themes.base.ModuleGradientDirection;
-import me.sophimoo.exeter.gui.themes.base.SliderStyle;
-import me.sophimoo.exeter.gui.themes.base.SmartSlideAnimationState;
-import me.sophimoo.exeter.gui.themes.base.WidgetSizeDebug;
+import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
+import me.sophimoo.exeter.gui.themes.base.utils.GradientApplicationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
+import me.sophimoo.exeter.gui.themes.base.utils.ModuleAnimationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.ModuleGradientDirection;
+import me.sophimoo.exeter.gui.themes.base.utils.SliderStyle;
+import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
+import me.sophimoo.exeter.gui.themes.base.utils.WidgetSizeDebug;
 import me.sophimoo.exeter.gui.themes.base.widgets.input.WBaseTextBox;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.widgets.input.WTextBox;
@@ -235,7 +235,7 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
         ModuleGradientDirection gradientDir = theme().moduleGradientDirection.get();
         GradientApplicationMode applyMode = theme().gradientApplicationMode.get();
         Color itemColor = theme().itemBackgroundColor.get();
-        boolean shouldApplyGradient = applyMode.appliesToInactive() && gradientDir != ModuleGradientDirection.None;
+        boolean shouldApplyGradient = applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.None;
         Color itemGradient = theme().itemBackgroundGradientColor.get();
         Color hoverColor = theme().itemHoveredBackgroundColor.get();
         Color hoverGradient = theme().itemHoveredBackgroundGradientColor.get();

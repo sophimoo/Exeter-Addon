@@ -2,6 +2,8 @@ package me.sophimoo.exeter.gui.themes.base;
 
 import me.sophimoo.exeter.gui.screens.settings.ExeterColorSettingScreen;
 import me.sophimoo.exeter.gui.modal.ModalScreenOps;
+import me.sophimoo.exeter.gui.themes.base.utils.CompactNumberTextBoxes;
+import me.sophimoo.exeter.gui.themes.base.utils.SettingScreenResolver;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 

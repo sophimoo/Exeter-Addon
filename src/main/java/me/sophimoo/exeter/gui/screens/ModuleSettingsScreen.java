@@ -1,7 +1,7 @@
 package me.sophimoo.exeter.gui.screens;
 
 import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
-import me.sophimoo.exeter.gui.util.ModuleBindUtils;
+import me.sophimoo.exeter.gui.themes.base.utils.ModuleBindUtils;
 import meteordevelopment.meteorclient.MeteorClient;
 import meteordevelopment.meteorclient.events.meteor.ModuleBindChangedEvent;
 import meteordevelopment.meteorclient.gui.GuiTheme;

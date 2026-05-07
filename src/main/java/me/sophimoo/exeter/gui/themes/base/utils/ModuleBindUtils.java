@@ -1,4 +1,4 @@
-package me.sophimoo.exeter.gui.util;
+package me.sophimoo.exeter.gui.themes.base.utils;
 
 import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
 import me.sophimoo.exeter.gui.themes.base.widgets.settings.WBindControlRow;

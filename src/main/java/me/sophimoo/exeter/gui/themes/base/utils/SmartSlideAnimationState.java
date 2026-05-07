@@ -1,5 +1,6 @@
-package me.sophimoo.exeter.gui.themes.base;
+package me.sophimoo.exeter.gui.themes.base.utils;
 
+import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
 import net.minecraft.util.math.MathHelper;
 
 public final class SmartSlideAnimationState {

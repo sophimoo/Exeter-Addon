@@ -1,4 +1,4 @@
-package me.sophimoo.exeter.gui.themes.base;
+package me.sophimoo.exeter.gui.themes.base.utils;
 
 public enum ModuleAnimationMode {
     FADE("Fade"),

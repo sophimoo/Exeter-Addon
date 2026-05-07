@@ -2,6 +2,7 @@ package me.sophimoo.exeter.gui.themes.base;
 
 import me.sophimoo.exeter.gui.renderer.BlurRendererAccess;
 import me.sophimoo.exeter.gui.renderer.WorldFramebufferCapture;
+import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.renderer.packer.GuiTexture;

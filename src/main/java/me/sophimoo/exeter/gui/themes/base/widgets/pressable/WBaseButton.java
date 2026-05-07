@@ -1,7 +1,7 @@
 package me.sophimoo.exeter.gui.themes.base.widgets.pressable;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
-import me.sophimoo.exeter.gui.themes.base.WidgetSizeDebug;
+import me.sophimoo.exeter.gui.themes.base.utils.WidgetSizeDebug;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.renderer.packer.GuiTexture;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WButton;

@@ -1,6 +1,6 @@
 package me.sophimoo.exeter.gui.renderer;
 
-import me.sophimoo.exeter.gui.themes.base.ModuleGradientDirection;
+import me.sophimoo.exeter.gui.themes.base.utils.ModuleGradientDirection;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 

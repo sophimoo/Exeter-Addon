@@ -1,14 +1,14 @@
 package me.sophimoo.exeter.gui.themes.base.widgets.settings;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
-import me.sophimoo.exeter.gui.themes.base.GradientApplicationMode;
-import me.sophimoo.exeter.gui.themes.base.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.AnimatedOverlayRenderer;
-import me.sophimoo.exeter.gui.themes.base.ModuleAnimationMode;
-import me.sophimoo.exeter.gui.themes.base.ModuleGradientDirection;
-import me.sophimoo.exeter.gui.themes.base.ModuleIndicatorPosition;
-import me.sophimoo.exeter.gui.themes.base.SmartSlideAnimationState;
-import me.sophimoo.exeter.gui.themes.base.WidgetSizeDebug;
+import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
+import me.sophimoo.exeter.gui.themes.base.utils.GradientApplicationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
+import me.sophimoo.exeter.gui.themes.base.utils.ModuleAnimationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.ModuleGradientDirection;
+import me.sophimoo.exeter.gui.themes.base.utils.ModuleIndicatorPosition;
+import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
+import me.sophimoo.exeter.gui.themes.base.utils.WidgetSizeDebug;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WPressable;
 import meteordevelopment.meteorclient.settings.BoolSetting;
@@ -133,14 +133,14 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
                                        ModuleAnimationMode effectiveAnimationMode,
                                        ModuleGradientDirection gradientDir, GradientApplicationMode applyMode) {
         Color inactiveColor = theme().itemBackgroundColor.get();
-        boolean applyInactiveGradient = applyMode.appliesToInactive() && gradientDir != ModuleGradientDirection.None;
+        boolean applyInactiveGradient = applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.None;
         Color inactiveGradient = theme().itemBackgroundGradientColor.get();
         Color overlayColor = active ? theme().itemActiveColor.get() : theme().itemHoveredBackgroundColor.get();
         Color overlayGradient = active ? theme().itemActiveGradientColor.get() : theme().itemHoveredBackgroundGradientColor.get();
-        boolean applyOverlayGradient = active ? applyMode.appliesToActive() : applyMode.appliesToInactive();
+        boolean applyOverlayGradient = applyMode.shouldApply(active);
         Color hoveredOverlayColor = theme().itemHoveredBackgroundColor.get();
         Color hoveredOverlayGradient = theme().itemHoveredBackgroundGradientColor.get();
-        boolean applyHoveredOverlayGradient = applyMode.appliesToInactive();
+        boolean applyHoveredOverlayGradient = applyMode.shouldApply(false);
 
         AnimatedOverlayRenderer.render(
             renderer,
