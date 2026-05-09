@@ -26,8 +26,8 @@ public final class SmartSlideAnimationState {
                 theme.updateLastHoveredPosition(x + width / 2, y + height / 2);
             }
 
-            if (shouldFadeIn && cachedSlideInDirection != null) effectiveAnimationMode = cachedSlideInDirection;
-            else if (!shouldFadeIn && cachedSlideOutDirection != null) effectiveAnimationMode = cachedSlideOutDirection;
+            if (!hoveredNow && cachedSlideOutDirection != null) effectiveAnimationMode = cachedSlideOutDirection;
+            else if (shouldFadeIn && cachedSlideInDirection != null) effectiveAnimationMode = cachedSlideInDirection;
 
             if (currentProgress <= 0 && !hoveredNow) {
                 cachedSlideInDirection = null;
