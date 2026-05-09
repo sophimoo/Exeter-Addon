@@ -7,7 +7,9 @@ import com.mojang.blaze3d.textures.GpuTextureView;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.renderer.packer.GuiTexture;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
+import meteordevelopment.meteorclient.renderer.text.VanillaTextRenderer;
 import meteordevelopment.meteorclient.utils.render.color.Color;
+import me.sophimoo.exeter.gui.renderer.GuiTextRendererAccess;
 
 public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.BaseWidget {
     record ConfirmColors(Color fg, Color bg) {}
@@ -129,6 +131,11 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     }
 
     default void renderText(GuiRenderer renderer, String text, double x, double y, Color color) {
+        if (theme().textShadow.get() && theme().textRenderer() instanceof VanillaTextRenderer && renderer instanceof GuiTextRendererAccess shadowRenderer) {
+            shadowRenderer.exeter$queueVanillaShadowText(text, x, y, color);
+            return;
+        }
+
         if (theme().textShadow.get()) {
             Color shadowColor = theme().textShadowColor.get();
             int shadowAlpha = (int) ((color.a / 255.0) * shadowColor.a);

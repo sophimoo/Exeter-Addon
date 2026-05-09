@@ -8,7 +8,6 @@ import me.sophimoo.exeter.gui.renderer.BlurRendererAccess;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.renderer.packer.GuiTexture;
 import meteordevelopment.meteorclient.gui.renderer.Scissor;
-import meteordevelopment.meteorclient.gui.renderer.operations.TextOperation;
 import meteordevelopment.meteorclient.renderer.Renderer2D;
 import meteordevelopment.meteorclient.renderer.Texture;
 import meteordevelopment.meteorclient.utils.render.color.Color;
@@ -33,12 +32,6 @@ public abstract class GuiRendererBlurMixin implements BlurRendererAccess {
     @Shadow
     @Final
     private Renderer2D rTex;
-    @Shadow
-    @Final
-    private List<TextOperation> texts;
-    @Shadow
-    @Final
-    private List<Runnable> postTasks;
     @Shadow
     @Final
     private it.unimi.dsi.fastutil.Stack<Scissor> scissorStack;
@@ -172,4 +165,5 @@ public abstract class GuiRendererBlurMixin implements BlurRendererAccess {
 
         blurQueue.add(new BlurQuadRequest(x, y, width, height, u1, v1, u2, v2, backgroundColor));
     }
+
 }
