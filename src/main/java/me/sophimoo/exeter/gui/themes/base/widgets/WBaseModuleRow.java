@@ -1,5 +1,6 @@
 package me.sophimoo.exeter.gui.themes.base.widgets;
 
+import me.sophimoo.exeter.BaseAddon;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
 import me.sophimoo.exeter.gui.themes.base.utils.GradientApplicationMode;
@@ -12,10 +13,8 @@ import meteordevelopment.meteorclient.gui.utils.AlignmentY;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WPressable;
-import meteordevelopment.meteorclient.renderer.Texture;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.render.color.Color;
-import com.mojang.blaze3d.textures.FilterMode;
 import net.minecraft.util.math.MathHelper;
 
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
@@ -24,7 +23,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
     protected static final double EXETER_ICON_SCALE = 1.4;
     protected static final double EXETER_ICON_ROTATION_SPEED = 120;
-    protected static Texture exeterIndicatorTexture;
+    protected static final Color EXETER_ICON_COLOR = new Color(255, 255, 255);
 
     protected final Module module;
     protected final String title;
@@ -63,13 +62,6 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         double settingsIconWidth,
         double settingsIconGap
     ) {}
-
-    protected static Texture getExeterIndicatorTexture() {
-        if (exeterIndicatorTexture == null) {
-            exeterIndicatorTexture = Texture.readResource("/assets/base-addon/icon.png", false, FilterMode.LINEAR);
-        }
-        return exeterIndicatorTexture;
-    }
 
     protected WBaseModuleRow(Module module, String title) {
         this.module = module;
@@ -237,17 +229,16 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         double settingsIconX = this.x + width - pad - layout.settingsIconWidth;
 
         if (layout.useExeterIndicator) {
-            Texture iconTexture = getExeterIndicatorTexture();
-            if (iconTexture != null) {
-                double baseIconSize = Math.max(1, Math.min(layout.settingsIconWidth, height - pad * 2));
-                if (isSettingsExpanded()) {
-                    exeterIconRotation = (exeterIconRotation + delta * EXETER_ICON_ROTATION_SPEED) % 360;
-                }
-                double iconSize = baseIconSize;
-                double iconY = this.y + (height - iconSize) / 2;
-                double iconX = settingsIconX + (layout.settingsIconWidth - iconSize) / 2;
+            double baseIconSize = Math.max(1, Math.min(layout.settingsIconWidth, height - pad * 2));
+            if (isSettingsExpanded()) {
+                exeterIconRotation = (exeterIconRotation + delta * EXETER_ICON_ROTATION_SPEED) % 360;
+            }
+            double iconSize = baseIconSize;
+            double iconY = this.y + (height - iconSize) / 2;
+            double iconX = settingsIconX + (layout.settingsIconWidth - iconSize) / 2;
 
-                renderer.texture(iconX, iconY, iconSize, iconSize, exeterIconRotation, iconTexture);
+            if (BaseAddon.EXETER_ICON_TEXTURE != null) {
+                renderer.rotatedQuad(iconX, iconY, iconSize, iconSize, exeterIconRotation, BaseAddon.EXETER_ICON_TEXTURE, EXETER_ICON_COLOR);
             }
         } else {
             String settingsIcon = isSettingsExpanded() ? layout.expandedIndicator : layout.collapsedIndicator;
