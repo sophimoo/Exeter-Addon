@@ -428,7 +428,6 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<SettingColor> textShadowColor = color(sgTextShadow, "text-shadow", "Color of the text shadow.", new SettingColor(0, 0, 0, 150));
 
     // Background
-
     public final MultiStateColorSetting backgroundColor = new MultiStateColorSetting(
             sgBackgroundColors,
             "background",
