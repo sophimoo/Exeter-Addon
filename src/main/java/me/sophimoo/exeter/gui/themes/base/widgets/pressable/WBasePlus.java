@@ -8,7 +8,7 @@ public class WBasePlus extends WPlus implements BaseWidget {
     @Override
     protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
         double pad = pad();
-        double s = glyphStroke();
+        double s = theme().glyphThickness();
 
         renderBackground(renderer, this, pressed, mouseOver);
         renderHorizontalGlyph(renderer, x, y, width, height, pad, s, theme().plusColor.get());

@@ -36,56 +36,12 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
         return defaultHeight;
     }
 
-    default double scaledPx(double value) {
-        return theme().scaledPx(value);
-    }
-
-    default double rowPadX() {
-        return theme().rowPadX();
-    }
-
-    default double rowPadY() {
-        return theme().rowPadY();
-    }
-
-    default double smallPad() {
-        return theme().pad();
-    }
-
     default double moduleRowBaseHeight(double extraPx) {
-        return resolveModuleRowHeight(rowPadY() + theme().textHeight() + rowPadY() + scaledPx(extraPx));
+        return resolveModuleRowHeight(theme().rowPadY() + theme().textHeight() + theme().rowPadY() + theme().scaledPx(extraPx));
     }
 
     default double itemRowBaseHeight(double extraPx) {
-        return resolveItemRowHeight(rowPadY() + theme().textHeight() + rowPadY() + scaledPx(extraPx));
-    }
-
-    default double separatorStroke() {
-        return theme().separatorThickness();
-    }
-
-    default double glyphStroke() {
-        return theme().glyphThickness();
-    }
-
-    default double sliderTrackHeight() {
-        return theme().sliderTrackHeight();
-    }
-
-    default double sliderBottomGap() {
-        return theme().sliderBottomGap();
-    }
-
-    default double sliderMinTrackWidth() {
-        return theme().sliderMinTrackWidth();
-    }
-
-    default double sliderInset() {
-        return theme().sliderInset();
-    }
-
-    default double sliderFullBarMinTrackHeight() {
-        return theme().sliderFullBarMinTrackHeight();
+        return resolveItemRowHeight(theme().rowPadY() + theme().textHeight() + theme().rowPadY() + theme().scaledPx(extraPx));
     }
 
     default void renderBackground(GuiRenderer renderer, WWidget widget, Color outlineColor, Color backgroundColor) {

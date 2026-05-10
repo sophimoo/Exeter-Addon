@@ -38,7 +38,9 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.MacWindowUtil;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
@@ -47,10 +49,8 @@ public class BaseGuiTheme extends GuiTheme {
     private WorldFramebufferCapture blurCapture;
 
     // Smart slide tracking - stores last hovered module position for directional animations
-    private double lastHoveredX = -1;
-    private double lastHoveredY = -1;
-    private long lastHoveredTime = 0;
-    private static final long HOVER_TIMEOUT_MS = 500; // Reset after 500ms of no hover
+    public double lastHoveredX = -1;
+    public double lastHoveredY = -1;
 
     private final List<Setting<SettingColor>> accentHueLinkedColors = new ArrayList<>();
     private boolean updatingAccentHueLinkedColors;
@@ -429,12 +429,12 @@ public class BaseGuiTheme extends GuiTheme {
 
     // Background
 
-    public final ThreeStateColorSetting backgroundColor = new ThreeStateColorSetting(
+    public final MultiStateColorSetting backgroundColor = new MultiStateColorSetting(
             sgBackgroundColors,
             "background",
-            new SettingColor(20, 20, 20, 200),
-            new SettingColor(30, 30, 30, 200),
-            new SettingColor(40, 40, 40, 200)
+            "", new SettingColor(20, 20, 20, 200),
+            "hovered-", new SettingColor(30, 30, 30, 200),
+            "pressed-", new SettingColor(40, 40, 40, 200)
     );
 
     public final Setting<SettingColor> itemBackgroundColor = color(sgSettingsColors, "item-background", "Color of items.", new SettingColor(43, 43, 43, 150));
@@ -447,13 +447,15 @@ public class BaseGuiTheme extends GuiTheme {
 
     // Outline
 
-    public final ThreeStateColorSetting outlineColor = new ThreeStateColorSetting(
+    public final MultiStateColorSetting outlineColor = new MultiStateColorSetting(
             sgOutline,
             "outline",
-            new SettingColor(0, 0, 0),
-            new SettingColor(10, 10, 10),
-            new SettingColor(20, 20, 20)
+            "", new SettingColor(0, 0, 0),
+            "hovered-", new SettingColor(10, 10, 10),
+            "pressed-", new SettingColor(20, 20, 20)
     );
+
+
 
     public final Setting<SettingColor> windowOutlineColor = color(sgOutline, "window-outline", "Color of window outlines.", new SettingColor(145, 61, 226));
 
@@ -497,27 +499,30 @@ public class BaseGuiTheme extends GuiTheme {
 
     // Scrollbar
 
-    public final ThreeStateColorSetting scrollbarColor = new ThreeStateColorSetting(
+    public final MultiStateColorSetting scrollbarColor = new MultiStateColorSetting(
             sgScrollbar,
             "Scrollbar",
-            new SettingColor(30, 30, 30, 200),
-            new SettingColor(40, 40, 40, 200),
-            new SettingColor(50, 50, 50, 200)
+            "", new SettingColor(30, 30, 30, 200),
+            "hovered-", new SettingColor(40, 40, 40, 200),
+            "pressed-", new SettingColor(50, 50, 50, 200)
     );
 
     // Slider
 
-    public final ThreeStateColorSetting sliderHandle = new ThreeStateColorSetting(
+    public final MultiStateColorSetting sliderHandle = new MultiStateColorSetting(
             sgSlider,
             "slider-handle",
-            new SettingColor(130, 0, 255),
-            new SettingColor(140, 30, 255),
-            new SettingColor(150, 60, 255)
+            "", new SettingColor(130, 0, 255),
+            "hovered-", new SettingColor(140, 30, 255),
+            "pressed-", new SettingColor(150, 60, 255),
+            "-gradient", new SettingColor(0, 0, 0, 0)
     );
-
-
-    public final Setting<SettingColor> sliderLeft = color(sgSlider, "slider-left", "Color of slider left part.", new SettingColor(100,35,170));
-    public final Setting<SettingColor> sliderRight = color(sgSlider, "slider-right", "Color of slider right part.", new SettingColor(50, 50, 50, 0));
+    public final MultiStateColorSetting sliderDirection = new MultiStateColorSetting(
+            sgSlider,
+            "slider",
+            "left-", new SettingColor(100, 35, 170),
+            "right-", new SettingColor(50, 50, 50, 0)
+    );
 
     public final Setting<SliderStyle> sliderStyle = sgSlider.add(new EnumSetting.Builder<SliderStyle>()
             .name("slider-style")
@@ -560,10 +565,6 @@ public class BaseGuiTheme extends GuiTheme {
         MeteorClient.EVENT_BUS.subscribe(accentHueTickListener);
     }
 
-    /**
-     * Updates the blur capture system based on current settings.
-     * Called when blur settings change.
-     */
     private void updateBlurCapture() {
         int strength = widgetBlurStrength.get();
 
@@ -576,16 +577,6 @@ public class BaseGuiTheme extends GuiTheme {
                 blurCapture.updateSettings(strength, offset, scale);
             }
         } else if (blurCapture != null) {
-            blurCapture.close();
-            blurCapture = null;
-        }
-    }
-
-    /**
-     * Cleans up blur resources when the theme is no longer needed.
-     */
-    public void cleanupBlur() {
-        if (blurCapture != null) {
             blurCapture.close();
             blurCapture = null;
         }
@@ -899,13 +890,7 @@ public class BaseGuiTheme extends GuiTheme {
 
     @Override
     public double scale(double value) {
-        double scaled = value * scale.get();
-
-        if (MacWindowUtil.IS_MAC) {
-            scaled /= (double) mc.getWindow().getWidth() / mc.getWindow().getFramebufferWidth();
-        }
-
-        return scaled;
+        return value * scale.get();
     }
 
     @Override
@@ -921,24 +906,10 @@ public class BaseGuiTheme extends GuiTheme {
     public void updateLastHoveredPosition(double x, double y) {
         this.lastHoveredX = x;
         this.lastHoveredY = y;
-        this.lastHoveredTime = System.currentTimeMillis();
     }
 
     public boolean hasValidLastHover() {
-        return lastHoveredX >= 0 && (System.currentTimeMillis() - lastHoveredTime) < HOVER_TIMEOUT_MS;
-    }
-
-    public double getLastHoveredX() {
-        return lastHoveredX;
-    }
-
-    public double getLastHoveredY() {
-        return lastHoveredY;
-    }
-
-    public void clearLastHoveredPosition() {
-        this.lastHoveredX = -1;
-        this.lastHoveredY = -1;
+        return lastHoveredX >= 0;
     }
 
     public boolean shouldUseFixedCategoryWidth(String windowId) {
@@ -969,20 +940,12 @@ public class BaseGuiTheme extends GuiTheme {
         return pad();
     }
 
-    public double smallGap() {
-        return scale(4);
-    }
-
-    public double moduleRowExtraHeight() {
-        return scale(2);
-    }
-
     public double separatorThickness() {
         return scale(2);
     }
 
     public double glyphThickness() {
-        return scale(3);
+        return scale(10);
     }
 
     public double sliderTrackHeight() {
@@ -1005,47 +968,46 @@ public class BaseGuiTheme extends GuiTheme {
         return scale(4);
     }
 
-    public class ThreeStateColorSetting {
-        private final Setting<SettingColor> normal, hovered, pressed;
+    public class MultiStateColorSetting {
+        private final Map<String, Setting<SettingColor>> states = new LinkedHashMap<>();
 
-        public ThreeStateColorSetting(SettingGroup group, String name, SettingColor c1, SettingColor c2, SettingColor c3) {
-            normal = color(group, name, "Color of " + name + ".", c1);
-            hovered = color(group, "hovered-" + name, "Color of " + name + " when hovered.", c2);
-            pressed = color(group, "pressed-" + name, "Color of " + name + " when pressed.", c3);
+        public MultiStateColorSetting(SettingGroup group, String name, Object... stateDefinitions) {
+            for (int i = 0; i < stateDefinitions.length; i += 2) {
+                String affix = (String) stateDefinitions[i];
+                SettingColor defaultColor = (SettingColor) stateDefinitions[i + 1];
+                states.put(affix, color(group, stateName(name, affix), stateDescription(name, affix), defaultColor));
+            }
         }
 
         public SettingColor get() {
-            return normal.get();
+            return get("");
+        }
+
+        public SettingColor get(String affix) {
+            return states.get(affix).get();
         }
 
         public SettingColor get(boolean pressed, boolean hovered, boolean bypassDisableHoverColor) {
-            if (pressed) return this.pressed.get();
-            return (hovered && (bypassDisableHoverColor || !disableHoverColor)) ? this.hovered.get() : this.normal.get();
+            if (pressed) return get("pressed-");
+            return (hovered && (bypassDisableHoverColor || !disableHoverColor)) ? get("hovered-") : get();
         }
 
         public SettingColor get(boolean pressed, boolean hovered) {
             return get(pressed, hovered, false);
         }
-    }
 
-    public class TwoStateColorSetting {
-        private final Setting<SettingColor> normal, hovered;
-
-        public TwoStateColorSetting(SettingGroup group, String name, SettingColor c1, SettingColor c2) {
-            normal = color(group, name, "Color of " + name + ".", c1);
-            hovered = color(group, "hovered-" + name, "Color of " + name + " when hovered.", c2);
+        private String stateName(String baseName, String affix) {
+            return affix.startsWith("-") ? baseName + affix : affix + baseName;
         }
 
-        public SettingColor get() {
-            return normal.get();
-        }
+        private String stateDescription(String baseName, String affix) {
+            String displayName = baseName.replace('-', ' ');
 
-        public SettingColor get(boolean hovered, boolean bypassDisableHoverColor) {
-            return (hovered && (bypassDisableHoverColor || !disableHoverColor)) ? this.hovered.get() : this.normal.get();
-        }
+            if (affix.isEmpty()) return "Color of " + displayName + ".";
+            if (affix.endsWith("-")) return "Color of " + affix.substring(0, affix.length() - 1).replace('-', ' ') + " " + displayName + ".";
+            if (affix.startsWith("-")) return "Color of " + displayName + " " + affix.substring(1).replace('-', ' ') + ".";
 
-        public SettingColor get(boolean hovered) {
-            return get(hovered, false);
+            return "Color of " + (affix + baseName).replace('-', ' ') + ".";
         }
     }
 }

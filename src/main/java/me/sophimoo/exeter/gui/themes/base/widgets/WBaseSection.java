@@ -50,7 +50,7 @@ public class WBaseSection extends WSection implements BaseWidget {
         @Override
         public void init() {
             if (headerWidget != null) {
-                add(headerWidget).expandCellX().right().padRight(rowPadX() + indicatorRightInset());
+                add(headerWidget).expandCellX().right().padRight(theme().rowPadX() + indicatorRightInset());
             }
         }
 

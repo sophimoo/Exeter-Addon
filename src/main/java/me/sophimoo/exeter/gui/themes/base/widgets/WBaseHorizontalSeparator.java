@@ -9,7 +9,7 @@ public class WBaseHorizontalSeparator extends WHorizontalSeparator implements Ba
 
     @Override
     protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-        double s = separatorStroke(), halfHeight = height / 2, sepY = y + halfHeight - s / 2;
+        double s = theme().separatorThickness(), halfHeight = height / 2, sepY = y + halfHeight - s / 2;
 
         if (text == null) {
             renderer.quad(x, sepY, width, s, theme().separatorColor.get());

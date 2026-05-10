@@ -45,7 +45,7 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
 
     @Override
     public double pad() {
-        return rowPadX();
+        return theme().rowPadX();
     }
 
     @Override
@@ -58,8 +58,8 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
     protected void onCalculateSize() {
         if (titleWidth == 0) titleWidth = theme().textWidth(title);
 
-        double padX = rowPadX();
-        double padY = rowPadY();
+        double padX = theme().rowPadX();
+        double padY = theme().rowPadY();
         double controlWidth = control.width;
         double horizontalWidth = padX + titleWidth + padX + controlWidth + padX;
 
@@ -79,8 +79,8 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
     protected void onCalculateWidgetPositions() {
         if (cells.isEmpty()) return;
 
-        double padX = rowPadX();
-        double padY = rowPadY();
+        double padX = theme().rowPadX();
+        double padY = theme().rowPadY();
         Cell<?> cell = cells.get(0);
         WWidget widget = cell.widget();
 
@@ -110,11 +110,11 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
             String.format(
                 java.util.Locale.US,
                 "padX=%.2f padY=%.2f globalPad=%.2f rowPadX=%.2f rowPadY=%.2f controlW=%.2f controlH=%.2f",
-                rowPadX(),
-                rowPadY(),
+                theme().rowPadX(),
+                theme().rowPadY(),
                 theme().pad(),
-                rowPadX(),
-                rowPadY(),
+                theme().rowPadX(),
+                theme().rowPadY(),
                 control.width,
                 control.height
             )
@@ -183,8 +183,8 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
             renderOutline(renderer, x, y, width, height, outlineThickness, outlineColor);
         }
 
-        double padX = rowPadX();
-        double padY = rowPadY();
+        double padX = theme().rowPadX();
+        double padY = theme().rowPadY();
         Color textColor = mouseOver ? theme().moduleTextHoveredColor.get() : theme().moduleTextInactiveColor.get();
         double textHeight = theme().textHeight();
 

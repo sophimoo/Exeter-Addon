@@ -18,14 +18,14 @@ public class WBaseSlider extends WSlider implements BaseWidget {
     }
 
     private void renderBar(GuiRenderer renderer, double valueWidth) {
-        double s = sliderTrackHeight();
+        double s = theme().sliderTrackHeight();
         double handleSize = handleSize();
 
         double x = this.x + handleSize / 2;
         double y = this.y + height / 2 - s / 2;
 
-        renderer.quad(x, y, valueWidth, s, theme().sliderLeft.get());
-        renderer.quad(x + valueWidth, y, width - valueWidth - handleSize, s, theme().sliderRight.get());
+        renderer.quad(x, y, valueWidth, s, theme().sliderDirection.get("slider-left"));
+        renderer.quad(x + valueWidth, y, width - valueWidth - handleSize, s, theme().sliderDirection.get("slider-right"));
     }
 
     private void renderHandle(GuiRenderer renderer, double valueWidth) {

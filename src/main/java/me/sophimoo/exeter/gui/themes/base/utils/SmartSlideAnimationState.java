@@ -53,8 +53,8 @@ public final class SmartSlideAnimationState {
 
         if (!theme.hasValidLastHover()) return ModuleAnimationMode.SLIDE_LEFT;
 
-        double deltaX = centerX - theme.getLastHoveredX();
-        double deltaY = centerY - theme.getLastHoveredY();
+        double deltaX = centerX - theme.lastHoveredX;
+        double deltaY = centerY - theme.lastHoveredY;
 
         boolean isHorizontalDominant = Math.abs(deltaX) > Math.abs(deltaY);
         if (isHorizontalDominant) return deltaX > 0 ? ModuleAnimationMode.SLIDE_LEFT : ModuleAnimationMode.SLIDE_RIGHT;

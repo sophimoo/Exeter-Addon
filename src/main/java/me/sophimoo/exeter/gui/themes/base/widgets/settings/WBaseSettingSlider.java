@@ -76,7 +76,7 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
 
     @Override
     public double pad() {
-        return rowPadX();
+        return theme().rowPadX();
     }
 
     @Override
@@ -204,10 +204,10 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
                 Locale.US,
                 "padX=%.2f padY=%.2f globalPad=%.2f rowPadX=%.2f rowPadY=%.2f",
                 pad(),
-                rowPadY(),
+                theme().rowPadY(),
                 theme().pad(),
-                rowPadX(),
-                rowPadY()
+                theme().rowPadX(),
+                theme().rowPadY()
             )
         );
 
@@ -290,8 +290,8 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
         double barHeight = getBarHeight();
         double filled = barWidth * progress;
 
-        renderer.quad(barStartX, barY, barWidth, barHeight, theme().sliderRight.get());
-        renderer.quad(barStartX, barY, filled, barHeight, theme().sliderLeft.get());
+        renderer.quad(barStartX, barY, barWidth, barHeight, theme().sliderDirection.get("slider-right"));
+        renderer.quad(barStartX, barY, filled, barHeight, theme().sliderDirection.get("slider-left"));
 
         String valueText = formatValue();
           double actualValueWidth = theme().textWidth(valueText);
@@ -323,31 +323,31 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
     }
 
     private double getBarStartX() {
-        if (theme().sliderStyle.get() == SliderStyle.FULL_BAR) return x + sliderInset();
+        if (theme().sliderStyle.get() == SliderStyle.FULL_BAR) return x + theme().sliderInset();
         return x + pad();
     }
 
     private double getBarWidth() {
         double endX = getBarEndX();
-        return Math.max(sliderMinTrackWidth(), endX - getBarStartX());
+        return Math.max(theme().sliderMinTrackWidth(), endX - getBarStartX());
     }
 
     private double getBarEndX() {
-        if (theme().sliderStyle.get() == SliderStyle.FULL_BAR) return x + width - sliderInset();
+        if (theme().sliderStyle.get() == SliderStyle.FULL_BAR) return x + width - theme().sliderInset();
         return x + width - pad();
     }
 
     private double getBarY() {
-        if (theme().sliderStyle.get() == SliderStyle.FULL_BAR) return y + sliderInset();
-        return y + height - sliderBottomGap();
+        if (theme().sliderStyle.get() == SliderStyle.FULL_BAR) return y + theme().sliderInset();
+        return y + height - theme().sliderBottomGap();
     }
 
     private double getBarHeight() {
         if (theme().sliderStyle.get() == SliderStyle.FULL_BAR) {
-            double inset = sliderInset();
-            return Math.max(sliderFullBarMinTrackHeight(), height - inset * 2);
+            double inset = theme().sliderInset();
+            return Math.max(theme().sliderFullBarMinTrackHeight(), height - inset * 2);
         }
-        return sliderTrackHeight();
+        return theme().sliderTrackHeight();
     }
 
     private double getValue() {
