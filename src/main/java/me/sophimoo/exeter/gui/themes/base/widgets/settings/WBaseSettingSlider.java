@@ -290,8 +290,8 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
         double barHeight = getBarHeight();
         double filled = barWidth * progress;
 
-        renderer.quad(barStartX, barY, barWidth, barHeight, theme().sliderDirection.get("slider-right"));
-        renderer.quad(barStartX, barY, filled, barHeight, theme().sliderDirection.get("slider-left"));
+        renderer.quad(barStartX, barY, barWidth, barHeight, theme().sliderDirection.get("right-"));
+        renderer.quad(barStartX, barY, filled, barHeight, theme().sliderDirection.get("left-"));
 
         String valueText = formatValue();
           double actualValueWidth = theme().textWidth(valueText);

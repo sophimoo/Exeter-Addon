@@ -24,8 +24,8 @@ public class WBaseSlider extends WSlider implements BaseWidget {
         double x = this.x + handleSize / 2;
         double y = this.y + height / 2 - s / 2;
 
-        renderer.quad(x, y, valueWidth, s, theme().sliderDirection.get("slider-left"));
-        renderer.quad(x + valueWidth, y, width - valueWidth - handleSize, s, theme().sliderDirection.get("slider-right"));
+        renderer.quad(x, y, valueWidth, s, theme().sliderDirection.get("left-"));
+        renderer.quad(x + valueWidth, y, width - valueWidth - handleSize, s, theme().sliderDirection.get("right-"));
     }
 
     private void renderHandle(GuiRenderer renderer, double valueWidth) {

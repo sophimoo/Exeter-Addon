@@ -449,9 +449,9 @@ public class BaseGuiTheme extends GuiTheme {
     public final MultiStateColorSetting outlineColor = new MultiStateColorSetting(
             sgOutline,
             "outline",
-            "", new SettingColor(0, 0, 0),
-            "hovered-", new SettingColor(10, 10, 10),
-            "pressed-", new SettingColor(20, 20, 20)
+            "", new SettingColor(61, 61, 61, 150),
+            "hovered-", new SettingColor(60, 60, 60),
+            "pressed-", new SettingColor(70, 70, 70, 200)
     );
 
 
@@ -501,9 +501,9 @@ public class BaseGuiTheme extends GuiTheme {
     public final MultiStateColorSetting scrollbarColor = new MultiStateColorSetting(
             sgScrollbar,
             "Scrollbar",
-            "", new SettingColor(30, 30, 30, 200),
-            "hovered-", new SettingColor(40, 40, 40, 200),
-            "pressed-", new SettingColor(50, 50, 50, 200)
+            "", new SettingColor(61, 61, 61, 150),
+            "hovered-", new SettingColor(60, 60, 60),
+            "pressed-", new SettingColor(70, 70, 70)
     );
 
     // Slider
@@ -519,7 +519,7 @@ public class BaseGuiTheme extends GuiTheme {
     public final MultiStateColorSetting sliderDirection = new MultiStateColorSetting(
             sgSlider,
             "slider",
-            "left-", new SettingColor(100, 35, 170),
+            "left-", new SettingColor(145, 61, 226),
             "right-", new SettingColor(50, 50, 50, 0)
     );
 
