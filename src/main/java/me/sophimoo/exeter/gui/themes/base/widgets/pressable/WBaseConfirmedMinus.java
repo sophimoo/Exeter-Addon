@@ -9,7 +9,7 @@ public class WBaseConfirmedMinus extends WConfirmedMinus implements BaseWidget {
     @Override
     protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
         double pad = pad();
-        double s = theme().scale(3);
+        double s = theme().glyphThickness();
 
         Color outline = theme().outlineColor.get(pressed, mouseOver);
         ConfirmColors colors = confirmedColors(theme().minusColor.get(), pressed, mouseOver, pressedOnce);

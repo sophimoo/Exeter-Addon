@@ -944,7 +944,7 @@ public class BaseGuiTheme extends GuiTheme {
     }
 
     public double glyphThickness() {
-        return scale(10);
+        return scale(3);
     }
 
     public double sliderTrackHeight() {
