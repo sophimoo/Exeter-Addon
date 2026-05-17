@@ -9,7 +9,6 @@ import meteordevelopment.meteorclient.gui.tabs.Tabs;
 import meteordevelopment.meteorclient.gui.utils.Cell;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
-import meteordevelopment.meteorclient.gui.widgets.containers.WSection;
 import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
 import meteordevelopment.meteorclient.gui.widgets.containers.WWindow;
 import meteordevelopment.meteorclient.gui.widgets.input.WTextBox;
@@ -17,17 +16,18 @@ import meteordevelopment.meteorclient.systems.config.Config;
 import meteordevelopment.meteorclient.systems.modules.Category;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
+import meteordevelopment.meteorclient.utils.Utils;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.misc.NbtUtils;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.util.MacWindowUtil;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.Pair;
 import net.minecraft.item.Items;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -40,9 +40,10 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOD_SUPER;
 public class BaseModulesScreen extends TabScreen {
     private final BaseGuiTheme theme;
     private WCategoryController controller;
-    private WWindow searchWindow;
     private WTextBox searchTextBox;
     private final List<WBaseModule> expandedModules = new ArrayList<>();
+    private final Set<Module> searchMatches = new HashSet<>();
+    private String searchText = "";
     private boolean expandedModulesDirty;
     private boolean showGrid;
 
@@ -57,11 +58,17 @@ public class BaseModulesScreen extends TabScreen {
 
         controller = add(new WCategoryController()).widget();
 
-        WVerticalList help = add(theme.verticalList()).pad(4).bottom().widget();
-        help.add(theme.label("Left click - Toggle module"));
-        help.add(theme.label(theme.inlineModuleSettings.get()
+        WVerticalList footer = add(theme.verticalList()).pad(4).bottom().widget();
+        WTextBox text = footer.add(theme.textBox(searchText)).minWidth(theme.scale(180)).widget();
+        text.action = () -> updateSearch(text.get());
+        searchTextBox = text;
+
+        footer.add(theme.label("Left click - Toggle module"));
+        footer.add(theme.label(theme.inlineModuleSettings.get()
             ? "Right click - Expand module settings"
             : "Right click - Open module settings"));
+
+        updateSearch(searchText);
     }
 
     // https://github.com/X-C-0/catppuccin-addon/blob/d642959fbaa9e5757013ea38f57556eb88c8b822/src/main/java/me/pindour/catppuccin/gui/screens/CatppuccinModulesScreen.java#L80
@@ -206,71 +213,40 @@ public class BaseModulesScreen extends TabScreen {
         return w;
     }
 
-    protected <T> void addSearchItemsWithPadding(WContainer container, List<T> items, java.util.function.Function<T, Module> toModule) {
-        double s = spacing();
-        double outline = theme.scale(theme.windowOutlineThickness.get());
-        double scaled = s + outline / theme.scale(1);
-        double edgePadding = Math.max(scaled, 1);
-        int max = Config.get().moduleSearchCount.get();
+    private void updateSearch(String text) {
+        searchText = text;
+        searchMatches.clear();
 
-        for (int i = 0; i < Math.min(items.size(), max); i++) {
-            T item = items.get(i);
-            Module m = toModule.apply(item);
-            String highlight = null;
-            if (item instanceof Pair<?, ?> pair && pair.getRight() instanceof String right) {
-                highlight = right;
-            }
-            var cell = container.add(highlight != null ? theme.module(m, highlight) : theme.module(m)).expandX();
-            if (i == 0) cell.padTop(edgePadding);
-            if (i == Math.min(items.size(), max) - 1) cell.padBottom(edgePadding);
+        if (!searchText.isEmpty()) {
+            int max = Config.get().moduleSearchCount.get();
+
+            Modules.get().searchTitles(searchText).stream()
+                .filter(result -> matchesModuleSearch(result.getLeft(), searchText))
+                .limit(max)
+                .forEach(result -> searchMatches.add(result.getLeft()));
         }
+
+        if (controller != null) controller.invalidate();
+        invalidate();
     }
 
-    protected void createSearchW(WContainer w, String text) {
-        if (text.isEmpty()) return;
-
-        List<Pair<Module, String>> modules = Modules.get().searchTitles(text);
-        if (!modules.isEmpty()) {
-            WSection section = w.add(theme.section("Modules")).expandX().widget();
-            section.spacing = spacing();
-            addSearchItemsWithPadding(section, modules, Pair::getLeft);
-        }
-
-        Set<Module> settings = Modules.get().searchSettingTitles(text);
-        if (!settings.isEmpty()) {
-            WSection section = w.add(theme.section("Settings")).expandX().widget();
-            section.spacing = spacing();
-            addSearchItemsWithPadding(section, new ArrayList<>(settings), m -> m);
-        }
+    public boolean isSearchActive() {
+        return !searchText.isEmpty();
     }
 
-    protected WWindow createSearch(WContainer c) {
-        WBaseWindow w = modulesWindow("Search");
-        w.id = "search";
-        searchWindow = w;
+    public boolean isModuleSearchMatch(Module module) {
+        return !isSearchActive() || searchMatches.contains(module);
+    }
 
-        if (theme.categoryIcons()) {
-            w.beforeHeaderInit = wContainer -> addIcon(wContainer, Items.COMPASS.getDefaultStack());
+    private boolean matchesModuleSearch(Module module, String text) {
+        if (Utils.searchTextDefault(module.title, text, false)) return true;
+        if (!Config.get().moduleAliases.get()) return false;
+
+        for (String alias : module.aliases) {
+            if (Utils.searchTextDefault(alias, text, false)) return true;
         }
 
-        c.add(w);
-        w.view.scrollOnlyWhenMouseOver = true;
-        w.view.hasScrollBar = false;
-        w.view.maxHeight -= 20;
-
-        WVerticalList l = theme.verticalList();
-        WTextBox text = w.add(theme.textBox("")).minWidth(140).expandX().widget();
-        text.setFocused(true);
-        searchTextBox = text;
-        text.action = () -> {
-            l.clear();
-            createSearchW(l, text.get());
-        };
-
-        w.add(l).expandX();
-        createSearchW(l, text.get());
-
-        return w;
+        return false;
     }
 
     @Override
@@ -279,7 +255,6 @@ public class BaseModulesScreen extends TabScreen {
 
         boolean control = MacWindowUtil.IS_MAC ? input.modifiers() == GLFW_MOD_SUPER : input.modifiers() == GLFW_MOD_CONTROL;
         if (control && input.key() == GLFW_KEY_F) {
-            if (searchWindow != null) searchWindow.setExpanded(true);
             if (searchTextBox != null) {
                 searchTextBox.setFocused(true);
                 searchTextBox.setCursorMax();
@@ -364,7 +339,6 @@ public class BaseModulesScreen extends TabScreen {
                     windows.add(createCategory(this, category, modules));
                 }
             }
-            windows.add(createSearch(this));
             refresh();
         }
 

@@ -1,6 +1,7 @@
 package me.sophimoo.exeter.gui.themes.base.widgets;
 
 import me.sophimoo.exeter.BaseAddon;
+import me.sophimoo.exeter.gui.screens.BaseModulesScreen;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.GradientApplicationMode;
@@ -13,10 +14,12 @@ import meteordevelopment.meteorclient.gui.utils.AlignmentY;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WPressable;
+import meteordevelopment.meteorclient.systems.config.Config;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import net.minecraft.util.math.MathHelper;
 
+import static meteordevelopment.meteorclient.MeteorClient.mc;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 
@@ -103,8 +106,9 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
 
         ModuleAnimationMode effectiveAnimationMode = updateAnimationProgresses(mouseX, mouseY, delta);
         boolean isActive = module.isActive();
+        boolean dimmedBySearch = isDimmedBySearch();
 
-        RenderSettings settings = computeRenderSettings(isActive);
+        RenderSettings settings = computeRenderSettings(isActive, dimmedBySearch);
 
         renderAnimatedOverlay(renderer, ModuleAnimationMode.FADE, 1,
             settings.baseColor(), settings.inactiveGradientColor(),
@@ -130,11 +134,11 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
             renderIndicator(renderer, indicatorProgress);
         }
 
-        Color textColor = resolveTextColor();
+        Color textColor = resolveTextColor(dimmedBySearch);
         double textY = resolveTextY(pad);
         renderTitle(renderer, pad, layout, textColor, textY, delta);
 
-        renderSettingsIcon(renderer, pad, layout, textY, delta);
+        renderSettingsIcon(renderer, pad, layout, textY, delta, textColor);
     }
 
     protected final ModuleAnimationMode updateAnimationProgresses(double mouseX, double mouseY, double delta) {
@@ -167,21 +171,21 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         return effectiveAnimationMode;
     }
 
-    protected final RenderSettings computeRenderSettings(boolean isActive) {
+    protected final RenderSettings computeRenderSettings(boolean isActive, boolean dimmedBySearch) {
         ModuleGradientDirection gradientDir = theme().moduleGradientDirection.get();
-        Color activeGradientColor = theme().moduleActiveGradientColor.get();
-        Color inactiveGradientColor = theme().moduleInactiveGradientColor.get();
+        Color activeGradientColor = maybeDim(theme().moduleActiveGradientColor.get(), dimmedBySearch);
+        Color inactiveGradientColor = maybeDim(theme().moduleInactiveGradientColor.get(), dimmedBySearch);
         GradientApplicationMode applyMode = theme().gradientApplicationMode.get();
         double thickness = theme().scale(theme().moduleOutlineThickness.get());
-        Color baseColor = theme().moduleInactiveColor.get();
+        Color baseColor = maybeDim(theme().moduleInactiveColor.get(), dimmedBySearch);
         boolean renderBaseGradient = !isActive && applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.NONE;
-        Color overlayColor = isActive ? theme().moduleActiveColor.get() : theme().moduleHoveredColor.get();
-        Color overlayGradient = isActive ? activeGradientColor : theme().moduleHoveredGradientColor.get();
+        Color overlayColor = maybeDim(isActive ? theme().moduleActiveColor.get() : theme().moduleHoveredColor.get(), dimmedBySearch);
+        Color overlayGradient = isActive ? activeGradientColor : maybeDim(theme().moduleHoveredGradientColor.get(), dimmedBySearch);
         boolean renderOverlayGradient = applyMode.shouldApply(isActive);
-        Color hoveredOverlayColor = theme().moduleHoveredColor.get();
-        Color hoveredOverlayGradient = theme().moduleHoveredGradientColor.get();
+        Color hoveredOverlayColor = maybeDim(theme().moduleHoveredColor.get(), dimmedBySearch);
+        Color hoveredOverlayGradient = maybeDim(theme().moduleHoveredGradientColor.get(), dimmedBySearch);
         boolean renderHoveredOverlayGradient = applyMode.shouldApply(false);
-        Color outlineColor = theme().outlineColor.get(pressed, mouseOver);
+        Color outlineColor = maybeDim(theme().outlineColor.get(pressed, mouseOver), dimmedBySearch);
 
         return new RenderSettings(
             gradientDir, activeGradientColor, inactiveGradientColor, applyMode, thickness,
@@ -223,7 +227,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
             mouseOver, delta, needsMarquee, staticTextX, textColor, hoverOverlayProgress);
     }
 
-    protected void renderSettingsIcon(GuiRenderer renderer, double pad, ModuleRowLayout layout, double textY, double delta) {
+    protected void renderSettingsIcon(GuiRenderer renderer, double pad, ModuleRowLayout layout, double textY, double delta, Color textColor) {
         if (!layout.showIndicator) return;
 
         double settingsIconX = this.x + width - pad - layout.settingsIconWidth;
@@ -242,8 +246,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
             }
         } else {
             String settingsIcon = isSettingsExpanded() ? layout.expandedIndicator : layout.collapsedIndicator;
-            Color settingsIconColor = resolveTextColor();
-            renderText(renderer, settingsIcon, settingsIconX, textY, settingsIconColor);
+            renderText(renderer, settingsIcon, settingsIconX, textY, textColor);
         }
     }
 
@@ -265,8 +268,8 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         return value == null ? "" : value;
     }
 
-    protected final Color resolveTextColor() {
-        return resolveModuleTextColor(animationProgress, hoverOverlayProgress);
+    protected final Color resolveTextColor(boolean dimmedBySearch) {
+        return maybeDim(resolveModuleTextColor(animationProgress, hoverOverlayProgress), dimmedBySearch);
     }
 
     protected final double resolveTextY(double pad) {
@@ -286,6 +289,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         if (thickness <= 0) return;
 
         Color accentColor = theme().accentColor.get();
+        if (isDimmedBySearch()) accentColor = maybeDim(accentColor, true);
         double size = thickness * progress;
 
         double ix = this.x, iy = this.y, iw = this.width, ih = this.height;
@@ -301,6 +305,23 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
     }
 
     protected abstract boolean isSettingsExpanded();
+
+    private boolean isDimmedBySearch() {
+        if (!(mc.currentScreen instanceof BaseModulesScreen screen)) return false;
+        return screen.isSearchActive() && !screen.isModuleSearchMatch(module);
+    }
+
+    private Color maybeDim(Color color, boolean dimmedBySearch) {
+        if (!dimmedBySearch || color == null) return color;
+
+        Color dimmed = new Color(color);
+        dimmed.r = Math.max(0, (int) Math.round(dimmed.r * 0.4));
+        dimmed.g = Math.max(0, (int) Math.round(dimmed.g * 0.4));
+        dimmed.b = Math.max(0, (int) Math.round(dimmed.b * 0.4));
+        dimmed.a = Math.max(18, (int) Math.round(dimmed.a * 0.55));
+        dimmed.validate();
+        return dimmed;
+    }
 
     @Override
     protected final void onPressed(int button) {
