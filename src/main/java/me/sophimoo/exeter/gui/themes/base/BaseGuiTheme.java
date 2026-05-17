@@ -72,6 +72,8 @@ public class BaseGuiTheme extends GuiTheme {
     private final SettingGroup sgSettingsColors = settings.createGroup("Settings");
     private final SettingGroup sgTextShadow = settings.createGroup("Text Shadow");
     private final SettingGroup sgStarscript = settings.createGroup("Starscript");
+    // https://github.com/X-C-0/catppuccin-addon/blob/d642959fbaa9e5757013ea38f57556eb88c8b822/src/main/java/me/pindour/catppuccin/gui/themes/catppuccin/CatppuccinGuiTheme.java#L70
+    private final SettingGroup sgSnapping = settings.createGroup("Snapping");
 
 
     // General
@@ -159,6 +161,25 @@ public class BaseGuiTheme extends GuiTheme {
             .description("Open elements in modal windows")
             .defaultValue(false)
             .build()
+    );
+
+    // Snapping
+    // https://github.com/X-C-0/catppuccin-addon/blob/d642959fbaa9e5757013ea38f57556eb88c8b822/src/main/java/me/pindour/catppuccin/gui/themes/catppuccin/CatppuccinGuiTheme.java#L190
+
+    public final Setting<Boolean> snapModuleCategories = sgSnapping.add(new BoolSetting.Builder()
+        .name("snap-module-categories")
+        .description("Snaps module screen windows to the grid.")
+        .defaultValue(true)
+        .build()
+    );
+
+    public final Setting<Integer> snappingGridSize = sgSnapping.add(new IntSetting.Builder()
+        .name("grid-size")
+        .description("The size of the snapping grid.")
+        .defaultValue(10)
+        .range(5, 50)
+        .sliderRange(5, 50)
+        .build()
     );
 
 
@@ -699,8 +720,14 @@ public class BaseGuiTheme extends GuiTheme {
     // Widgets
 
     @Override
-    public WWindow window(WWidget icon, String title) {
+    public WBaseWindow window(WWidget icon, String title) {
         return w(new WBaseWindow(icon, title));
+    }
+
+    //https://github.com/X-C-0/catppuccin-addon/blob/d642959fbaa9e5757013ea38f57556eb88c8b822/src/main/java/me/pindour/catppuccin/gui/themes/catppuccin/CatppuccinGuiTheme.java#L275
+    @Override
+    public WBaseWindow window(String title) {
+        return window(null, title);
     }
 
     @Override

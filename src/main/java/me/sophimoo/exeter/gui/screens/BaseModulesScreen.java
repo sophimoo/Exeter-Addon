@@ -2,6 +2,7 @@ package me.sophimoo.exeter.gui.screens;
 
 import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
 import me.sophimoo.exeter.gui.themes.base.widgets.WBaseModule;
+import me.sophimoo.exeter.gui.themes.base.widgets.WBaseWindow;
 import meteordevelopment.meteorclient.gui.GuiTheme;
 import meteordevelopment.meteorclient.gui.tabs.TabScreen;
 import meteordevelopment.meteorclient.gui.tabs.Tabs;
@@ -16,7 +17,9 @@ import meteordevelopment.meteorclient.systems.config.Config;
 import meteordevelopment.meteorclient.systems.modules.Category;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
+import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.misc.NbtUtils;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.util.MacWindowUtil;
 import net.minecraft.item.ItemStack;
@@ -41,6 +44,7 @@ public class BaseModulesScreen extends TabScreen {
     private WTextBox searchTextBox;
     private final List<WBaseModule> expandedModules = new ArrayList<>();
     private boolean expandedModulesDirty;
+    private boolean showGrid;
 
     public BaseModulesScreen(GuiTheme theme) {
         super(theme, Tabs.get().getFirst());
@@ -49,6 +53,8 @@ public class BaseModulesScreen extends TabScreen {
 
     @Override
     public void initWidgets() {
+        showGrid = false;
+
         controller = add(new WCategoryController()).widget();
 
         WVerticalList help = add(theme.verticalList()).pad(4).bottom().widget();
@@ -56,6 +62,30 @@ public class BaseModulesScreen extends TabScreen {
         help.add(theme.label(theme.inlineModuleSettings.get()
             ? "Right click - Expand module settings"
             : "Right click - Open module settings"));
+    }
+
+    // https://github.com/X-C-0/catppuccin-addon/blob/d642959fbaa9e5757013ea38f57556eb88c8b822/src/main/java/me/pindour/catppuccin/gui/screens/CatppuccinModulesScreen.java#L80
+    @Override
+    public void renderBackground(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+        super.renderBackground(context, mouseX, mouseY, deltaTicks);
+
+        int gridSize = theme.snappingGridSize.get();
+        if (!showGrid || gridSize <= 0) return;
+
+        Color gridColor = new Color(theme.outlineColor.get());
+        gridColor.a = Math.min(gridColor.a, 60);
+
+        int packedColor = Color.fromRGBA(gridColor.r, gridColor.g, gridColor.b, gridColor.a);
+        int windowWidth = (int) getWindowWidth();
+        int windowHeight = (int) getWindowHeight();
+
+        for (int x = 0; x <= windowWidth; x += gridSize) {
+            context.drawVerticalLine(x, 0, windowHeight, packedColor);
+        }
+
+        for (int y = 0; y <= windowHeight; y += gridSize) {
+            context.drawHorizontalLine(0, windowWidth, y, packedColor);
+        }
     }
 
     @Override
@@ -130,10 +160,17 @@ public class BaseModulesScreen extends TabScreen {
         }
     }
 
+    private WBaseWindow modulesWindow(String title) {
+        WBaseWindow window = theme.window(title);
+        if (theme.snapModuleCategories.get()) window.initSnapping(this);
+        return window;
+    }
+
     protected WWindow createCategory(WContainer c, Category category, List<Module> modules) {
-        WWindow w = theme.window(category.name);
+        WBaseWindow w = modulesWindow(category.name);
         w.id = category.name;
         w.padding = w.spacing = 0;
+
         if (theme.categoryIcons()) {
             String iconText = null;
             ItemStack iconStack = null;
@@ -208,7 +245,7 @@ public class BaseModulesScreen extends TabScreen {
     }
 
     protected WWindow createSearch(WContainer c) {
-        WWindow w = theme.window("Search");
+        WBaseWindow w = modulesWindow("Search");
         w.id = "search";
         searchWindow = w;
 
@@ -262,7 +299,7 @@ public class BaseModulesScreen extends TabScreen {
 
         if (favorites.isEmpty()) return null;
 
-        WWindow w = theme.window("Favorites");
+        WBaseWindow w = modulesWindow("Favorites");
         w.id = "favorites";
         w.padding = w.spacing = 0;
 
@@ -302,6 +339,14 @@ public class BaseModulesScreen extends TabScreen {
 
     @Override
     public void reload() {}
+
+    public void showGrid(boolean show) {
+        showGrid = show;
+    }
+
+    public boolean showGrid() {
+        return showGrid;
+    }
 
     protected class WCategoryController extends WContainer {
         public final List<WWindow> windows = new ArrayList<>();
