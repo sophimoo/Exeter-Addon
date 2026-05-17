@@ -73,15 +73,15 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
         boolean shouldFadeIn = active || mouseOver;
 
         logDebugInfo();
-        ModuleAnimationMode effectiveAnimationMode = calculateAnimationMode(active, mouseOver, mouseX, mouseY, shouldFadeIn);
-        updateAnimationProgress(active, mouseOver, delta, shouldFadeIn);
+        ModuleAnimationMode effectiveAnimationMode = calculateAnimationMode(mouseX, mouseY, shouldFadeIn);
+        updateAnimationProgress(delta, shouldFadeIn);
 
         ModuleGradientDirection gradientDir = theme().moduleGradientDirection.get();
         GradientApplicationMode applyMode = theme().gradientApplicationMode.get();
 
         renderBackgroundLayers(renderer, active, mouseOver, effectiveAnimationMode, gradientDir, applyMode);
         renderOutlineIfNeeded(renderer, mouseOver);
-        renderTitle(renderer, active, mouseOver, delta);
+        renderTitle(renderer, delta);
 
         if (active && showIndicator) renderIndicator(renderer);
     }
@@ -105,7 +105,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
         );
     }
 
-    private ModuleAnimationMode calculateAnimationMode(boolean active, boolean mouseOver, double mouseX, double mouseY, boolean shouldFadeIn) {
+    private ModuleAnimationMode calculateAnimationMode(double mouseX, double mouseY, boolean shouldFadeIn) {
         ModuleAnimationMode animationMode = theme().moduleAnimationMode.get();
         return smartSlide.resolveMode(
             animationMode,
@@ -122,7 +122,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
         );
     }
 
-    private void updateAnimationProgress(boolean active, boolean mouseOver, double delta, boolean shouldFadeIn) {
+    private void updateAnimationProgress(double delta, boolean shouldFadeIn) {
         double fadeInSpeed = theme().moduleSelectSpeed.get();
         double fadeOutSpeed = theme().moduleDeselectSpeed.get();
         animationProgress = smartSlide.stepProgress(animationProgress, shouldFadeIn, delta, fadeInSpeed, fadeOutSpeed);
@@ -194,9 +194,9 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
         }
     }
 
-    private void renderTitle(GuiRenderer renderer, boolean active, boolean mouseOver, double delta) {
+    private void renderTitle(GuiRenderer renderer, double delta) {
         double padX = theme().rowPadX();
-        Color textColor = active ? theme().moduleTextActiveColor.get() : (mouseOver ? theme().moduleTextHoveredColor.get() : theme().moduleTextInactiveColor.get());
+        Color textColor = resolveModuleTextColor(animationProgress, hoverOverlayProgress);
 
         double titleAreaX = x + padX;
         double titleAreaW = Math.max(0, width - padX * 2);
@@ -205,7 +205,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
         double textY = y + (height - textHeight) / 2;
 
         renderTextWithMarquee(renderer, marquee, title, titleAreaX, y, titleAreaW, height, textY, titleWidth,
-            mouseOver, delta, true, titleAreaX, textColor);
+            mouseOver, delta, true, titleAreaX, textColor, hoverOverlayProgress);
     }
 
     private void renderIndicator(GuiRenderer renderer) {

@@ -279,7 +279,7 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
         SliderStyle sliderStyle = theme().sliderStyle.get();
         double barSpace = sliderStyle == SliderStyle.FULL_BAR ? 0 : pad;
         double textY = y + (height - barSpace - textHeight) / 2;
-        Color textColor = mouseOver ? theme().moduleTextHoveredColor.get() : theme().moduleTextInactiveColor.get();
+        Color textColor = resolveModuleTextColor(animationProgress);
 
         double progress = (getValue() - min) / (max - min);
         progress = MathHelper.clamp(progress, 0, 1);
@@ -302,7 +302,7 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
         double titleAreaW = Math.max(0, valueX - pad - titleAreaX);
 
         renderTextWithMarquee(renderer, marquee, title, titleAreaX, y, titleAreaW, height, textY, titleWidth,
-            mouseOver, delta, true, titleAreaX, textColor);
+            mouseOver, delta, true, titleAreaX, textColor, animationProgress);
     }
 
     private void setFromMouse(double mouseX) {

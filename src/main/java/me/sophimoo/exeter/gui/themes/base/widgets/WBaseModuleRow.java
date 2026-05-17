@@ -220,7 +220,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         }
 
         renderTextWithMarquee(renderer, marquee, title, textAreaX, this.y, textAreaW, height, textY, titleWidth,
-            mouseOver, delta, needsMarquee, staticTextX, textColor);
+            mouseOver, delta, needsMarquee, staticTextX, textColor, hoverOverlayProgress);
     }
 
     protected void renderSettingsIcon(GuiRenderer renderer, double pad, ModuleRowLayout layout, double textY, double delta) {
@@ -266,9 +266,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
     }
 
     protected final Color resolveTextColor() {
-        if (module.isActive()) return theme().moduleTextActiveColor.get();
-        if (mouseOver) return theme().moduleTextHoveredColor.get();
-        return theme().moduleTextInactiveColor.get();
+        return resolveModuleTextColor(animationProgress, hoverOverlayProgress);
     }
 
     protected final double resolveTextY(double pad) {

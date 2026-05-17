@@ -406,6 +406,27 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<SettingColor> titleTextColor = color(sgTextColors, "title-text", "Color of title text.", new SettingColor(255, 255, 255), false);
     public final Setting<SettingColor> loggedInColor = color(sgTextColors, "logged-in-text", "Color of logged in account name.", new SettingColor(45, 225, 45), false);
     public final Setting<SettingColor> placeholderColor = color(sgTextColors, "placeholder", "Color of placeholder text.", new SettingColor(255, 255, 255, 20), false);
+    public final Setting<Boolean> textHoverDisplacement = sgTextColors.add(new BoolSetting.Builder()
+        .name("text-hover-displacement")
+        .description("Shifts module and setting text while hovered.")
+        .defaultValue(false)
+        .build()
+    );
+    public final Setting<TextHoverDisplacementDirection> textHoverDisplacementDirection = sgTextColors.add(new EnumSetting.Builder<TextHoverDisplacementDirection>()
+        .name("text-hover-displacement-direction")
+        .description("Direction to shift hovered module and setting text.")
+        .defaultValue(TextHoverDisplacementDirection.RIGHT)
+        .build()
+    );
+    public final Setting<Double> textHoverDisplacementAmount = sgTextColors.add(new DoubleSetting.Builder()
+        .name("text-hover-displacement-amount")
+        .description("How far hovered module and setting text shifts.")
+        .defaultValue(2)
+        .min(0)
+        .max(20)
+        .sliderRange(0, 20)
+        .build()
+    );
 
     // Text Shadow
     public final Setting<Boolean> textShadow = sgTextShadow.add(new BoolSetting.Builder()

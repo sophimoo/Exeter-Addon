@@ -3,6 +3,7 @@ package me.sophimoo.exeter.gui.themes.base;
 import me.sophimoo.exeter.gui.renderer.BlurRendererAccess;
 import me.sophimoo.exeter.gui.renderer.WorldFramebufferCapture;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.TextHoverDisplacementDirection;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.renderer.packer.GuiTexture;
@@ -103,22 +104,80 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
         renderer.text(text, x, y, color, false);
     }
 
+    default void renderText(GuiRenderer renderer, String text, double x, double y, Color color, double displacementProgress) {
+        if (theme().textHoverDisplacement.get() && displacementProgress > 0) {
+            double clampedProgress = Math.max(0, Math.min(1, displacementProgress));
+            double displacement = theme().scale(theme().textHoverDisplacementAmount.get()) * clampedProgress;
+            TextHoverDisplacementDirection direction = theme().textHoverDisplacementDirection.get();
+
+            switch (direction) {
+                case LEFT -> x -= displacement;
+                case RIGHT -> x += displacement;
+                case UP -> y -= displacement;
+                case DOWN -> y += displacement;
+            }
+        }
+
+        renderText(renderer, text, x, y, color);
+    }
+
     default void renderTextWithMarquee(GuiRenderer renderer, MarqueeState marqueeState, String text,
                                        double textAreaX, double textAreaY, double textAreaW, double textAreaH,
                                        double textY, double textWidth, boolean animate, double delta,
                                        boolean marqueeEnabled, double staticTextX, Color color) {
+        renderTextWithMarquee(renderer, marqueeState, text, textAreaX, textAreaY, textAreaW, textAreaH,
+            textY, textWidth, animate, delta, marqueeEnabled, staticTextX, color, 0);
+    }
+
+    default void renderTextWithMarquee(GuiRenderer renderer, MarqueeState marqueeState, String text,
+                                       double textAreaX, double textAreaY, double textAreaW, double textAreaH,
+                                       double textY, double textWidth, boolean animate, double delta,
+                                       boolean marqueeEnabled, double staticTextX, Color color, double displacementProgress) {
         double overflow = Math.max(0, textWidth - textAreaW);
 
         if (marqueeEnabled && overflow > 0 && textAreaW > 0) {
             double marqueeOffset = marqueeState.step(overflow, animate, delta);
             renderer.scissorStart(textAreaX, textAreaY, textAreaW, textAreaH);
-            renderText(renderer, text, textAreaX - marqueeOffset, textY, color);
+            renderText(renderer, text, textAreaX - marqueeOffset, textY, color, displacementProgress);
             renderer.scissorEnd();
             return;
         }
 
         marqueeState.reset();
-        renderText(renderer, text, staticTextX, textY, color);
+        renderText(renderer, text, staticTextX, textY, color, displacementProgress);
+    }
+
+    default Color interpolateColor(Color from, Color to, double progress) {
+        double clampedProgress = Math.max(0, Math.min(1, progress));
+        int r = (int) Math.round(from.r + (to.r - from.r) * clampedProgress);
+        int g = (int) Math.round(from.g + (to.g - from.g) * clampedProgress);
+        int b = (int) Math.round(from.b + (to.b - from.b) * clampedProgress);
+        int a = (int) Math.round(from.a + (to.a - from.a) * clampedProgress);
+        return new Color(r, g, b, a);
+    }
+
+    default Color resolveTextStateColor(Color inactiveColor, Color activeColor, Color hoveredColor,
+                                        double activeProgress, double hoverProgress) {
+        Color baseColor = interpolateColor(inactiveColor, activeColor, activeProgress);
+        return interpolateColor(baseColor, hoveredColor, hoverProgress);
+    }
+
+    default Color resolveTextStateColor(Color inactiveColor, Color hoveredColor, double hoverProgress) {
+        return resolveTextStateColor(inactiveColor, inactiveColor, hoveredColor, 0, hoverProgress);
+    }
+
+    default Color resolveModuleTextColor(double activeProgress, double hoverProgress) {
+        return resolveTextStateColor(
+            theme().moduleTextInactiveColor.get(),
+            theme().moduleTextActiveColor.get(),
+            theme().moduleTextHoveredColor.get(),
+            activeProgress,
+            hoverProgress
+        );
+    }
+
+    default Color resolveModuleTextColor(double hoverProgress) {
+        return resolveModuleTextColor(0, hoverProgress);
     }
 
     default void renderCenteredTextOrTexture(GuiRenderer renderer, String text, double textWidth, GuiTexture texture,

@@ -169,8 +169,12 @@ public class WBaseSection extends WSection implements BaseWidget {
                 textX += textAreaWidth - titleWidth;
             }
 
-            Color textColor = theme().separatorText.get();
-            renderText(renderer, title, textX, textY, textColor);
+            Color textColor = resolveTextStateColor(
+                theme().separatorText.get(),
+                theme().moduleTextHoveredColor.get(),
+                hoverProgress
+            );
+            renderText(renderer, title, textX, textY, textColor, hoverProgress);
 
             if (showIndicator) {
                 String dropdownIcon = animProgress >= 0.5 ? expandedIndicator : collapsedIndicator;

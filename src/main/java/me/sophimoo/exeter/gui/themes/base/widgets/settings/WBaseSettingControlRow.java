@@ -185,7 +185,7 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
 
         double padX = theme().rowPadX();
         double padY = theme().rowPadY();
-        Color textColor = mouseOver ? theme().moduleTextHoveredColor.get() : theme().moduleTextInactiveColor.get();
+        Color textColor = resolveModuleTextColor(animationProgress);
         double textHeight = theme().textHeight();
 
         if (verticalLayout) {
@@ -216,7 +216,7 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
 
     private void renderTitle(GuiRenderer renderer, double delta, Color textColor, double textY, double titleAreaX, double titleAreaW) {
         renderTextWithMarquee(renderer, marquee, title, titleAreaX, y, titleAreaW, height, textY, titleWidth,
-            mouseOver, delta, true, titleAreaX, textColor);
+            mouseOver, delta, true, titleAreaX, textColor, animationProgress);
     }
 
 }
