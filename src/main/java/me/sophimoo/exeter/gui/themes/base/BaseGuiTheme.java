@@ -743,7 +743,7 @@ public class BaseGuiTheme extends GuiTheme {
 
     @Override
     public WVerticalSeparator verticalSeparator() {
-        return w(new WBaseVerticalSeparator());
+        return w(new WVerticalSeparator());
     }
 
     @Override
