@@ -1,12 +1,7 @@
 package me.sophimoo.exeter.gui.themes.base.widgets.settings;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
-import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.GradientApplicationMode;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleAnimationMode;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleIndicatorPosition;
 import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import me.sophimoo.exeter.gui.themes.base.utils.WidgetSizeDebug;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
@@ -73,14 +68,11 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
         boolean shouldFadeIn = active || mouseOver;
 
         logDebugInfo();
-        ModuleAnimationMode effectiveAnimationMode = calculateAnimationMode(mouseX, mouseY, shouldFadeIn);
-        updateAnimationProgress(delta, shouldFadeIn);
+        RowAnimationState animationState = animateRow(smartSlide, delta, mouseX, mouseY, x, y, width, height, mouseOver, shouldFadeIn, mouseOver, animationProgress, hoverOverlayProgress);
+        animationProgress = animationState.primaryProgress();
+        hoverOverlayProgress = animationState.hoverProgress();
 
-        ModuleGradientDirection gradientDir = theme().moduleGradientDirection.get();
-        GradientApplicationMode applyMode = theme().gradientApplicationMode.get();
-
-        renderBackgroundLayers(renderer, active, mouseOver, effectiveAnimationMode, gradientDir, applyMode);
-        renderOutlineIfNeeded(renderer, mouseOver);
+        renderBackgroundLayers(renderer, active, animationState);
         renderTitle(renderer, delta);
 
         if (active && showIndicator) renderIndicator(renderer);
@@ -105,93 +97,18 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
         );
     }
 
-    private ModuleAnimationMode calculateAnimationMode(double mouseX, double mouseY, boolean shouldFadeIn) {
-        ModuleAnimationMode animationMode = theme().moduleAnimationMode.get();
-        return smartSlide.resolveMode(
-            animationMode,
-            mouseOver,
-            shouldFadeIn,
-            mouseX,
-            mouseY,
-            x,
-            y,
-            width,
-            height,
-            theme(),
-            animationProgress
-        );
-    }
-
-    private void updateAnimationProgress(double delta, boolean shouldFadeIn) {
-        double fadeInSpeed = theme().moduleSelectSpeed.get();
-        double fadeOutSpeed = theme().moduleDeselectSpeed.get();
-        animationProgress = smartSlide.stepProgress(animationProgress, shouldFadeIn, delta, fadeInSpeed, fadeOutSpeed);
-        hoverOverlayProgress = smartSlide.stepProgress(hoverOverlayProgress, mouseOver, delta, fadeInSpeed, fadeOutSpeed);
-    }
-
-    private void renderBackgroundLayers(GuiRenderer renderer, boolean active, boolean mouseOver,
-                                       ModuleAnimationMode effectiveAnimationMode,
-                                       ModuleGradientDirection gradientDir, GradientApplicationMode applyMode) {
-        Color inactiveColor = theme().itemBackgroundColor.get();
-        boolean applyInactiveGradient = applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.NONE;
-        Color inactiveGradient = theme().itemBackgroundGradientColor.get();
-        Color overlayColor = active ? theme().itemActiveColor.get() : theme().itemHoveredBackgroundColor.get();
-        Color overlayGradient = active ? theme().itemActiveGradientColor.get() : theme().itemHoveredBackgroundGradientColor.get();
-        boolean applyOverlayGradient = applyMode.shouldApply(active);
-        Color hoveredOverlayColor = theme().itemHoveredBackgroundColor.get();
-        Color hoveredOverlayGradient = theme().itemHoveredBackgroundGradientColor.get();
-        boolean applyHoveredOverlayGradient = applyMode.shouldApply(false);
-
-        AnimatedOverlayRenderer.render(
+    private void renderBackgroundLayers(GuiRenderer renderer, boolean active, RowAnimationState animationState) {
+        renderRowSurface(
             renderer,
             x,
             y,
             width,
             height,
-            ModuleAnimationMode.FADE,
-            1,
-            inactiveColor,
-            inactiveGradient,
-            applyInactiveGradient ? gradientDir : ModuleGradientDirection.NONE
+            animationState.effectiveAnimationMode(),
+            animationProgress,
+            active ? hoverOverlayProgress : 0,
+            itemRowSurfaceStyle(active, pressed, mouseOver)
         );
-
-        if (animationProgress > 0) {
-            AnimatedOverlayRenderer.render(
-                renderer,
-                x,
-                y,
-                width,
-                height,
-                effectiveAnimationMode,
-                animationProgress,
-                overlayColor,
-                overlayGradient,
-                applyOverlayGradient ? gradientDir : ModuleGradientDirection.NONE
-            );
-        }
-
-        if (active && hoverOverlayProgress > 0) {
-            AnimatedOverlayRenderer.render(
-                renderer,
-                x,
-                y,
-                width,
-                height,
-                effectiveAnimationMode,
-                hoverOverlayProgress,
-                hoveredOverlayColor,
-                hoveredOverlayGradient,
-                applyHoveredOverlayGradient ? gradientDir : ModuleGradientDirection.NONE
-            );
-        }
-    }
-
-    private void renderOutlineIfNeeded(GuiRenderer renderer, boolean mouseOver) {
-        double outlineThickness = theme().scale(theme().moduleOutlineThickness.get());
-        Color outlineColor = theme().outlineColor.get(pressed, mouseOver);
-        if (outlineThickness > 0 && outlineColor != null) {
-            renderOutline(renderer, x, y, width, height, outlineThickness, outlineColor);
-        }
     }
 
     private void renderTitle(GuiRenderer renderer, double delta) {
@@ -200,37 +117,31 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
 
         double titleAreaX = x + padX;
         double titleAreaW = Math.max(0, width - padX * 2);
+        RowTextLayout layout = resolveRowTextLayout(
+            titleAreaX,
+            y,
+            titleAreaW,
+            height,
+            titleWidth,
+            meteordevelopment.meteorclient.gui.utils.AlignmentX.Left,
+            meteordevelopment.meteorclient.gui.utils.AlignmentY.Center
+        );
 
-        double textHeight = theme().textHeight();
-        double textY = y + (height - textHeight) / 2;
-
-        renderTextWithMarquee(renderer, marquee, title, titleAreaX, y, titleAreaW, height, textY, titleWidth,
-            mouseOver, delta, true, titleAreaX, textColor, hoverOverlayProgress);
+        renderRowTitle(
+            renderer,
+            marquee,
+            title,
+            titleWidth,
+            delta,
+            mouseOver,
+            true,
+            textColor,
+            hoverOverlayProgress,
+            layout
+        );
     }
 
     private void renderIndicator(GuiRenderer renderer) {
-        ModuleIndicatorPosition position = theme().moduleIndicatorPosition.get();
-        if (position == ModuleIndicatorPosition.NONE) return;
-
-        double thickness = theme().scale(theme().moduleIndicatorThickness.get());
-        if (thickness <= 0) return;
-
-        Color accentColor = theme().accentColor.get();
-        double ix = x, iy = y, iw = width, ih = height;
-
-        switch (position) {
-            case LEFT -> iw = thickness;
-            case RIGHT -> {
-                ix = x + width - thickness;
-                iw = thickness;
-            }
-            case TOP -> ih = thickness;
-            case BOTTOM -> {
-                iy = y + height - thickness;
-                ih = thickness;
-            }
-        }
-
-        renderer.quad(ix, iy, iw, ih, accentColor);
+        renderRowIndicator(renderer, x, y, width, height, 1, moduleIndicatorStyle(theme().accentColor.get()));
     }
 }

@@ -2,18 +2,33 @@ package me.sophimoo.exeter.gui.themes.base;
 
 import me.sophimoo.exeter.gui.renderer.BlurRendererAccess;
 import me.sophimoo.exeter.gui.renderer.WorldFramebufferCapture;
+import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
+import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleAnimationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleIndicatorPosition;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.TextHoverDisplacementDirection;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.renderer.packer.GuiTexture;
+import meteordevelopment.meteorclient.gui.utils.AlignmentX;
+import meteordevelopment.meteorclient.gui.utils.AlignmentY;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.renderer.text.VanillaTextRenderer;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import me.sophimoo.exeter.gui.renderer.GuiTextRendererAccess;
 
+import java.util.function.UnaryOperator;
+
 public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.BaseWidget {
     record ConfirmColors(Color fg, Color bg) {}
+    record SurfaceLayer(Color color, Color gradient, boolean renderGradient) {}
+    record RowSurfaceStyle(SurfaceLayer baseLayer, SurfaceLayer overlayLayer, SurfaceLayer hoveredOverlayLayer,
+                           ModuleGradientDirection gradientDirection, double outlineThickness, Color outlineColor) {}
+    record RowIndicatorStyle(ModuleIndicatorPosition position, double thickness, Color color) {}
+    record RowAnimationState(ModuleAnimationMode effectiveAnimationMode, double primaryProgress, double hoverProgress) {}
+    record RowTextLayout(double areaX, double areaY, double areaWidth, double areaHeight, double textY, double staticTextX) {}
 
     default BaseGuiTheme theme() {
         return (BaseGuiTheme) getTheme();
@@ -43,6 +58,188 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
     default double itemRowBaseHeight(double extraPx) {
         return resolveItemRowHeight(theme().rowPadY() + theme().textHeight() + theme().rowPadY() + theme().scaledPx(extraPx));
+    }
+
+    default RowAnimationState animateRow(SmartSlideAnimationState smartSlide, double delta, double mouseX, double mouseY,
+                                         double x, double y, double width, double height, boolean mouseOver,
+                                         boolean primaryVisible, boolean hoverVisible,
+                                         double primaryProgress, double hoverProgress) {
+        ModuleAnimationMode animationMode = theme().moduleAnimationMode.get();
+        ModuleAnimationMode effectiveAnimationMode = smartSlide.resolveMode(
+            animationMode,
+            mouseOver,
+            primaryVisible,
+            mouseX,
+            mouseY,
+            x,
+            y,
+            width,
+            height,
+            theme(),
+            primaryProgress
+        );
+
+        double fadeInSpeed = theme().moduleSelectSpeed.get();
+        double fadeOutSpeed = theme().moduleDeselectSpeed.get();
+
+        return new RowAnimationState(
+            effectiveAnimationMode,
+            clampProgress(smartSlide.stepProgress(primaryProgress, primaryVisible, delta, fadeInSpeed, fadeOutSpeed)),
+            clampProgress(smartSlide.stepProgress(hoverProgress, hoverVisible, delta, fadeInSpeed, fadeOutSpeed))
+        );
+    }
+
+    default RowSurfaceStyle moduleRowSurfaceStyle(boolean active, boolean pressed, boolean mouseOver, UnaryOperator<Color> colorMapper) {
+        ModuleGradientDirection gradientDirection = theme().moduleGradientDirection.get();
+        boolean renderInactiveGradient = theme().gradientApplicationMode.get().shouldApply(false) && gradientDirection != ModuleGradientDirection.NONE;
+        boolean renderActiveGradient = theme().gradientApplicationMode.get().shouldApply(true) && gradientDirection != ModuleGradientDirection.NONE;
+
+        Color inactiveGradient = mapColor(theme().moduleInactiveGradientColor.get(), colorMapper);
+        Color activeGradient = mapColor(theme().moduleActiveGradientColor.get(), colorMapper);
+        Color hoveredGradient = mapColor(theme().moduleHoveredGradientColor.get(), colorMapper);
+
+        return createRowSurfaceStyle(
+            mapColor(theme().moduleInactiveColor.get(), colorMapper),
+            inactiveGradient,
+            !active && renderInactiveGradient,
+            mapColor(active ? theme().moduleActiveColor.get() : theme().moduleHoveredColor.get(), colorMapper),
+            active ? activeGradient : hoveredGradient,
+            theme().gradientApplicationMode.get().shouldApply(active) && gradientDirection != ModuleGradientDirection.NONE,
+            mapColor(theme().moduleHoveredColor.get(), colorMapper),
+            hoveredGradient,
+            renderInactiveGradient,
+            gradientDirection,
+            theme().outlineColor.get(pressed, mouseOver),
+            colorMapper
+        );
+    }
+
+    default RowSurfaceStyle itemRowSurfaceStyle(boolean active, boolean pressed, boolean mouseOver) {
+        ModuleGradientDirection gradientDirection = theme().moduleGradientDirection.get();
+        boolean renderGradient = theme().gradientApplicationMode.get().shouldApply(false) && gradientDirection != ModuleGradientDirection.NONE;
+
+        return createRowSurfaceStyle(
+            theme().itemBackgroundColor.get(),
+            theme().itemBackgroundGradientColor.get(),
+            renderGradient,
+            active ? theme().itemActiveColor.get() : theme().itemHoveredBackgroundColor.get(),
+            active ? theme().itemActiveGradientColor.get() : theme().itemHoveredBackgroundGradientColor.get(),
+            theme().gradientApplicationMode.get().shouldApply(active) && gradientDirection != ModuleGradientDirection.NONE,
+            theme().itemHoveredBackgroundColor.get(),
+            theme().itemHoveredBackgroundGradientColor.get(),
+            renderGradient,
+            gradientDirection,
+            theme().outlineColor.get(pressed, mouseOver),
+            null
+        );
+    }
+
+    default RowSurfaceStyle separatorRowSurfaceStyle(boolean mouseOver) {
+        ModuleGradientDirection gradientDirection = theme().moduleGradientDirection.get();
+        boolean renderGradient = theme().gradientApplicationMode.get().shouldApply(false) && gradientDirection != ModuleGradientDirection.NONE;
+
+        return createRowSurfaceStyle(
+            theme().separatorColor.get(),
+            theme().separatorGradientColor.get(),
+            renderGradient,
+            theme().separatorHoveredColor.get(),
+            theme().separatorHoveredGradientColor.get(),
+            renderGradient,
+            null,
+            null,
+            false,
+            gradientDirection,
+            theme().outlineColor.get(false, mouseOver),
+            null
+        );
+    }
+
+    default RowIndicatorStyle moduleIndicatorStyle(Color color) {
+        return new RowIndicatorStyle(
+            theme().moduleIndicatorPosition.get(),
+            theme().scale(theme().moduleIndicatorThickness.get()),
+            color
+        );
+    }
+
+    default RowTextLayout resolveRowTextLayout(double areaX, double areaY, double areaWidth, double areaHeight,
+                                               double textWidth, AlignmentX horizontalAlignment, AlignmentY verticalAlignment) {
+        double safeAreaWidth = Math.max(0, areaWidth);
+        double safeAreaHeight = Math.max(0, areaHeight);
+        double textHeight = theme().textHeight();
+        double textY = areaY;
+
+        if (verticalAlignment == AlignmentY.Center) textY += (safeAreaHeight - textHeight) / 2;
+        else if (verticalAlignment == AlignmentY.Bottom) textY += safeAreaHeight - textHeight;
+
+        double staticTextX = areaX;
+        if (horizontalAlignment == AlignmentX.Center) staticTextX += safeAreaWidth / 2 - textWidth / 2;
+        else if (horizontalAlignment == AlignmentX.Right) staticTextX += safeAreaWidth - textWidth;
+
+        return new RowTextLayout(areaX, areaY, safeAreaWidth, safeAreaHeight, textY, staticTextX);
+    }
+
+    default void renderRowSurface(GuiRenderer renderer, double x, double y, double width, double height,
+                                  ModuleAnimationMode overlayAnimationMode, double overlayProgress,
+                                  double hoveredOverlayProgress, RowSurfaceStyle style) {
+        renderSurfaceLayer(renderer, x, y, width, height, ModuleAnimationMode.FADE, 1, style.baseLayer(), style.gradientDirection());
+
+        if (overlayProgress > 0 && style.overlayLayer() != null) {
+            renderSurfaceLayer(renderer, x, y, width, height, overlayAnimationMode, overlayProgress, style.overlayLayer(), style.gradientDirection());
+        }
+
+        if (hoveredOverlayProgress > 0 && style.hoveredOverlayLayer() != null) {
+            renderSurfaceLayer(renderer, x, y, width, height, overlayAnimationMode, hoveredOverlayProgress, style.hoveredOverlayLayer(), style.gradientDirection());
+        }
+
+        if (style.outlineThickness() > 0 && style.outlineColor() != null) {
+            renderOutline(renderer, x, y, width, height, style.outlineThickness(), style.outlineColor());
+        }
+    }
+
+    default void renderRowIndicator(GuiRenderer renderer, double x, double y, double width, double height,
+                                    double progress, RowIndicatorStyle style) {
+        if (style == null || progress <= 0 || style.position() == ModuleIndicatorPosition.NONE || style.thickness() <= 0 || style.color() == null) return;
+
+        double size = style.thickness() * progress;
+        double ix = x, iy = y, iw = width, ih = height;
+
+        switch (style.position()) {
+            case LEFT -> iw = size;
+            case RIGHT -> {
+                ix = x + width - size;
+                iw = size;
+            }
+            case TOP -> ih = size;
+            case BOTTOM -> {
+                iy = y + height - size;
+                ih = size;
+            }
+        }
+
+        renderer.quad(ix, iy, iw, ih, style.color());
+    }
+
+    default void renderRowTitle(GuiRenderer renderer, MarqueeState marqueeState, String text, double textWidth,
+                                double delta, boolean animate, boolean marqueeEnabled, Color color,
+                                double displacementProgress, RowTextLayout layout) {
+        renderTextWithMarquee(
+            renderer,
+            marqueeState,
+            text,
+            layout.areaX(),
+            layout.areaY(),
+            layout.areaWidth(),
+            layout.areaHeight(),
+            layout.textY(),
+            textWidth,
+            animate,
+            delta,
+            marqueeEnabled,
+            layout.staticTextX(),
+            color,
+            displacementProgress
+        );
     }
 
     default void renderBackground(GuiRenderer renderer, WWidget widget, Color outlineColor, Color backgroundColor) {
@@ -145,6 +342,49 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
         marqueeState.reset();
         renderText(renderer, text, staticTextX, textY, color, displacementProgress);
+    }
+
+    private RowSurfaceStyle createRowSurfaceStyle(Color baseColor, Color baseGradient, boolean renderBaseGradient,
+                                                  Color overlayColor, Color overlayGradient, boolean renderOverlayGradient,
+                                                  Color hoveredOverlayColor, Color hoveredOverlayGradient, boolean renderHoveredOverlayGradient,
+                                                  ModuleGradientDirection gradientDirection, Color outlineColor,
+                                                  UnaryOperator<Color> colorMapper) {
+        return new RowSurfaceStyle(
+            new SurfaceLayer(mapColor(baseColor, colorMapper), mapColor(baseGradient, colorMapper), renderBaseGradient),
+            overlayColor != null ? new SurfaceLayer(mapColor(overlayColor, colorMapper), mapColor(overlayGradient, colorMapper), renderOverlayGradient) : null,
+            hoveredOverlayColor != null ? new SurfaceLayer(mapColor(hoveredOverlayColor, colorMapper), mapColor(hoveredOverlayGradient, colorMapper), renderHoveredOverlayGradient) : null,
+            gradientDirection,
+            theme().scale(theme().moduleOutlineThickness.get()),
+            mapColor(outlineColor, colorMapper)
+        );
+    }
+
+    private void renderSurfaceLayer(GuiRenderer renderer, double x, double y, double width, double height,
+                                    ModuleAnimationMode animationMode, double progress, SurfaceLayer layer,
+                                    ModuleGradientDirection gradientDirection) {
+        if (layer == null || layer.color() == null) return;
+
+        AnimatedOverlayRenderer.render(
+            renderer,
+            x,
+            y,
+            width,
+            height,
+            animationMode,
+            progress,
+            layer.color(),
+            layer.gradient(),
+            layer.renderGradient() ? gradientDirection : ModuleGradientDirection.NONE
+        );
+    }
+
+    private double clampProgress(double value) {
+        return Math.max(0, Math.min(1, value));
+    }
+
+    private Color mapColor(Color color, UnaryOperator<Color> colorMapper) {
+        if (color == null || colorMapper == null) return color;
+        return colorMapper.apply(color);
     }
 
     default Color interpolateColor(Color from, Color to, double progress) {

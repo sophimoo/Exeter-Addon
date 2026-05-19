@@ -1,19 +1,16 @@
 package me.sophimoo.exeter.gui.themes.base.widgets;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
-import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.GradientApplicationMode;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleAnimationMode;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
+import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
 import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
+import meteordevelopment.meteorclient.gui.utils.AlignmentY;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WSection;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WCheckbox;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import net.minecraft.client.gui.Click;
-import net.minecraft.util.math.MathHelper;
 
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
@@ -41,6 +38,7 @@ public class WBaseSection extends WSection implements BaseWidget {
     protected class WBaseHeader extends WHeader {
         private double titleWidth;
         private double hoverProgress;
+        private final MarqueeState marquee = new MarqueeState();
         private final SmartSlideAnimationState smartSlide = new SmartSlideAnimationState();
 
         public WBaseHeader(String title) {
@@ -90,96 +88,26 @@ public class WBaseSection extends WSection implements BaseWidget {
             boolean showIndicator = theme().dropdownIndicator.get();
             double iconWidth = indicatorWidth();
             double iconGap = indicatorGap();
-            double textHeight = theme().textHeight();
+            RowAnimationState animationState = animateRow(smartSlide, delta, mouseX, mouseY, x, y, width, height, mouseOver, mouseOver, false, hoverProgress, 0);
+            hoverProgress = animationState.primaryProgress();
+            renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), hoverProgress, 0, separatorRowSurfaceStyle(mouseOver));
 
-            ModuleGradientDirection gradientDirection = theme().moduleGradientDirection.get();
-            GradientApplicationMode applyMode = theme().gradientApplicationMode.get();
-            double thickness = theme().scale(theme().moduleOutlineThickness.get());
-
-            // Determine render direction for gradients
-            ModuleGradientDirection renderDirection = (gradientDirection != ModuleGradientDirection.NONE) ? gradientDirection : ModuleGradientDirection.NONE;
-
-            // Base layer - always render separator + separator-gradient (like inactive module base)
-            boolean renderBaseGradient = applyMode.shouldApply(false) && gradientDirection != ModuleGradientDirection.NONE;
-            AnimatedOverlayRenderer.render(
-                renderer,
-                x,
-                y,
-                width,
-                height,
-                ModuleAnimationMode.FADE,
-                1,
-                theme().separatorColor.get(),
-                theme().separatorGradientColor.get(),
-                renderBaseGradient ? renderDirection : ModuleGradientDirection.NONE
-            );
-
-            // Hover overlay layer - animated (like hovered/active module overlay)
-            ModuleAnimationMode animationMode = theme().moduleAnimationMode.get();
-            ModuleAnimationMode effectiveAnimationMode = smartSlide.resolveMode(
-                animationMode,
-                mouseOver,
-                mouseOver,
-                mouseX,
-                mouseY,
-                x,
-                y,
-                width,
-                height,
-                theme(),
-                hoverProgress
-            );
-
-            hoverProgress = smartSlide.stepProgress(
-                hoverProgress,
-                mouseOver,
-                delta,
-                theme().moduleSelectSpeed.get(),
-                theme().moduleDeselectSpeed.get()
-            );
-            hoverProgress = MathHelper.clamp(hoverProgress, 0, 1);
-
-            if (hoverProgress > 0) {
-                boolean renderHoverGradient = applyMode.shouldApply(false) && gradientDirection != ModuleGradientDirection.NONE;
-                AnimatedOverlayRenderer.render(
-                    renderer,
-                    x,
-                    y,
-                    width,
-                    height,
-                    effectiveAnimationMode,
-                    hoverProgress,
-                    theme().separatorHoveredColor.get(),
-                    theme().separatorHoveredGradientColor.get(),
-                    renderHoverGradient ? renderDirection : ModuleGradientDirection.NONE
-                );
-            }
-
-            if (thickness > 0) renderOutline(renderer, x, y, width, height, thickness, theme().outlineColor.get(false, mouseOver));
-
-            double textY = y + pad + (height - pad * 2 - textHeight) / 2;
             double textAreaX = x + pad;
             double textAreaWidth = Math.max(0, width - pad * 2 - iconWidth - iconGap);
             if (titleWidth == 0) titleWidth = theme().textWidth(title);
-
-            double textX = textAreaX;
-            if (theme().moduleAlignment.get() == AlignmentX.Center) {
-                textX += textAreaWidth / 2 - titleWidth / 2;
-            } else if (theme().moduleAlignment.get() == AlignmentX.Right) {
-                textX += textAreaWidth - titleWidth;
-            }
+            RowTextLayout layout = resolveRowTextLayout(textAreaX, y, textAreaWidth, height, titleWidth, theme().moduleAlignment.get(), AlignmentY.Center);
 
             Color textColor = resolveTextStateColor(
                 theme().separatorText.get(),
                 theme().moduleTextHoveredColor.get(),
                 hoverProgress
             );
-            renderText(renderer, title, textX, textY, textColor, hoverProgress);
+            renderRowTitle(renderer, marquee, title, titleWidth, delta, false, false, textColor, hoverProgress, layout);
 
             if (showIndicator) {
                 String dropdownIcon = animProgress >= 0.5 ? expandedIndicator : collapsedIndicator;
                 double iconX = x + width - pad - iconWidth;
-                renderText(renderer, dropdownIcon, iconX, textY, textColor);
+                renderText(renderer, dropdownIcon, iconX, layout.textY(), textColor);
             }
         }
 

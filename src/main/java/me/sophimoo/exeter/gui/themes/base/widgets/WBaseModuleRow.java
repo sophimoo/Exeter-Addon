@@ -3,12 +3,7 @@ package me.sophimoo.exeter.gui.themes.base.widgets;
 import me.sophimoo.exeter.BaseAddon;
 import me.sophimoo.exeter.gui.screens.BaseModulesScreen;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
-import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.GradientApplicationMode;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleAnimationMode;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleIndicatorPosition;
 import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import meteordevelopment.meteorclient.gui.utils.AlignmentY;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
@@ -18,6 +13,8 @@ import meteordevelopment.meteorclient.systems.config.Config;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import net.minecraft.util.math.MathHelper;
+
+import java.util.function.UnaryOperator;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
@@ -39,23 +36,6 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
     protected double exeterIconRotation;
     protected final MarqueeState marquee = new MarqueeState();
     protected final SmartSlideAnimationState smartSlide = new SmartSlideAnimationState();
-
-    protected record RenderSettings(
-        ModuleGradientDirection gradientDir,
-        Color activeGradientColor,
-        Color inactiveGradientColor,
-        GradientApplicationMode applyMode,
-        double thickness,
-        Color baseColor,
-        boolean renderBaseGradient,
-        Color overlayColor,
-        Color overlayGradient,
-        boolean renderOverlayGradient,
-        Color hoveredOverlayColor,
-        Color hoveredOverlayGradient,
-        boolean renderHoveredOverlayGradient,
-        Color outlineColor
-    ) {}
 
     protected record ModuleRowLayout(
         String collapsedIndicator,
@@ -104,34 +84,25 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         double pad = pad();
         ModuleRowLayout layout = computeRowLayout();
 
-        ModuleAnimationMode effectiveAnimationMode = updateAnimationProgresses(mouseX, mouseY, delta);
+        updateAnimationProgresses(mouseX, mouseY, delta);
         boolean isActive = module.isActive();
         boolean dimmedBySearch = isDimmedBySearch();
+        UnaryOperator<Color> colorMapper = color -> maybeDim(color, dimmedBySearch);
 
-        RenderSettings settings = computeRenderSettings(isActive, dimmedBySearch);
-
-        renderAnimatedOverlay(renderer, ModuleAnimationMode.FADE, 1,
-            settings.baseColor(), settings.inactiveGradientColor(),
-            settings.renderBaseGradient(), settings.gradientDir());
-
-        if (animationProgress > 0) {
-            renderAnimatedOverlay(renderer, effectiveAnimationMode, animationProgress,
-                settings.overlayColor(), settings.overlayGradient(),
-                settings.renderOverlayGradient(), settings.gradientDir());
-        }
-
-        if (isActive && hoverOverlayProgress > 0) {
-            renderAnimatedOverlay(renderer, effectiveAnimationMode, hoverOverlayProgress,
-                settings.hoveredOverlayColor(), settings.hoveredOverlayGradient(),
-                settings.renderHoveredOverlayGradient(), settings.gradientDir());
-        }
-
-        if (settings.thickness() > 0 && settings.outlineColor() != null) {
-            renderOutline(renderer, x, y, width, height, settings.thickness(), settings.outlineColor());
-        }
+        renderRowSurface(
+            renderer,
+            x,
+            y,
+            width,
+            height,
+            rowAnimationState.effectiveAnimationMode(),
+            animationProgress,
+            isActive ? hoverOverlayProgress : 0,
+            moduleRowSurfaceStyle(isActive, pressed, mouseOver, colorMapper)
+        );
 
         if (indicatorProgress > 0) {
-            renderIndicator(renderer, indicatorProgress);
+            renderRowIndicator(renderer, x, y, width, height, indicatorProgress, moduleIndicatorStyle(colorMapper.apply(theme().accentColor.get())));
         }
 
         Color textColor = resolveTextColor(dimmedBySearch);
@@ -141,73 +112,34 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         renderSettingsIcon(renderer, pad, layout, textY, delta, textColor);
     }
 
-    protected final ModuleAnimationMode updateAnimationProgresses(double mouseX, double mouseY, double delta) {
+    protected RowAnimationState rowAnimationState = new RowAnimationState(null, 0, 0);
+
+    protected final void updateAnimationProgresses(double mouseX, double mouseY, double delta) {
         boolean isActive = module.isActive();
-        boolean shouldFadeIn = isActive || mouseOver;
-        ModuleAnimationMode animationMode = theme().moduleAnimationMode.get();
-        ModuleAnimationMode effectiveAnimationMode = smartSlide.resolveMode(
-            animationMode,
-            mouseOver,
-            shouldFadeIn,
+        rowAnimationState = animateRow(
+            smartSlide,
+            delta,
             mouseX,
             mouseY,
             x,
             y,
             width,
             height,
-            theme(),
-            animationProgress
+            mouseOver,
+            isActive || mouseOver,
+            mouseOver,
+            animationProgress,
+            hoverOverlayProgress
         );
+
+        animationProgress = rowAnimationState.primaryProgress();
+        hoverOverlayProgress = rowAnimationState.hoverProgress();
 
         double fadeInSpeed = theme().moduleSelectSpeed.get();
         double fadeOutSpeed = theme().moduleDeselectSpeed.get();
 
-        animationProgress = smartSlide.stepProgress(animationProgress, shouldFadeIn, delta, fadeInSpeed, fadeOutSpeed);
-        hoverOverlayProgress = smartSlide.stepProgress(hoverOverlayProgress, mouseOver, delta, fadeInSpeed, fadeOutSpeed);
-
         indicatorProgress += delta * (isActive ? fadeInSpeed : fadeOutSpeed) * (isActive ? 1 : -1);
         indicatorProgress = MathHelper.clamp(indicatorProgress, 0, 1);
-
-        return effectiveAnimationMode;
-    }
-
-    protected final RenderSettings computeRenderSettings(boolean isActive, boolean dimmedBySearch) {
-        ModuleGradientDirection gradientDir = theme().moduleGradientDirection.get();
-        Color activeGradientColor = maybeDim(theme().moduleActiveGradientColor.get(), dimmedBySearch);
-        Color inactiveGradientColor = maybeDim(theme().moduleInactiveGradientColor.get(), dimmedBySearch);
-        GradientApplicationMode applyMode = theme().gradientApplicationMode.get();
-        double thickness = theme().scale(theme().moduleOutlineThickness.get());
-        Color baseColor = maybeDim(theme().moduleInactiveColor.get(), dimmedBySearch);
-        boolean renderBaseGradient = !isActive && applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.NONE;
-        Color overlayColor = maybeDim(isActive ? theme().moduleActiveColor.get() : theme().moduleHoveredColor.get(), dimmedBySearch);
-        Color overlayGradient = isActive ? activeGradientColor : maybeDim(theme().moduleHoveredGradientColor.get(), dimmedBySearch);
-        boolean renderOverlayGradient = applyMode.shouldApply(isActive);
-        Color hoveredOverlayColor = maybeDim(theme().moduleHoveredColor.get(), dimmedBySearch);
-        Color hoveredOverlayGradient = maybeDim(theme().moduleHoveredGradientColor.get(), dimmedBySearch);
-        boolean renderHoveredOverlayGradient = applyMode.shouldApply(false);
-        Color outlineColor = maybeDim(theme().outlineColor.get(pressed, mouseOver), dimmedBySearch);
-
-        return new RenderSettings(
-            gradientDir, activeGradientColor, inactiveGradientColor, applyMode, thickness,
-            baseColor, renderBaseGradient, overlayColor, overlayGradient, renderOverlayGradient,
-            hoveredOverlayColor, hoveredOverlayGradient, renderHoveredOverlayGradient, outlineColor
-        );
-    }
-
-    protected final void renderAnimatedOverlay(GuiRenderer renderer, ModuleAnimationMode animationMode, double progress,
-                                               Color color, Color gradient, boolean renderGradient, ModuleGradientDirection gradientDir) {
-        AnimatedOverlayRenderer.render(
-            renderer,
-            x,
-            y,
-            width,
-            height,
-            animationMode,
-            progress,
-            color,
-            gradient,
-            renderGradient ? gradientDir : ModuleGradientDirection.NONE
-        );
     }
 
     protected final void renderTitle(GuiRenderer renderer, double pad, ModuleRowLayout layout, Color textColor, double textY, double delta) {
@@ -216,15 +148,20 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         double overflow = Math.max(0, titleWidth - textAreaW);
         boolean needsMarquee = overflow > 0 && theme().fixedCategorySize.get();
 
-        double staticTextX = textAreaX;
-        if (theme().moduleAlignment.get() == AlignmentX.Center) {
-            staticTextX += textAreaW / 2 - titleWidth / 2;
-        } else if (theme().moduleAlignment.get() == AlignmentX.Right) {
-            staticTextX += textAreaW - titleWidth;
-        }
+        RowTextLayout layoutInfo = resolveRowTextLayout(textAreaX, this.y, textAreaW, height, titleWidth, theme().moduleAlignment.get(), theme().moduleAlignmentY.get());
 
-        renderTextWithMarquee(renderer, marquee, title, textAreaX, this.y, textAreaW, height, textY, titleWidth,
-            mouseOver, delta, needsMarquee, staticTextX, textColor, hoverOverlayProgress);
+        renderRowTitle(
+            renderer,
+            marquee,
+            title,
+            titleWidth,
+            delta,
+            mouseOver,
+            needsMarquee,
+            textColor,
+            hoverOverlayProgress,
+            new RowTextLayout(layoutInfo.areaX(), layoutInfo.areaY(), layoutInfo.areaWidth(), layoutInfo.areaHeight(), textY, layoutInfo.staticTextX())
+        );
     }
 
     protected void renderSettingsIcon(GuiRenderer renderer, double pad, ModuleRowLayout layout, double textY, double delta, Color textColor) {
@@ -279,29 +216,6 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         if (vAlign == AlignmentY.Top) return y + pad;
         if (vAlign == AlignmentY.Bottom) return y + pad + availableHeight - textHeight;
         return y + pad + (availableHeight - textHeight) / 2;
-    }
-
-    protected final void renderIndicator(GuiRenderer renderer, double progress) {
-        ModuleIndicatorPosition position = theme().moduleIndicatorPosition.get();
-        if (position == ModuleIndicatorPosition.NONE) return;
-
-        double thickness = theme().scale(theme().moduleIndicatorThickness.get());
-        if (thickness <= 0) return;
-
-        Color accentColor = theme().accentColor.get();
-        if (isDimmedBySearch()) accentColor = maybeDim(accentColor, true);
-        double size = thickness * progress;
-
-        double ix = this.x, iy = this.y, iw = this.width, ih = this.height;
-
-        switch (position) {
-            case LEFT -> iw = size;
-            case RIGHT -> { ix = this.x + this.width - size; iw = size; }
-            case TOP -> ih = size;
-            case BOTTOM -> { iy = this.y + this.height - size; ih = size; }
-        }
-
-        renderer.quad(ix, iy, iw, ih, accentColor);
     }
 
     protected abstract boolean isSettingsExpanded();

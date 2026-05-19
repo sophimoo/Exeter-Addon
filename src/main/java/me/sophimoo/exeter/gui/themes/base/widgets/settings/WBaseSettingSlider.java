@@ -1,11 +1,7 @@
 package me.sophimoo.exeter.gui.themes.base.widgets.settings;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
-import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.GradientApplicationMode;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleAnimationMode;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.SliderStyle;
 import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import me.sophimoo.exeter.gui.themes.base.utils.WidgetSizeDebug;
@@ -212,67 +208,20 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
         );
 
         boolean hoveredForAnimation = mouseOver || dragging;
-        boolean shouldFadeIn = hoveredForAnimation;
-        ModuleAnimationMode animationMode = theme().moduleAnimationMode.get();
-        ModuleAnimationMode effectiveAnimationMode = smartSlide.resolveMode(
-            animationMode,
-            hoveredForAnimation,
-            shouldFadeIn,
-            mouseX,
-            mouseY,
-            x,
-            y,
-            width,
-            height,
-            theme(),
-            animationProgress
-        );
+        RowAnimationState animationState = animateRow(smartSlide, delta, mouseX, mouseY, x, y, width, height, hoveredForAnimation, hoveredForAnimation, false, animationProgress, 0);
+        animationProgress = animationState.primaryProgress();
 
-        double fadeInSpeed = theme().moduleSelectSpeed.get();
-        double fadeOutSpeed = theme().moduleDeselectSpeed.get();
-        animationProgress = smartSlide.stepProgress(animationProgress, shouldFadeIn, delta, fadeInSpeed, fadeOutSpeed);
-
-        ModuleGradientDirection gradientDir = theme().moduleGradientDirection.get();
-        GradientApplicationMode applyMode = theme().gradientApplicationMode.get();
-        Color itemColor = theme().itemBackgroundColor.get();
-        boolean shouldApplyGradient = applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.NONE;
-        Color itemGradient = theme().itemBackgroundGradientColor.get();
-        Color hoverColor = theme().itemHoveredBackgroundColor.get();
-        Color hoverGradient = theme().itemHoveredBackgroundGradientColor.get();
-        double outlineThickness = theme().scale(theme().moduleOutlineThickness.get());
-        Color outlineColor = theme().outlineColor.get(pressed, mouseOver);
-
-        AnimatedOverlayRenderer.render(
+        renderRowSurface(
             renderer,
             x,
             y,
             width,
             height,
-            ModuleAnimationMode.FADE,
-            1,
-            itemColor,
-            itemGradient,
-            shouldApplyGradient ? gradientDir : ModuleGradientDirection.NONE
+            animationState.effectiveAnimationMode(),
+            animationProgress,
+            0,
+            itemRowSurfaceStyle(false, pressed, mouseOver)
         );
-
-        if (animationProgress > 0) {
-            AnimatedOverlayRenderer.render(
-                renderer,
-                x,
-                y,
-                width,
-                height,
-                effectiveAnimationMode,
-                animationProgress,
-                hoverColor,
-                hoverGradient,
-            shouldApplyGradient ? gradientDir : ModuleGradientDirection.NONE
-            );
-        }
-
-        if (outlineThickness > 0 && outlineColor != null) {
-            renderOutline(renderer, x, y, width, height, outlineThickness, outlineColor);
-        }
 
         double pad = pad();
         double textHeight = theme().textHeight();
@@ -300,9 +249,28 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
 
         double titleAreaX = x + pad;
         double titleAreaW = Math.max(0, valueX - pad - titleAreaX);
+        RowTextLayout layout = resolveRowTextLayout(
+            titleAreaX,
+            y,
+            titleAreaW,
+            height,
+            titleWidth,
+            meteordevelopment.meteorclient.gui.utils.AlignmentX.Left,
+            meteordevelopment.meteorclient.gui.utils.AlignmentY.Center
+        );
 
-        renderTextWithMarquee(renderer, marquee, title, titleAreaX, y, titleAreaW, height, textY, titleWidth,
-            mouseOver, delta, true, titleAreaX, textColor, animationProgress);
+        renderRowTitle(
+            renderer,
+            marquee,
+            title,
+            titleWidth,
+            delta,
+            mouseOver,
+            true,
+            textColor,
+            animationProgress,
+            new RowTextLayout(layout.areaX(), layout.areaY(), layout.areaWidth(), layout.areaHeight(), textY, layout.staticTextX())
+        );
     }
 
     private void setFromMouse(double mouseX) {

@@ -1,11 +1,7 @@
 package me.sophimoo.exeter.gui.themes.base.widgets.settings;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
-import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.GradientApplicationMode;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleAnimationMode;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
 import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import me.sophimoo.exeter.gui.themes.base.utils.WidgetSizeDebug;
 import me.sophimoo.exeter.gui.themes.base.widgets.pressable.WBaseColorButton;
@@ -120,68 +116,20 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
             )
         );
 
-        boolean shouldFadeIn = mouseOver;
-        ModuleAnimationMode animationMode = theme().moduleAnimationMode.get();
-        ModuleAnimationMode effectiveAnimationMode = smartSlide.resolveMode(
-            animationMode,
-            mouseOver,
-            shouldFadeIn,
-            mouseX,
-            mouseY,
-            x,
-            y,
-            width,
-            height,
-            theme(),
-            animationProgress
-        );
+        RowAnimationState animationState = animateRow(smartSlide, delta, mouseX, mouseY, x, y, width, height, mouseOver, mouseOver, false, animationProgress, 0);
+        animationProgress = animationState.primaryProgress();
 
-        double fadeInSpeed = theme().moduleSelectSpeed.get();
-        double fadeOutSpeed = theme().moduleDeselectSpeed.get();
-        animationProgress = smartSlide.stepProgress(animationProgress, shouldFadeIn, delta, fadeInSpeed, fadeOutSpeed);
-
-        ModuleGradientDirection gradientDir = theme().moduleGradientDirection.get();
-        GradientApplicationMode applyMode = theme().gradientApplicationMode.get();
-        Color itemColor = theme().itemBackgroundColor.get();
-        boolean shouldApplyGradient = applyMode.shouldApply(false) && gradientDir != ModuleGradientDirection.NONE;
-        Color itemGradient = theme().itemBackgroundGradientColor.get();
-        Color hoverColor = theme().itemHoveredBackgroundColor.get();
-        Color hoverGradient = theme().itemHoveredBackgroundGradientColor.get();
-        ModuleGradientDirection inactiveGradientDirection = shouldApplyGradient ? gradientDir : ModuleGradientDirection.NONE;
-        double outlineThickness = theme().scale(theme().moduleOutlineThickness.get());
-        Color outlineColor = theme().outlineColor.get(false, mouseOver);
-
-        AnimatedOverlayRenderer.render(
+        renderRowSurface(
             renderer,
             x,
             y,
             width,
             height,
-            ModuleAnimationMode.FADE,
-            1,
-            itemColor,
-            itemGradient,
-            inactiveGradientDirection
+            animationState.effectiveAnimationMode(),
+            animationProgress,
+            0,
+            itemRowSurfaceStyle(false, false, mouseOver)
         );
-
-        if (animationProgress > 0) {
-            AnimatedOverlayRenderer.render(
-                renderer,
-                x,
-                y,
-                width,
-                height,
-                effectiveAnimationMode,
-                animationProgress,
-                hoverColor,
-                hoverGradient,
-                inactiveGradientDirection
-            );
-        }
-
-        if (outlineThickness > 0 && outlineColor != null) {
-            renderOutline(renderer, x, y, width, height, outlineThickness, outlineColor);
-        }
 
         double padX = theme().rowPadX();
         double padY = theme().rowPadY();
@@ -215,8 +163,28 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
     }
 
     private void renderTitle(GuiRenderer renderer, double delta, Color textColor, double textY, double titleAreaX, double titleAreaW) {
-        renderTextWithMarquee(renderer, marquee, title, titleAreaX, y, titleAreaW, height, textY, titleWidth,
-            mouseOver, delta, true, titleAreaX, textColor, animationProgress);
+        RowTextLayout layout = resolveRowTextLayout(
+            titleAreaX,
+            y,
+            titleAreaW,
+            height,
+            titleWidth,
+            meteordevelopment.meteorclient.gui.utils.AlignmentX.Left,
+            meteordevelopment.meteorclient.gui.utils.AlignmentY.Center
+        );
+
+        renderRowTitle(
+            renderer,
+            marquee,
+            title,
+            titleWidth,
+            delta,
+            mouseOver,
+            true,
+            textColor,
+            animationProgress,
+            new RowTextLayout(layout.areaX(), layout.areaY(), layout.areaWidth(), layout.areaHeight(), textY, layout.staticTextX())
+        );
     }
 
 }
