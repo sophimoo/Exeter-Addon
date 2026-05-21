@@ -67,11 +67,13 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
         double fadeInSpeed = theme().moduleSelectSpeed.get();
         double fadeOutSpeed = theme().moduleDeselectSpeed.get();
+        double hoverFadeInSpeed = fadeInSpeed * 4;
+        double hoverFadeOutSpeed = fadeOutSpeed * 4;
 
         return new RowAnimationState(
             effectiveAnimationMode,
             clampProgress(stepAnimationProgress(primaryProgress, primaryVisible, delta, fadeInSpeed, fadeOutSpeed)),
-            clampProgress(stepAnimationProgress(hoverProgress, hoverVisible, delta, fadeInSpeed, fadeOutSpeed))
+            clampProgress(stepAnimationProgress(hoverProgress, hoverVisible, delta, hoverFadeInSpeed, hoverFadeOutSpeed))
         );
     }
 
