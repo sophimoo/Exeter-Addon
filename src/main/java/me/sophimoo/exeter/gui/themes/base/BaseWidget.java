@@ -4,7 +4,7 @@ import me.sophimoo.exeter.gui.renderer.BlurRendererAccess;
 import me.sophimoo.exeter.gui.renderer.WorldFramebufferCapture;
 import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
+import me.sophimoo.exeter.gui.themes.base.utils.InterpolationState;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleAnimationMode;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleIndicatorPosition;
@@ -60,33 +60,31 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
         return resolveItemRowHeight(theme().rowPadY() + theme().textHeight() + theme().rowPadY() + theme().scaledPx(extraPx));
     }
 
-    default RowAnimationState animateRow(SmartSlideAnimationState smartSlide, double delta, double mouseX, double mouseY,
-                                         double x, double y, double width, double height, boolean mouseOver,
+    default RowAnimationState animateRow(double delta, boolean mouseOver,
                                          boolean primaryVisible, boolean hoverVisible,
                                          double primaryProgress, double hoverProgress) {
-        ModuleAnimationMode animationMode = theme().moduleAnimationMode.get();
-        ModuleAnimationMode effectiveAnimationMode = smartSlide.resolveMode(
-            animationMode,
-            mouseOver,
-            primaryVisible,
-            mouseX,
-            mouseY,
-            x,
-            y,
-            width,
-            height,
-            theme(),
-            primaryProgress
-        );
+        ModuleAnimationMode effectiveAnimationMode = isInterpolationMode() ? ModuleAnimationMode.FADE : theme().moduleAnimationMode.get();
 
         double fadeInSpeed = theme().moduleSelectSpeed.get();
         double fadeOutSpeed = theme().moduleDeselectSpeed.get();
 
         return new RowAnimationState(
             effectiveAnimationMode,
-            clampProgress(smartSlide.stepProgress(primaryProgress, primaryVisible, delta, fadeInSpeed, fadeOutSpeed)),
-            clampProgress(smartSlide.stepProgress(hoverProgress, hoverVisible, delta, fadeInSpeed, fadeOutSpeed))
+            clampProgress(stepAnimationProgress(primaryProgress, primaryVisible, delta, fadeInSpeed, fadeOutSpeed)),
+            clampProgress(stepAnimationProgress(hoverProgress, hoverVisible, delta, fadeInSpeed, fadeOutSpeed))
         );
+    }
+
+    default boolean isInterpolationMode() {
+        return theme().moduleAnimationMode.get() == ModuleAnimationMode.INTERPOLATE;
+    }
+
+    default boolean localHoverAnimationVisible(boolean hovered) {
+        return hovered && !isInterpolationMode();
+    }
+
+    default double localHoverSurfaceProgress(double progress) {
+        return isInterpolationMode() ? 0 : progress;
     }
 
     default RowSurfaceStyle moduleRowSurfaceStyle(boolean active, boolean pressed, boolean mouseOver, UnaryOperator<Color> colorMapper) {
@@ -180,8 +178,8 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     }
 
     default void renderRowSurface(GuiRenderer renderer, double x, double y, double width, double height,
-                                  ModuleAnimationMode overlayAnimationMode, double overlayProgress,
-                                  double hoveredOverlayProgress, RowSurfaceStyle style) {
+                                   ModuleAnimationMode overlayAnimationMode, double overlayProgress,
+                                   double hoveredOverlayProgress, RowSurfaceStyle style) {
         renderSurfaceLayer(renderer, x, y, width, height, ModuleAnimationMode.FADE, 1, style.baseLayer(), style.gradientDirection());
 
         if (overlayProgress > 0 && style.overlayLayer() != null) {
@@ -194,6 +192,36 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
         if (style.outlineThickness() > 0 && style.outlineColor() != null) {
             renderOutline(renderer, x, y, width, height, style.outlineThickness(), style.outlineColor());
+        }
+    }
+
+    default void renderInterpolationHover(GuiRenderer renderer, double x, double y, double width, double height,
+                                          boolean hovered, double delta, RowSurfaceStyle style) {
+        if (!isInterpolationMode()) return;
+
+        InterpolationState interpolation = theme().getInterpolation();
+        interpolation.notifyHover(x, y, width, height, hovered);
+        interpolation.update(delta, theme().moduleSelectSpeed.get());
+
+        double[] isect = interpolation.getIntersection(x, y, width, height);
+        if (isect == null) return;
+
+        SurfaceLayer layer = style.hoveredOverlayLayer() != null
+            ? style.hoveredOverlayLayer()
+            : (style.overlayLayer() != null ? style.overlayLayer() : null);
+
+        if (layer == null || layer.color() == null) return;
+
+        Color color = layer.color();
+        Color gradient = layer.gradient();
+
+        if (layer.renderGradient() && style.gradientDirection() != ModuleGradientDirection.NONE && gradient != null) {
+            me.sophimoo.exeter.gui.renderer.GradientRenderer.render(
+                renderer, isect[0], isect[1], isect[2], isect[3],
+                gradient, color, style.gradientDirection()
+            );
+        } else {
+            renderer.quad(isect[0], isect[1], isect[2], isect[3], color);
         }
     }
 
@@ -380,6 +408,14 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
     private double clampProgress(double value) {
         return Math.max(0, Math.min(1, value));
+    }
+
+    private double stepAnimationProgress(double currentProgress, boolean shouldFadeIn, double delta, double fadeInSpeed, double fadeOutSpeed) {
+        if (shouldFadeIn && fadeInSpeed == 0) return 1;
+        if (!shouldFadeIn && fadeOutSpeed == 0) return 0;
+
+        double progress = currentProgress + delta * (shouldFadeIn ? fadeInSpeed : fadeOutSpeed) * (shouldFadeIn ? 1 : -1);
+        return Math.max(0, Math.min(1, progress));
     }
 
     private Color mapColor(Color color, UnaryOperator<Color> colorMapper) {

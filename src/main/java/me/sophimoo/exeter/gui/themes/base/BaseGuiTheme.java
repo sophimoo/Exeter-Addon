@@ -48,9 +48,12 @@ public class BaseGuiTheme extends GuiTheme {
     // Blur capture instance - managed by the theme
     private WorldFramebufferCapture blurCapture;
 
-    // Smart slide tracking - stores last hovered module position for directional animations
-    public double lastHoveredX = -1;
-    public double lastHoveredY = -1;
+    // Interpolation tracking - global shared hover highlight
+    private final InterpolationState interpolation = new InterpolationState();
+
+    public InterpolationState getInterpolation() {
+        return interpolation;
+    }
 
     private final List<Setting<SettingColor>> accentHueLinkedColors = new ArrayList<>();
     private boolean updatingAccentHueLinkedColors;
@@ -948,15 +951,6 @@ public class BaseGuiTheme extends GuiTheme {
     @Override
     public boolean hideHUD() {
         return hideHUD.get();
-    }
-
-    public void updateLastHoveredPosition(double x, double y) {
-        this.lastHoveredX = x;
-        this.lastHoveredY = y;
-    }
-
-    public boolean hasValidLastHover() {
-        return lastHoveredX >= 0;
     }
 
     public boolean shouldUseFixedCategoryWidth(String windowId) {

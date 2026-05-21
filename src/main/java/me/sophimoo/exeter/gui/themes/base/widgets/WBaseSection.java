@@ -2,7 +2,6 @@ package me.sophimoo.exeter.gui.themes.base.widgets;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
 import meteordevelopment.meteorclient.gui.utils.AlignmentY;
@@ -39,7 +38,6 @@ public class WBaseSection extends WSection implements BaseWidget {
         private double titleWidth;
         private double hoverProgress;
         private final MarqueeState marquee = new MarqueeState();
-        private final SmartSlideAnimationState smartSlide = new SmartSlideAnimationState();
 
         public WBaseHeader(String title) {
             super(title);
@@ -88,9 +86,11 @@ public class WBaseSection extends WSection implements BaseWidget {
             boolean showIndicator = theme().dropdownIndicator.get();
             double iconWidth = indicatorWidth();
             double iconGap = indicatorGap();
-            RowAnimationState animationState = animateRow(smartSlide, delta, mouseX, mouseY, x, y, width, height, mouseOver, mouseOver, false, hoverProgress, 0);
+            RowAnimationState animationState = animateRow(delta, mouseOver, mouseOver, false, hoverProgress, 0);
             hoverProgress = animationState.primaryProgress();
-            renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), hoverProgress, 0, separatorRowSurfaceStyle(mouseOver));
+            RowSurfaceStyle surfaceStyle = separatorRowSurfaceStyle(mouseOver);
+            renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), localHoverSurfaceProgress(hoverProgress), 0, surfaceStyle);
+            renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
 
             double textAreaX = x + pad;
             double textAreaWidth = Math.max(0, width - pad * 2 - iconWidth - iconGap);

@@ -4,7 +4,6 @@ import me.sophimoo.exeter.BaseAddon;
 import me.sophimoo.exeter.gui.screens.BaseModulesScreen;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import meteordevelopment.meteorclient.gui.utils.AlignmentY;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
@@ -35,7 +34,6 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
     protected double indicatorProgress;
     protected double exeterIconRotation;
     protected final MarqueeState marquee = new MarqueeState();
-    protected final SmartSlideAnimationState smartSlide = new SmartSlideAnimationState();
 
     protected record ModuleRowLayout(
         String collapsedIndicator,
@@ -89,6 +87,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         boolean dimmedBySearch = isDimmedBySearch();
         UnaryOperator<Color> colorMapper = color -> maybeDim(color, dimmedBySearch);
 
+        RowSurfaceStyle surfaceStyle = moduleRowSurfaceStyle(isActive, pressed, mouseOver, colorMapper);
         renderRowSurface(
             renderer,
             x,
@@ -97,9 +96,10 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
             height,
             rowAnimationState.effectiveAnimationMode(),
             animationProgress,
-            isActive ? hoverOverlayProgress : 0,
-            moduleRowSurfaceStyle(isActive, pressed, mouseOver, colorMapper)
+            isActive ? localHoverSurfaceProgress(hoverOverlayProgress) : 0,
+            surfaceStyle
         );
+        renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
 
         if (indicatorProgress > 0) {
             renderRowIndicator(renderer, x, y, width, height, indicatorProgress, moduleIndicatorStyle(colorMapper.apply(theme().accentColor.get())));
@@ -117,16 +117,9 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
     protected final void updateAnimationProgresses(double mouseX, double mouseY, double delta) {
         boolean isActive = module.isActive();
         rowAnimationState = animateRow(
-            smartSlide,
             delta,
-            mouseX,
-            mouseY,
-            x,
-            y,
-            width,
-            height,
             mouseOver,
-            isActive || mouseOver,
+            isActive || localHoverAnimationVisible(mouseOver),
             mouseOver,
             animationProgress,
             hoverOverlayProgress

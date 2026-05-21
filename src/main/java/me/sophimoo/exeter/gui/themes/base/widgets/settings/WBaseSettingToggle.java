@@ -2,7 +2,6 @@ package me.sophimoo.exeter.gui.themes.base.widgets.settings;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import me.sophimoo.exeter.gui.themes.base.utils.WidgetSizeDebug;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WPressable;
@@ -23,8 +22,6 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
     private double titleWidth;
 
     private final MarqueeState marquee = new MarqueeState();
-    private final SmartSlideAnimationState smartSlide = new SmartSlideAnimationState();
-
     private double animationProgress;
     private double hoverOverlayProgress;
 
@@ -65,14 +62,19 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
     @Override
     protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
         boolean active = getter.getAsBoolean();
-        boolean shouldFadeIn = active || mouseOver;
-
         logDebugInfo();
-        RowAnimationState animationState = animateRow(smartSlide, delta, mouseX, mouseY, x, y, width, height, mouseOver, shouldFadeIn, mouseOver, animationProgress, hoverOverlayProgress);
+        RowAnimationState animationState = animateRow(
+            delta,
+            mouseOver,
+            active || localHoverAnimationVisible(mouseOver),
+            mouseOver,
+            animationProgress,
+            hoverOverlayProgress
+        );
         animationProgress = animationState.primaryProgress();
         hoverOverlayProgress = animationState.hoverProgress();
 
-        renderBackgroundLayers(renderer, active, animationState);
+        renderBackgroundLayers(renderer, active, animationState, delta);
         renderTitle(renderer, delta);
 
         if (active && showIndicator) renderIndicator(renderer);
@@ -97,7 +99,8 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
         );
     }
 
-    private void renderBackgroundLayers(GuiRenderer renderer, boolean active, RowAnimationState animationState) {
+    private void renderBackgroundLayers(GuiRenderer renderer, boolean active, RowAnimationState animationState, double delta) {
+        RowSurfaceStyle surfaceStyle = itemRowSurfaceStyle(active, pressed, mouseOver);
         renderRowSurface(
             renderer,
             x,
@@ -106,9 +109,10 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
             height,
             animationState.effectiveAnimationMode(),
             animationProgress,
-            active ? hoverOverlayProgress : 0,
-            itemRowSurfaceStyle(active, pressed, mouseOver)
+            active ? localHoverSurfaceProgress(hoverOverlayProgress) : 0,
+            surfaceStyle
         );
+        renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
     }
 
     private void renderTitle(GuiRenderer renderer, double delta) {

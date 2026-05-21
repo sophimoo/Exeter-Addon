@@ -2,7 +2,6 @@ package me.sophimoo.exeter.gui.themes.base.widgets.settings;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
-import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import me.sophimoo.exeter.gui.themes.base.utils.WidgetSizeDebug;
 import me.sophimoo.exeter.gui.themes.base.widgets.pressable.WBaseColorButton;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
@@ -23,8 +22,6 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
     private boolean verticalLayout;
 
     private final MarqueeState marquee = new MarqueeState();
-    private final SmartSlideAnimationState smartSlide = new SmartSlideAnimationState();
-
     private double animationProgress;
 
     public WBaseSettingControlRow(String title, String tooltip, WWidget control) {
@@ -116,9 +113,10 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
             )
         );
 
-        RowAnimationState animationState = animateRow(smartSlide, delta, mouseX, mouseY, x, y, width, height, mouseOver, mouseOver, false, animationProgress, 0);
+        RowAnimationState animationState = animateRow(delta, mouseOver, mouseOver, false, animationProgress, 0);
         animationProgress = animationState.primaryProgress();
 
+        RowSurfaceStyle surfaceStyle = itemRowSurfaceStyle(false, false, mouseOver);
         renderRowSurface(
             renderer,
             x,
@@ -126,10 +124,11 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
             width,
             height,
             animationState.effectiveAnimationMode(),
-            animationProgress,
+            localHoverSurfaceProgress(animationProgress),
             0,
-            itemRowSurfaceStyle(false, false, mouseOver)
+            surfaceStyle
         );
+        renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
 
         double padX = theme().rowPadX();
         double padY = theme().rowPadY();

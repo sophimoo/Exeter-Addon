@@ -6,7 +6,7 @@ public enum ModuleAnimationMode {
     SLIDE_RIGHT("Slide Right"),
     SLIDE_UP("Slide Up"),
     SLIDE_DOWN("Slide Down"),
-    SMART_SLIDE("Smart Slide");
+    INTERPOLATE("Interpolate");
 
     private final String title;
 

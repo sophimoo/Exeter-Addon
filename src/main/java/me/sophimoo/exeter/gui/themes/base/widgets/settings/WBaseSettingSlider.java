@@ -3,7 +3,6 @@ package me.sophimoo.exeter.gui.themes.base.widgets.settings;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.SliderStyle;
-import me.sophimoo.exeter.gui.themes.base.utils.SmartSlideAnimationState;
 import me.sophimoo.exeter.gui.themes.base.utils.WidgetSizeDebug;
 import me.sophimoo.exeter.gui.themes.base.widgets.input.WBaseTextBox;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
@@ -42,8 +41,6 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
     private WTextBox editingTextBox;
 
     private final MarqueeState marquee = new MarqueeState();
-    private final SmartSlideAnimationState smartSlide = new SmartSlideAnimationState();
-
     private double animationProgress;
 
     public WBaseSettingSlider(IntSetting setting) {
@@ -208,9 +205,10 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
         );
 
         boolean hoveredForAnimation = mouseOver || dragging;
-        RowAnimationState animationState = animateRow(smartSlide, delta, mouseX, mouseY, x, y, width, height, hoveredForAnimation, hoveredForAnimation, false, animationProgress, 0);
+        RowAnimationState animationState = animateRow(delta, hoveredForAnimation, hoveredForAnimation, false, animationProgress, 0);
         animationProgress = animationState.primaryProgress();
 
+        RowSurfaceStyle surfaceStyle = itemRowSurfaceStyle(false, pressed, mouseOver);
         renderRowSurface(
             renderer,
             x,
@@ -218,10 +216,11 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
             width,
             height,
             animationState.effectiveAnimationMode(),
-            animationProgress,
+            localHoverSurfaceProgress(animationProgress),
             0,
-            itemRowSurfaceStyle(false, pressed, mouseOver)
+            surfaceStyle
         );
+        renderInterpolationHover(renderer, x, y, width, height, hoveredForAnimation, delta, surfaceStyle);
 
         double pad = pad();
         double textHeight = theme().textHeight();
