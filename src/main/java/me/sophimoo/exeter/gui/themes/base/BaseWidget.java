@@ -197,11 +197,17 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
         }
     }
 
+    default Object getInterpolationKey() {
+        WWidget widget = (WWidget) this;
+        while (widget.parent != null) widget = widget.parent;
+        return widget;
+    }
+
     default void renderInterpolationHover(GuiRenderer renderer, double x, double y, double width, double height,
                                           boolean hovered, double delta, RowSurfaceStyle style) {
         if (!isInterpolationMode()) return;
 
-        InterpolationState interpolation = theme().getInterpolation();
+        InterpolationState interpolation = theme().getInterpolation(getInterpolationKey());
         interpolation.notifyHover(x, y, width, height, hovered);
         interpolation.update(delta, theme().moduleSelectSpeed.get());
 

@@ -48,11 +48,11 @@ public class BaseGuiTheme extends GuiTheme {
     // Blur capture instance - managed by the theme
     private WorldFramebufferCapture blurCapture;
 
-    // Interpolation tracking - global shared hover highlight
-    private final InterpolationState interpolation = new InterpolationState();
+    // Interpolation tracking - per-widget hover highlight
+    private final java.util.WeakHashMap<Object, InterpolationState> interpolationStates = new java.util.WeakHashMap<>();
 
-    public InterpolationState getInterpolation() {
-        return interpolation;
+    public InterpolationState getInterpolation(Object key) {
+        return interpolationStates.computeIfAbsent(key, k -> new InterpolationState());
     }
 
     private final List<Setting<SettingColor>> accentHueLinkedColors = new ArrayList<>();

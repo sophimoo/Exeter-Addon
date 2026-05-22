@@ -1,7 +1,7 @@
 package me.sophimoo.exeter.gui.themes.base.utils;
 
 public final class InterpolationState {
-    private static final long HoverGraceMs = 150;
+    private static final long HoverGraceMs = 1000;
     private static final double MorphSpeedMultiplier = 2.0;
 
     private double fromX, fromY, fromW, fromH;
