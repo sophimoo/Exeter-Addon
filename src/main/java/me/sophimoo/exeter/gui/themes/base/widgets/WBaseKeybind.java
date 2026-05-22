@@ -6,6 +6,7 @@ import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WButton;
 import meteordevelopment.meteorclient.gui.widgets.WKeybind;
 import meteordevelopment.meteorclient.utils.misc.Keybind;
+import net.minecraft.client.input.KeyInput;
 
 public class WBaseKeybind extends WKeybind implements BaseWidget {
     private final Keybind keybind;
@@ -43,6 +44,12 @@ public class WBaseKeybind extends WKeybind implements BaseWidget {
         }
 
         return false;
+    }
+
+    @Override
+    public boolean onKeyPressed(KeyInput input) {
+        if (listening) return true;
+        return super.onKeyPressed(input);
     }
 
     @Override
