@@ -1,11 +1,13 @@
 package me.sophimoo.exeter.mixin.meteorclient;
 
 import me.sophimoo.exeter.gui.modal.WidgetScreenModalBridge;
+import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
 import meteordevelopment.meteorclient.gui.GuiTheme;
 import meteordevelopment.meteorclient.gui.WindowScreen;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.WidgetScreen;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
+import meteordevelopment.meteorclient.systems.hud.screens.HudEditorScreen;
 import meteordevelopment.meteorclient.utils.Utils;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import net.minecraft.client.gui.Click;
@@ -24,8 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
-
-import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
 @Mixin(value = WidgetScreen.class, remap = false)
 public abstract class WidgetScreenModalMixin implements WidgetScreenModalBridge {
     @org.spongepowered.asm.mixin.Shadow
@@ -109,6 +109,21 @@ public abstract class WidgetScreenModalMixin implements WidgetScreenModalBridge 
         double mouseX = mc.mouse.getX() / scale;
         double mouseY = mc.mouse.getY() / scale;
         screen.mouseMoved(mouseX, mouseY);
+    }
+
+    @Unique
+    private boolean exeter$shouldRenderDarkening() {
+        WidgetScreen self = (WidgetScreen) (Object) this;
+        if (self instanceof HudEditorScreen) return false;
+        return !(theme instanceof BaseGuiTheme baseTheme) || baseTheme.darkening.get();
+    }
+
+    @Unique
+    private void exeter$renderOverlay(DrawContext context) {
+        exeter$overlayRenderer.theme = theme;
+        exeter$overlayRenderer.begin(context);
+        exeter$overlayRenderer.quad(0, 0, Utils.getWindowWidth(), Utils.getWindowHeight(), exeter$OVERLAY_COLOR);
+        exeter$overlayRenderer.end();
     }
 
     @Override
@@ -218,30 +233,39 @@ public abstract class WidgetScreenModalMixin implements WidgetScreenModalBridge 
         cir.setReturnValue(modal.charTyped(input));
     }
 
+    @Inject(method = "renderCustom", at = @At("HEAD"))
+    private void exeter$renderDarkening(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+        if (exeter$modalHost != null || !exeter$modals.isEmpty() || !exeter$shouldRenderDarkening()) return;
+
+        boolean scissorWasEnabled = GL11.glIsEnabled(GL11.GL_SCISSOR_TEST);
+        if (scissorWasEnabled) GL11.glDisable(GL11.GL_SCISSOR_TEST);
+
+        Utils.unscaledProjection();
+        exeter$renderOverlay(context);
+        Utils.scaledProjection();
+
+        if (scissorWasEnabled) GL11.glEnable(GL11.GL_SCISSOR_TEST);
+    }
+
     @Inject(method = "renderCustom", at = @At("RETURN"))
     private void exeter$renderModals(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         if (exeter$modals.isEmpty()) return;
 
         boolean scissorWasEnabled = GL11.glIsEnabled(GL11.GL_SCISSOR_TEST);
-        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        if (scissorWasEnabled) GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
         Utils.unscaledProjection();
 
-        if (!(theme instanceof BaseGuiTheme baseTheme) || baseTheme.modalDarkening.get()) {
-            exeter$overlayRenderer.theme = theme;
-            exeter$overlayRenderer.begin(context);
-            exeter$overlayRenderer.quad(0, 0, Utils.getWindowWidth(), Utils.getWindowHeight(), exeter$OVERLAY_COLOR);
-            exeter$overlayRenderer.end();
-        }
-
-        Utils.scaledProjection();
-        if (scissorWasEnabled) GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        if (exeter$shouldRenderDarkening()) exeter$renderOverlay(context);
 
         for (WidgetScreen modal : new ArrayList<>(exeter$modals)) {
             exeter$clampWindowToScreen(modal);
             modal.tick();
             modal.renderCustom(context, mouseX, mouseY, delta);
         }
+
+        Utils.scaledProjection();
+        if (scissorWasEnabled) GL11.glEnable(GL11.GL_SCISSOR_TEST);
     }
 
     @Inject(method = "resize", at = @At("TAIL"))

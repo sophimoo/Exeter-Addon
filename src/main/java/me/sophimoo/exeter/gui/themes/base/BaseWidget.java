@@ -209,10 +209,13 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
         InterpolationState interpolation = theme().getInterpolation(getInterpolationKey());
         interpolation.notifyHover(x, y, width, height, hovered);
-        interpolation.update(delta, theme().moduleSelectSpeed.get());
+        interpolation.update(delta, theme().moduleSelectSpeed.get(), theme().moduleSelectSpeed.get(), theme().moduleDeselectSpeed.get());
 
         double[] isect = interpolation.getIntersection(x, y, width, height);
         if (isect == null) return;
+
+        double fadeProgress = interpolation.getFadeProgress();
+        if (fadeProgress <= 0) return;
 
         SurfaceLayer layer = style.hoveredOverlayLayer() != null
             ? style.hoveredOverlayLayer()
@@ -220,8 +223,13 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
         if (layer == null || layer.color() == null) return;
 
-        Color color = layer.color();
-        Color gradient = layer.gradient();
+        Color layerBaseColor = layer.color();
+        Color layerGradientColor = layer.gradient();
+
+        Color color = new Color(layerBaseColor.r, layerBaseColor.g, layerBaseColor.b, (int) Math.round(layerBaseColor.a * fadeProgress));
+        Color gradient = layerGradientColor != null
+            ? new Color(layerGradientColor.r, layerGradientColor.g, layerGradientColor.b, (int) Math.round(layerGradientColor.a * fadeProgress))
+            : null;
 
         if (layer.renderGradient() && style.gradientDirection() != ModuleGradientDirection.NONE && gradient != null) {
             me.sophimoo.exeter.gui.renderer.GradientRenderer.render(

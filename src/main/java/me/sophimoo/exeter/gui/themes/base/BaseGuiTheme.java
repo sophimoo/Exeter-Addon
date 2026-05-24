@@ -230,11 +230,11 @@ public class BaseGuiTheme extends GuiTheme {
         .build()
     );
 
-    public final Setting<Boolean> modalDarkening = sgBlur.add(new BoolSetting.Builder()
-        .name("modal-darkening")
-        .description("Darkens the background when popups are open.")
-        .defaultValue(false)
-        .build()
+    public final Setting<Boolean> darkening = sgBlur.add(new BoolSetting.Builder()
+            .name("darkening")
+            .description("Darkens the background when the GUI is open.")
+            .defaultValue(false)
+            .build()
     );
 
     // Module animation
