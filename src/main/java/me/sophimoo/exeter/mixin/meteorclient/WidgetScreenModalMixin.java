@@ -251,12 +251,16 @@ public abstract class WidgetScreenModalMixin implements WidgetScreenModalBridge 
     private void exeter$renderModals(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         if (exeter$modals.isEmpty()) return;
 
-        boolean scissorWasEnabled = GL11.glIsEnabled(GL11.GL_SCISSOR_TEST);
-        if (scissorWasEnabled) GL11.glDisable(GL11.GL_SCISSOR_TEST);
-
         Utils.unscaledProjection();
 
-        if (exeter$shouldRenderDarkening()) exeter$renderOverlay(context);
+        if (exeter$shouldRenderDarkening()) {
+            boolean scissorWasEnabled = GL11.glIsEnabled(GL11.GL_SCISSOR_TEST);
+            if (scissorWasEnabled) GL11.glDisable(GL11.GL_SCISSOR_TEST);
+
+            exeter$renderOverlay(context);
+
+            if (scissorWasEnabled) GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        }
 
         for (WidgetScreen modal : new ArrayList<>(exeter$modals)) {
             exeter$clampWindowToScreen(modal);
@@ -265,7 +269,6 @@ public abstract class WidgetScreenModalMixin implements WidgetScreenModalBridge 
         }
 
         Utils.scaledProjection();
-        if (scissorWasEnabled) GL11.glEnable(GL11.GL_SCISSOR_TEST);
     }
 
     @Inject(method = "resize", at = @At("TAIL"))
