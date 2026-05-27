@@ -462,15 +462,13 @@ public class BaseGuiTheme extends GuiTheme {
 
     public final Setting<Double> textShadowOffset = sgTextShadow.add(new DoubleSetting.Builder()
         .name("text-shadow-offset")
-        .description("Offset of the text shadow.")
-        .defaultValue(2.0)
+        .description("Only affects non-mc font")
+        .defaultValue(1.0)
         .min(0.5)
         .max(3.0)
         .sliderRange(0.5, 3.0)
         .build()
     );
-
-    public final Setting<SettingColor> textShadowColor = color(sgTextShadow, "text-shadow", "Color of the text shadow.", new SettingColor(0, 0, 0, 150));
 
     // Background
     public final MultiStateColorSetting backgroundColor = new MultiStateColorSetting(
