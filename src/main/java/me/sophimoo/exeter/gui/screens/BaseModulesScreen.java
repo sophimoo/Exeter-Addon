@@ -7,6 +7,7 @@ import meteordevelopment.meteorclient.gui.GuiTheme;
 import meteordevelopment.meteorclient.gui.tabs.TabScreen;
 import meteordevelopment.meteorclient.gui.tabs.Tabs;
 import meteordevelopment.meteorclient.gui.utils.Cell;
+import meteordevelopment.meteorclient.gui.utils.AlignmentX;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
 import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
@@ -383,28 +384,53 @@ public class BaseModulesScreen extends TabScreen {
             double topY = theme.pad() * 2 + theme.textHeight() + listPad;
             double bottomY = (footer != null ? footer.y : wh) - listPad;
             double rowHeight = 0;
+            double rowStartX = this.x + gridPad;
+            double rowWidth = 0;
+            List<Cell<?>> rowCells = new ArrayList<>();
 
-            double x = this.x + gridPad, y = topY;
+            double x = rowStartX, y = topY;
 
             for (Cell<?> cell : cells) {
                 WWidget widget = cell.widget();
 
-                if (x + widget.width > ww) {
-                    x = this.x + gridPad;
+                if (!rowCells.isEmpty() && x + widget.width > ww) {
+                    alignModuleListRow(rowCells, rowStartX, rowWidth, ww, y, Math.max(topY, bottomY - rowHeight));
+                    rowCells.clear();
+                    x = rowStartX;
                     y += rowHeight + gridPad;
                     rowHeight = 0;
+                    rowWidth = 0;
                 }
                 if (x > ww) x = Math.max(0, ww / 2.0 - widget.width / 2.0);
-                if (y + widget.height > bottomY) y = Math.max(topY, bottomY - widget.height);
 
                 cell.x = x;
                 cell.y = y;
                 cell.width = widget.width;
                 cell.height = widget.height;
-                cell.alignWidget();
+                rowCells.add(cell);
 
+                rowWidth = Math.max(rowWidth, x + widget.width - rowStartX);
                 x += cell.width + gridPad;
                 rowHeight = Math.max(rowHeight, widget.height);
+            }
+
+            if (!rowCells.isEmpty()) alignModuleListRow(rowCells, rowStartX, rowWidth, ww, y, Math.max(topY, bottomY - rowHeight));
+        }
+
+        private void alignModuleListRow(List<Cell<?>> rowCells, double rowStartX, double rowWidth, double viewWidth, double rowY, double clampedY) {
+            double availableWidth = Math.max(0, viewWidth - rowStartX);
+            double offset = 0;
+            AlignmentX alignment = BaseModulesScreen.this.theme.moduleListAlignment.get();
+
+            if (rowWidth < availableWidth) {
+                if (alignment == AlignmentX.Center) offset = (availableWidth - rowWidth) / 2;
+                else if (alignment == AlignmentX.Right) offset = availableWidth - rowWidth;
+            }
+
+            for (Cell<?> cell : rowCells) {
+                cell.x += offset;
+                cell.y = Math.min(rowY, clampedY);
+                cell.alignWidget();
             }
         }
     }

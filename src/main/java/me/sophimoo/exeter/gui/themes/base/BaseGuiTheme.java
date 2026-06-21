@@ -101,6 +101,14 @@ public class BaseGuiTheme extends GuiTheme {
         .build()
     );
 
+    public final Setting<AlignmentX> moduleListAlignment = sgGeneral.add(new EnumSetting.Builder<AlignmentX>()
+        .name("module-list-alignment")
+        .description("How module category windows are aligned horizontally in the module list.")
+        .defaultValue(AlignmentX.Left)
+        .onChanged(v -> invalidateCurrentScreen())
+        .build()
+    );
+
     public final Setting<AlignmentY> moduleAlignmentY = sgGeneral.add(new EnumSetting.Builder<AlignmentY>()
         .name("module-vertical-alignment")
         .description("How module titles are aligned vertically.")
