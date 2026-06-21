@@ -161,9 +161,12 @@ public class BaseModulesScreen extends TabScreen {
         double outline = theme.scale(theme.windowOutlineThickness.get());
         double scaled = s + outline / theme.scale(1);
 
-        for (Module module : modules) {
+        for (int i = 0; i < modules.size(); i++) {
+            Module module = modules.get(i);
             var cell = container.add(theme.module(module)).expandX();
             cell.padLeft(scaled).padRight(scaled);
+            if (i == 0) cell.padTop(scaled);
+            if (i == modules.size() - 1) cell.padBottom(scaled);
         }
     }
 
