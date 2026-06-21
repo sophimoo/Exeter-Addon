@@ -60,16 +60,11 @@ public class BaseModulesScreen extends TabScreen {
 
         controller = add(new WCategoryController()).widget();
 
-        WVerticalList footer = add(theme.verticalList()).pad(4).bottom().widget();
+        WVerticalList footer = add(new WCategoryAlignedVerticalList()).pad(4).bottom().expandWidgetX().widget();
         this.footer = footer;
         WTextBox text = footer.add(theme.textBox(searchText)).minWidth(theme.scale(180)).widget();
         text.action = () -> updateSearch(text.get());
         searchTextBox = text;
-
-        footer.add(theme.label("Left click - Toggle module"));
-        footer.add(theme.label(theme.inlineModuleSettings.get()
-            ? "Right click - Expand module settings"
-            : "Right click - Open module settings"));
 
         updateSearch(searchText);
     }
@@ -326,6 +321,38 @@ public class BaseModulesScreen extends TabScreen {
         return showGrid;
     }
 
+    protected class WCategoryAlignedVerticalList extends WVerticalList {
+        @Override
+        protected void onCalculateWidgetPositions() {
+            double y = this.y;
+
+            for (int i = 0; i < cells.size(); i++) {
+                Cell<?> cell = cells.get(i);
+                WWidget widget = cell.widget();
+
+                if (i > 0) y += spacing();
+                y += cell.padTop();
+
+                double cellX = x + cell.padLeft();
+                double cellWidth = width - widthRemove - cell.padLeft() - cell.padRight();
+                AlignmentX alignment = BaseModulesScreen.this.theme.categoryAlignment.get();
+
+                if (widget.width < cellWidth) {
+                    if (alignment == AlignmentX.Center) cellX += (cellWidth - widget.width) / 2;
+                    else if (alignment == AlignmentX.Right) cellX += cellWidth - widget.width;
+                }
+
+                cell.x = cellX;
+                cell.y = y;
+                cell.width = widget.width;
+                cell.height = widget.height;
+                cell.alignWidget();
+
+                y += cell.height + cell.padBottom();
+            }
+        }
+    }
+
     protected class WCategoryController extends WContainer {
         public final List<WWindow> windows = new ArrayList<>();
         private Cell<WWindow> favoritesCell;
@@ -420,7 +447,7 @@ public class BaseModulesScreen extends TabScreen {
         private void alignModuleListRow(List<Cell<?>> rowCells, double rowStartX, double rowWidth, double viewWidth, double rowY, double clampedY) {
             double availableWidth = Math.max(0, viewWidth - rowStartX);
             double offset = 0;
-            AlignmentX alignment = BaseModulesScreen.this.theme.moduleListAlignment.get();
+            AlignmentX alignment = BaseModulesScreen.this.theme.categoryAlignment.get();
 
             if (rowWidth < availableWidth) {
                 if (alignment == AlignmentX.Center) offset = (availableWidth - rowWidth) / 2;
