@@ -39,9 +39,13 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOD_CONTROL;
 import static org.lwjgl.glfw.GLFW.GLFW_MOD_SUPER;
 
 public class BaseModulesScreen extends TabScreen {
+    private static final double SEARCH_TEXT_BOX_MIN_WIDTH = 180;
+    private static final double SEARCH_TEXT_BOX_HORIZONTAL_PADDING = 36;
+
     private final BaseGuiTheme theme;
     private WCategoryController controller;
     private WVerticalList footer;
+    private Cell<WTextBox> searchTextCell;
     private WTextBox searchTextBox;
     private final List<WBaseModule> expandedModules = new ArrayList<>();
     private final Set<Module> searchMatches = new HashSet<>();
@@ -62,7 +66,8 @@ public class BaseModulesScreen extends TabScreen {
 
         WVerticalList footer = add(new WCategoryAlignedVerticalList()).pad(4).bottom().expandWidgetX().widget();
         this.footer = footer;
-        WTextBox text = footer.add(theme.textBox(searchText)).minWidth(theme.scale(180)).widget();
+        searchTextCell = footer.add(theme.textBox(searchText)).minWidth(searchTextBoxMinWidth(searchText));
+        WTextBox text = searchTextCell.widget();
         text.action = () -> updateSearch(text.get());
         searchTextBox = text;
 
@@ -215,6 +220,8 @@ public class BaseModulesScreen extends TabScreen {
         searchText = text;
         searchMatches.clear();
 
+        if (searchTextCell != null) searchTextCell.minWidth(searchTextBoxMinWidth(searchText));
+
         if (!searchText.isEmpty()) {
             int max = Config.get().moduleSearchCount.get();
 
@@ -226,6 +233,14 @@ public class BaseModulesScreen extends TabScreen {
 
         if (controller != null) controller.invalidate();
         invalidate();
+    }
+
+    private double searchTextBoxMinWidth(String text) {
+        double contentWidth = text.isEmpty() ? 0 : theme.textWidth(text) + theme.scale(SEARCH_TEXT_BOX_HORIZONTAL_PADDING);
+        double width = Math.max(theme.scale(SEARCH_TEXT_BOX_MIN_WIDTH), contentWidth);
+        double maxWidth = Math.max(theme.scale(SEARCH_TEXT_BOX_MIN_WIDTH), getWindowWidth() - theme.scale(16));
+
+        return Math.min(width, maxWidth);
     }
 
     public boolean isSearchActive() {
