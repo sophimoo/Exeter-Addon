@@ -101,19 +101,19 @@ public class BaseGuiTheme extends GuiTheme {
         .build()
     );
 
-    public final Setting<AlignmentX> categoryAlignment = sgGeneral.add(new EnumSetting.Builder<AlignmentX>()
-        .name("category-alignment")
-        .description("How category lists are aligned horizontally.")
-        .defaultValue(AlignmentX.Left)
-        .onChanged(v -> invalidateCurrentScreen())
-        .build()
-    );
-
     public final Setting<AlignmentY> moduleAlignmentY = sgGeneral.add(new EnumSetting.Builder<AlignmentY>()
         .name("module-vertical-alignment")
         .description("How module titles are aligned vertically.")
         .defaultValue(AlignmentY.Center)
         .build()
+    );
+
+    public final Setting<AlignmentX> categoryAlignment = sgGeneral.add(new EnumSetting.Builder<AlignmentX>()
+            .name("category-alignment")
+            .description("How category lists are aligned horizontally.")
+            .defaultValue(AlignmentX.Left)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
     );
 
     public final Setting<AlignmentX> categoryTitleAlignment = sgGeneral.add(new EnumSetting.Builder<AlignmentX>()
