@@ -40,6 +40,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOD_SUPER;
 public class BaseModulesScreen extends TabScreen {
     private final BaseGuiTheme theme;
     private WCategoryController controller;
+    private WVerticalList footer;
     private WTextBox searchTextBox;
     private final List<WBaseModule> expandedModules = new ArrayList<>();
     private final Set<Module> searchMatches = new HashSet<>();
@@ -59,6 +60,7 @@ public class BaseModulesScreen extends TabScreen {
         controller = add(new WCategoryController()).widget();
 
         WVerticalList footer = add(theme.verticalList()).pad(4).bottom().widget();
+        this.footer = footer;
         WTextBox text = footer.add(theme.textBox(searchText)).minWidth(theme.scale(180)).widget();
         text.action = () -> updateSearch(text.get());
         searchTextBox = text;
@@ -326,8 +328,6 @@ public class BaseModulesScreen extends TabScreen {
     protected class WCategoryController extends WContainer {
         public final List<WWindow> windows = new ArrayList<>();
         private Cell<WWindow> favoritesCell;
-        private boolean positionsCalculated;
-        private int lastLayoutW = -1, lastLayoutH = -1;
 
         @Override
         public void init() {
@@ -343,7 +343,6 @@ public class BaseModulesScreen extends TabScreen {
         }
 
         protected void refresh() {
-            positionsCalculated = false;
             if (favoritesCell == null) {
                 favoritesCell = createFavorites(this);
                 if (favoritesCell != null) windows.add(favoritesCell.widget());
@@ -363,42 +362,49 @@ public class BaseModulesScreen extends TabScreen {
         }
 
         @Override
+        public void calculateSize() {
+            if (footer != null) footer.calculateSize();
+
+            double listPad = theme.scale(8);
+            double footerHeight = footer != null ? footer.height : 0;
+            double tabBarHeight = theme.pad() * 2 + theme.textHeight();
+            double maxViewHeight = getWindowHeight() - footerHeight - tabBarHeight - listPad * 2 - theme.textHeight(true) - theme.scale(8);
+
+            for (WWindow window : windows) window.view.maxHeight = Math.max(theme.scale(20), maxViewHeight);
+
+            super.calculateSize();
+        }
+
+        @Override
         protected void onCalculateWidgetPositions() {
             int ww = (int) getWindowWidth(), wh = (int) getWindowHeight();
-            boolean resized = lastLayoutW != ww || lastLayoutH != wh;
-            lastLayoutW = ww;
-            lastLayoutH = wh;
+            double gridPad = theme.scale(4);
+            double listPad = theme.scale(8);
+            double topY = theme.pad() * 2 + theme.textHeight() + listPad;
+            double bottomY = (footer != null ? footer.y : wh) - listPad;
+            double rowHeight = 0;
 
-            if (positionsCalculated && !resized) {
-                for (Cell<?> cell : cells) {
-                    cell.width = cell.widget().width;
-                    cell.height = cell.widget().height;
-                    cell.alignWidget();
-                }
-                return;
-            }
-
-            positionsCalculated = true;
-
-            double pad = theme.scale(4);
-            double h = theme.scale(40);
-            double x = this.x + pad, y = this.y;
+            double x = this.x + gridPad, y = topY;
 
             for (Cell<?> cell : cells) {
-                if (x + cell.width > ww) {
-                    x = this.x + pad;
-                    y += h;
+                WWidget widget = cell.widget();
+
+                if (x + widget.width > ww) {
+                    x = this.x + gridPad;
+                    y += rowHeight + gridPad;
+                    rowHeight = 0;
                 }
-                if (x > ww) x = Math.max(0, ww / 2.0 - cell.width / 2.0);
-                if (y > wh) y = Math.max(0, wh / 2.0 - cell.height / 2.0);
+                if (x > ww) x = Math.max(0, ww / 2.0 - widget.width / 2.0);
+                if (y + widget.height > bottomY) y = Math.max(topY, bottomY - widget.height);
 
                 cell.x = x;
                 cell.y = y;
-                cell.width = cell.widget().width;
-                cell.height = cell.widget().height;
+                cell.width = widget.width;
+                cell.height = widget.height;
                 cell.alignWidget();
 
-                x += cell.width + pad;
+                x += cell.width + gridPad;
+                rowHeight = Math.max(rowHeight, widget.height);
             }
         }
     }
