@@ -2,6 +2,7 @@ package me.sophimoo.exeter.gui.themes.base.widgets;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
+import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WView;
 import net.minecraft.client.gui.Click;
 
@@ -31,5 +32,11 @@ public class WBaseView extends WView implements BaseWidget {
         if (canScroll && hasScrollBar) {
             renderer.quad(handleX(), handleY(), handleWidth(), handleHeight(), theme().scrollbarColor.get(scrollbarPressed, handleMouseOver));
         }
+    }
+
+    @Override
+    public boolean isWidgetInView(WWidget widget) {
+        double tolerance = theme().inlineModuleSettings.get() ? Math.max(1, theme().scale(theme().windowOutlineThickness.get())) : 0;
+        return widget.y < y + height + tolerance && widget.y + widget.height > y - tolerance;
     }
 }

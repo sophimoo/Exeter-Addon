@@ -156,17 +156,14 @@ public class BaseModulesScreen extends TabScreen {
         return theme.scale(theme.moduleSpacing.get());
     }
 
-    protected void addModulesWithPadding(WContainer container, List<Module> modules) {
+    protected void addModules(WContainer container, List<Module> modules) {
         double s = spacing();
         double outline = theme.scale(theme.windowOutlineThickness.get());
         double scaled = s + outline / theme.scale(1);
-        double edgePadding = Math.max(scaled, 1);
 
-        for (int i = 0; i < modules.size(); i++) {
-            var cell = container.add(theme.module(modules.get(i))).expandX();
+        for (Module module : modules) {
+            var cell = container.add(theme.module(module)).expandX();
             cell.padLeft(scaled).padRight(scaled);
-            if (i == 0) cell.padTop(edgePadding);
-            if (i == modules.size() - 1) cell.padBottom(edgePadding);
         }
     }
 
@@ -212,7 +209,7 @@ public class BaseModulesScreen extends TabScreen {
         w.view.scrollOnlyWhenMouseOver = true;
         w.view.hasScrollBar = false;
         w.view.spacing = spacing();
-        addModulesWithPadding(w, modules);
+        addModules(w, modules);
         return w;
     }
 
@@ -300,7 +297,7 @@ public class BaseModulesScreen extends TabScreen {
         w.view.hasScrollBar = false;
         w.view.spacing = spacing();
 
-        addModulesWithPadding(w, favorites);
+        addModules(w, favorites);
         return cell;
     }
 
