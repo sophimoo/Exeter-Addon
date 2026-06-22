@@ -20,7 +20,6 @@ import meteordevelopment.meteorclient.gui.utils.CharFilter;
 import meteordevelopment.meteorclient.gui.widgets.*;
 import meteordevelopment.meteorclient.gui.widgets.containers.WSection;
 import meteordevelopment.meteorclient.gui.widgets.containers.WView;
-import meteordevelopment.meteorclient.gui.widgets.containers.WWindow;
 import meteordevelopment.meteorclient.gui.widgets.input.WDropdown;
 import meteordevelopment.meteorclient.gui.widgets.input.WSlider;
 import meteordevelopment.meteorclient.gui.widgets.input.WTextBox;
@@ -35,7 +34,6 @@ import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 import meteordevelopment.orbit.listeners.ConsumerListener;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.MacWindowUtil;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -91,20 +89,6 @@ public class BaseGuiTheme extends GuiTheme {
         .onChanged(aDouble -> {
             if (mc.currentScreen instanceof WidgetScreen) ((WidgetScreen) mc.currentScreen).invalidate();
         })
-        .build()
-    );
-
-    public final Setting<AlignmentX> moduleAlignment = sgGeneral.add(new EnumSetting.Builder<AlignmentX>()
-        .name("module-alignment")
-        .description("How module titles are aligned horizontally.")
-        .defaultValue(AlignmentX.Center)
-        .build()
-    );
-
-    public final Setting<AlignmentY> moduleAlignmentY = sgGeneral.add(new EnumSetting.Builder<AlignmentY>()
-        .name("module-vertical-alignment")
-        .description("How module titles are aligned vertically.")
-        .defaultValue(AlignmentY.Center)
         .build()
     );
 
@@ -207,6 +191,17 @@ public class BaseGuiTheme extends GuiTheme {
             .build()
     );
 
+    public final Setting<Double> settingsPaddingX = sgGeneral.add(new DoubleSetting.Builder()
+            .name("settings-padding-x")
+            .description("Horizontal padding for settings menus.")
+            .defaultValue(4)
+            .min(0)
+            .max(30)
+            .sliderRange(0, 30)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
     public final Setting<Boolean> debugWidgetSizes = sgGeneral.add(new BoolSetting.Builder()
         .name("debug-widget-sizes")
         .description("Prints button and setting row sizes to the game log.")
@@ -276,6 +271,20 @@ public class BaseGuiTheme extends GuiTheme {
 
     // Module rendering
 
+    public final Setting<AlignmentX> moduleAlignment = sgModuleRender.add(new EnumSetting.Builder<AlignmentX>()
+            .name("module-title-alignment")
+            .description("How module titles are aligned horizontally.")
+            .defaultValue(AlignmentX.Center)
+            .build()
+    );
+
+    public final Setting<AlignmentY> moduleAlignmentY = sgModuleRender.add(new EnumSetting.Builder<AlignmentY>()
+            .name("module-vertical-alignment")
+            .description("How module titles are aligned vertically.")
+            .defaultValue(AlignmentY.Center)
+            .build()
+    );
+
     public final Setting<ModuleGradientDirection> moduleGradientDirection = sgModuleRender.add(new EnumSetting.Builder<ModuleGradientDirection>()
         .name("module-gradient-direction")
         .description("Gradient direction for active module background. 'None' uses solid color.")
@@ -326,24 +335,24 @@ public class BaseGuiTheme extends GuiTheme {
             .build()
     );
 
-    public final Setting<Double> itemSpacing = sgSettingsColors.add(new DoubleSetting.Builder()
-            .name("item-spacing")
+    public final Setting<Double> itemHeight = sgSettingsColors.add(new DoubleSetting.Builder()
+            .name("item-height")
+            .description("Height of settings items.")
+            .defaultValue(0)
+            .min(0)
+            .max(50)
+            .sliderRange(0, 50)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<Double> itemSpacingY = sgSettingsColors.add(new DoubleSetting.Builder()
+            .name("item-spacing-y")
             .description("Spacing between items in settings lists.")
             .defaultValue(0)
             .min(0)
             .max(10)
             .sliderRange(0, 10)
-            .onChanged(v -> invalidateCurrentScreen())
-            .build()
-    );
-
-    public final Setting<Double> moduleSettingsPaddingX = sgModuleRender.add(new DoubleSetting.Builder()
-            .name("module-settings-padding-x")
-            .description("Horizontal padding for module settings menus.")
-            .defaultValue(4)
-            .min(0)
-            .max(30)
-            .sliderRange(0, 30)
             .onChanged(v -> invalidateCurrentScreen())
             .build()
     );
@@ -359,16 +368,6 @@ public class BaseGuiTheme extends GuiTheme {
             .build()
     );
 
-    public final Setting<Double> itemHeight = sgSettingsColors.add(new DoubleSetting.Builder()
-            .name("item-height")
-            .description("Height of settings items.")
-            .defaultValue(0)
-            .min(0)
-            .max(50)
-            .sliderRange(0, 50)
-            .onChanged(v -> invalidateCurrentScreen())
-            .build()
-    );
 
     public final Setting<String> moduleCollapsedIndicator = sgModuleRender.add(new StringSetting.Builder()
         .name("module-collapsed-indicator")
@@ -440,19 +439,19 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<SettingColor> placeholderColor = color(sgTextColors, "placeholder", "Color of placeholder text.", new SettingColor(255, 255, 255, 20), false);
     public final Setting<Boolean> textHoverDisplacement = sgTextColors.add(new BoolSetting.Builder()
         .name("text-hover-displacement")
-        .description("Shifts module and setting text while hovered.")
+        .description("Displaces text when hovered")
         .defaultValue(false)
         .build()
     );
     public final Setting<TextHoverDisplacementDirection> textHoverDisplacementDirection = sgTextColors.add(new EnumSetting.Builder<TextHoverDisplacementDirection>()
         .name("text-hover-displacement-direction")
-        .description("Direction to shift hovered module and setting text.")
+        .description("Direction to displace text on hover")
         .defaultValue(TextHoverDisplacementDirection.RIGHT)
         .build()
     );
     public final Setting<Double> textHoverDisplacementAmount = sgTextColors.add(new DoubleSetting.Builder()
         .name("text-hover-displacement-amount")
-        .description("How far hovered module and setting text shifts.")
+        .description("How far hovered module and setting text displaces")
         .defaultValue(2)
         .min(0)
         .max(20)
@@ -463,7 +462,7 @@ public class BaseGuiTheme extends GuiTheme {
     // Text Shadow
     public final Setting<Boolean> textShadow = sgTextShadow.add(new BoolSetting.Builder()
         .name("text-shadow")
-        .description("Renders shadow behind text (like Meteor HUD).")
+        .description("Renders shadow behind text")
         .defaultValue(true)
         .build()
     );
@@ -521,7 +520,6 @@ public class BaseGuiTheme extends GuiTheme {
 
     // Separator
 
-    public final Setting<SettingColor> separatorText = color(sgSeparator, "separator-text", "Color of separator text", new SettingColor(255, 255, 255));
     public final Setting<Double> separatorHeight = sgSeparator.add(new DoubleSetting.Builder()
             .name("separator-height")
             .description("Height of separator rows.")
@@ -546,6 +544,7 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<SettingColor> separatorGradientColor = color(sgSeparator, "separator-gradient", "Gradient color of separator rows.", new SettingColor(40, 40, 40, 0));
     public final Setting<SettingColor> separatorHoveredColor = color(sgSeparator, "separator-hovered", "Color of separator rows when hovered.", new SettingColor(60, 60, 60));
     public final Setting<SettingColor> separatorHoveredGradientColor = color(sgSeparator, "separator-hovered-gradient", "Gradient color of separator rows when hovered.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> separatorText = color(sgSeparator, "separator-text", "Color of separator text", new SettingColor(255, 255, 255));
 
     // Scrollbar
 
@@ -980,7 +979,7 @@ public class BaseGuiTheme extends GuiTheme {
     }
 
     public double rowPadX() {
-        return scale(moduleSettingsPaddingX.get());
+        return scale(settingsPaddingX.get());
     }
 
     public double rowPadY() {

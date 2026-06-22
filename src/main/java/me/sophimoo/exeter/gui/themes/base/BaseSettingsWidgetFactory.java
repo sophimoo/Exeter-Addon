@@ -445,7 +445,7 @@ public class BaseSettingsWidgetFactory extends SettingsWidgetFactory {
 
     private double itemSpacing() {
         BaseGuiTheme baseTheme = baseTheme();
-        return baseTheme != null ? baseTheme.scale(baseTheme.itemSpacing.get()) : 0;
+        return baseTheme != null ? baseTheme.scale(baseTheme.itemSpacingY.get()) : 0;
     }
 
     private BaseGuiTheme baseTheme() {
@@ -454,7 +454,7 @@ public class BaseSettingsWidgetFactory extends SettingsWidgetFactory {
 
     private double moduleSettingsPaddingX() {
         BaseGuiTheme baseTheme = baseTheme();
-        return baseTheme != null ? baseTheme.moduleSettingsPaddingX.get() : 6;
+        return baseTheme != null ? baseTheme.settingsPaddingX.get() : 6;
     }
 
     private double separatorPaddingY() {

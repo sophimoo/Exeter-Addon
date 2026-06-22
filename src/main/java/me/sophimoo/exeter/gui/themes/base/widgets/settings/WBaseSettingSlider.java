@@ -68,11 +68,6 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
     }
 
     @Override
-    public double pad() {
-        return theme().rowPadX();
-    }
-
-    @Override
     protected void onCalculateSize() {
         if (titleWidth == 0) titleWidth = theme().textWidth(title);
         valueWidth = Math.max(theme().textWidth(formatMinValue()), theme().textWidth(formatMaxValue()));

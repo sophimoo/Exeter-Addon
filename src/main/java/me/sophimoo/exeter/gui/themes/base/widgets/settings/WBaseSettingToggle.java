@@ -40,15 +40,10 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
     }
 
     @Override
-    public double pad() {
-        return theme().rowPadX();
-    }
-
-    @Override
     protected void onCalculateSize() {
         if (titleWidth == 0) titleWidth = theme().textWidth(title);
 
-        double padX = theme().rowPadX();
+        double padX = pad();
         double padY = theme().rowPadY();
         width = padX + titleWidth + padX;
         height = resolveItemRowHeight(padY + theme().textHeight() + padY);
@@ -90,7 +85,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
             String.format(
                 java.util.Locale.US,
                 "padX=%.2f padY=%.2f globalPad=%.2f rowPadX=%.2f rowPadY=%.2f",
-                theme().rowPadX(),
+                pad(),
                 theme().rowPadY(),
                 theme().pad(),
                 theme().rowPadX(),
@@ -116,7 +111,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
     }
 
     private void renderTitle(GuiRenderer renderer, double delta) {
-        double padX = theme().rowPadX();
+        double padX = pad();
         Color textColor = resolveModuleTextColor(animationProgress, hoverOverlayProgress);
 
         double titleAreaX = x + padX;

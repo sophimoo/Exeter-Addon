@@ -11,9 +11,7 @@ import meteordevelopment.meteorclient.gui.widgets.WKeybind;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
 import meteordevelopment.meteorclient.gui.widgets.containers.WSection;
-import meteordevelopment.meteorclient.gui.widgets.containers.WTable;
 import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
-import meteordevelopment.meteorclient.gui.widgets.input.WTextBox;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.orbit.EventHandler;
@@ -80,9 +78,9 @@ public class ModuleSettingsScreen extends WindowScreen {
     }
 
     private void addBindSection(WVerticalList container) {
-        double paddingX = baseTheme != null ? baseTheme.moduleSettingsPaddingX.get() : 6;
+        double paddingX = baseTheme != null ? baseTheme.settingsPaddingX.get() : 6;
         double separatorPaddingY = baseTheme != null ? baseTheme.scale(baseTheme.separatorPaddingY.get()) : 6;
-        double itemSpacing = baseTheme != null ? baseTheme.itemSpacing.get() : 0;
+        double itemSpacing = baseTheme != null ? baseTheme.itemSpacingY.get() : 0;
 
         Cell<WSection> bindSectionCell = container.add(theme.section("Bind", true))
             .expandX()

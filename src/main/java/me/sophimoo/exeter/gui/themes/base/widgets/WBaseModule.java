@@ -101,9 +101,9 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
     }
 
     private void addBindSection(WVerticalList container) {
-        double paddingX = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.moduleSettingsPaddingX.get() : 6;
+        double paddingX = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.settingsPaddingX.get() : 6;
         double separatorPaddingY = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.scale(baseTheme.separatorPaddingY.get()) : 6;
-        double itemSpacing = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.itemSpacing.get() : 0;
+        double itemSpacing = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.itemSpacingY.get() : 0;
 
         Cell<WSection> bindSectionCell = container.add(theme.section("Bind", false)).expandX().padHorizontal(paddingX).padBottom(separatorPaddingY);
         if (hasModuleSettingsContent) bindSectionCell.padTop(separatorPaddingY);

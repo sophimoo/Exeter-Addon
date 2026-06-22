@@ -37,11 +37,6 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
     }
 
     @Override
-    public double pad() {
-        return theme().rowPadX();
-    }
-
-    @Override
     public void init() {
         if (forceVerticalLayout) add(control).expandX();
         else add(control);
@@ -51,7 +46,7 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
     protected void onCalculateSize() {
         if (titleWidth == 0) titleWidth = theme().textWidth(title);
 
-        double padX = theme().rowPadX();
+        double padX = pad();
         double padY = theme().rowPadY();
         double controlWidth = control.width;
         double horizontalWidth = padX + titleWidth + padX + controlWidth + padX;
@@ -72,7 +67,7 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
     protected void onCalculateWidgetPositions() {
         if (cells.isEmpty()) return;
 
-        double padX = theme().rowPadX();
+        double padX = pad();
         double padY = theme().rowPadY();
         Cell<?> cell = cells.get(0);
         WWidget widget = cell.widget();
@@ -103,7 +98,7 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
             String.format(
                 java.util.Locale.US,
                 "padX=%.2f padY=%.2f globalPad=%.2f rowPadX=%.2f rowPadY=%.2f controlW=%.2f controlH=%.2f",
-                theme().rowPadX(),
+                pad(),
                 theme().rowPadY(),
                 theme().pad(),
                 theme().rowPadX(),
@@ -130,7 +125,7 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
         );
         renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
 
-        double padX = theme().rowPadX();
+        double padX = pad();
         double padY = theme().rowPadY();
         Color textColor = resolveModuleTextColor(animationProgress);
         double textHeight = theme().textHeight();
