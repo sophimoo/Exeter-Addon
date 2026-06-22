@@ -425,12 +425,23 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
         return Math.max(0, Math.min(1, value));
     }
 
-    private double stepAnimationProgress(double currentProgress, boolean shouldFadeIn, double delta, double fadeInSpeed, double fadeOutSpeed) {
+    default double stepProgress(double currentProgress, boolean shouldFadeIn, double delta) {
+        return stepAnimationProgress(currentProgress, shouldFadeIn, delta,
+            theme().moduleSelectSpeed.get(), theme().moduleDeselectSpeed.get());
+    }
+
+    default double stepAnimationProgress(double currentProgress, boolean shouldFadeIn, double delta, double fadeInSpeed, double fadeOutSpeed) {
         if (shouldFadeIn && fadeInSpeed == 0) return 1;
         if (!shouldFadeIn && fadeOutSpeed == 0) return 0;
 
         double progress = currentProgress + delta * (shouldFadeIn ? fadeInSpeed : fadeOutSpeed) * (shouldFadeIn ? 1 : -1);
         return Math.max(0, Math.min(1, progress));
+    }
+
+    default double dropdownHeightProgress(double progress, boolean expanding) {
+        double clampedProgress = Math.max(0, Math.min(1, progress));
+        if (expanding) return 1.0 - Math.pow(1.0 - clampedProgress, 3);
+        return Math.pow(clampedProgress, 3);
     }
 
     private Color mapColor(Color color, UnaryOperator<Color> colorMapper) {

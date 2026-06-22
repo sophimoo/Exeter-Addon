@@ -19,9 +19,13 @@ public final class AnimatedOverlayRenderer {
         double rw = width;
         double rh = height;
         Color renderColor = bgColor;
+        Color renderGradientColor = gradientColor;
 
         switch (mode) {
-            case FADE -> renderColor = new Color(bgColor.r, bgColor.g, bgColor.b, (int) (bgColor.a * progress));
+            case FADE -> {
+                renderColor = new Color(bgColor.r, bgColor.g, bgColor.b, (int) (bgColor.a * progress));
+                if (gradientColor != null) renderGradientColor = new Color(gradientColor.r, gradientColor.g, gradientColor.b, (int) (gradientColor.a * progress));
+            }
             case SLIDE_LEFT -> rw = width * progress;
             case SLIDE_RIGHT -> {
                 rw = width * progress;
@@ -35,6 +39,6 @@ public final class AnimatedOverlayRenderer {
             default -> rw = width * progress;
         }
 
-        GradientRenderer.render(renderer, rx, ry, rw, rh, gradientColor, renderColor, gradientDir);
+        GradientRenderer.render(renderer, rx, ry, rw, rh, renderGradientColor, renderColor, gradientDir);
     }
 }

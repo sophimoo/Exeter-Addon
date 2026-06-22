@@ -154,9 +154,6 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
         public void setExpanded(boolean expanded) {
             if (this.expanded == expanded) return;
-            if (animProgress > 0 && animProgress < 1) {
-                animProgress = this.expanded ? 1 : 0;
-            }
             this.expanded = expanded;
             if (expanded) settingsTickCooldown = 0;
         }
@@ -168,6 +165,7 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
         @Override
         public void calculateSize() {
             boolean animating = animProgress > 0 && animProgress < 1;
+            double heightProgress = dropdownHeightProgress(animProgress, expanded);
 
             if (!animating || cachedExpandedHeight < 0 || cachedExpandedWidth < 0) {
                 super.calculateSize();
@@ -179,7 +177,7 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
             }
 
             expandedHeight = cachedExpandedHeight;
-            height = Math.round(expandedHeight * animProgress);
+            height = Math.round(expandedHeight * heightProgress);
         }
 
         @Override
@@ -187,13 +185,13 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
             if (!visible) return true;
 
             double previousAnimProgress = animProgress;
-            animProgress += (expanded ? 1 : -1) * delta * 14;
-            animProgress = MathHelper.clamp(animProgress, 0, 1);
+            animProgress = stepProgress(animProgress, expanded, delta);
 
-            double animatedHeight = expandedHeight * animProgress;
+            double heightProgress = dropdownHeightProgress(animProgress, expanded);
+            double animatedHeight = expandedHeight * heightProgress;
             boolean animationChanged = previousAnimProgress != animProgress;
             if (settingsContainerCell != null) {
-                int padTopPx = (animProgress > 0) ? MathHelper.floor(theme().scale(theme().separatorPaddingY.get()) + 0.5) : 0;
+                int padTopPx = (heightProgress > 0) ? MathHelper.floor(theme().scale(theme().separatorPaddingY.get()) + 0.5) : 0;
                 if (settingsContainerCell.padTop() != padTopPx) {
                     settingsContainerCell.padTop(padTopPx);
                     animationChanged = true;

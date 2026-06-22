@@ -15,18 +15,64 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 
 public class WBaseSection extends WSection implements BaseWidget {
+    private double activeProgress;
+    private double fullHeight;
+
     public WBaseSection(String title, boolean expanded, WWidget headerWidget) {
         super(title, expanded, headerWidget);
+        activeProgress = expanded ? 1.0 : 0.0;
     }
 
     @Override
     public void setExpanded(boolean expanded) {
-        if (this.expanded == expanded) return;
-        // Snap animation if mid-flight so repeated toggles feel instant.
-        if (animProgress > 0 && animProgress < 1) {
-            animProgress = this.expanded ? 1 : 0;
+        if (this.expanded != expanded) super.setExpanded(expanded);
+    }
+
+    @Override
+    protected void onCalculateSize() {
+        width = 0;
+        height = 0;
+
+        for (int i = 0; i < cells.size(); i++) {
+            var cell = cells.get(i);
+            if (i > 0) height += spacing();
+
+            width = Math.max(width, cell.padLeft() + cell.widget().width + cell.padRight());
+            height += cell.padTop() + cell.widget().height + cell.padBottom();
         }
-        super.setExpanded(expanded);
+
+        if (cells.isEmpty()) return;
+
+        fullHeight = height;
+        double headerHeight = cells.get(0).widget().height;
+        if (fullHeight > headerHeight) height = Math.round((fullHeight - headerHeight) * dropdownHeightProgress(animProgress, expanded) + headerHeight);
+    }
+
+    @Override
+    public boolean render(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
+        if (!visible) return true;
+
+        if (cells.isEmpty()) return false;
+
+        double headerHeight = cells.get(0).widget().height;
+        double contentHeight = fullHeight - headerHeight;
+        double previousAnimProgress = animProgress;
+
+        animProgress = stepProgress(animProgress, expanded, delta);
+        if (previousAnimProgress != animProgress) invalidate();
+
+        double scissorHeight = contentHeight * dropdownHeightProgress(animProgress, expanded) + headerHeight;
+        boolean scissor = (animProgress != 0 && animProgress != 1) || (expanded && animProgress != 1);
+        if (scissor) renderer.scissorStart(x, y, width, scissorHeight);
+
+        for (var cell : cells) {
+            WWidget widget = cell.widget();
+            renderWidget(widget, renderer, mouseX, mouseY, delta);
+        }
+
+        if (scissor) renderer.scissorEnd();
+
+        return false;
     }
 
     @Override
@@ -88,8 +134,9 @@ public class WBaseSection extends WSection implements BaseWidget {
             double iconGap = indicatorGap();
             RowAnimationState animationState = animateRow(delta, mouseOver, mouseOver, false, hoverProgress, 0);
             hoverProgress = animationState.primaryProgress();
-            RowSurfaceStyle surfaceStyle = separatorRowSurfaceStyle(animProgress > 0, mouseOver);
-            renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), animProgress, localHoverSurfaceProgress(hoverProgress), surfaceStyle);
+            activeProgress = stepProgress(activeProgress, WBaseSection.this.expanded, delta);
+            RowSurfaceStyle surfaceStyle = separatorRowSurfaceStyle(activeProgress > 0, mouseOver);
+            renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), activeProgress, localHoverSurfaceProgress(hoverProgress), surfaceStyle);
             renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
 
             double textAreaX = x + pad;
@@ -101,7 +148,7 @@ public class WBaseSection extends WSection implements BaseWidget {
             renderRowTitle(renderer, marquee, title, titleWidth, delta, false, false, textColor, hoverProgress, layout);
 
             if (showIndicator) {
-                String dropdownIcon = animProgress >= 0.5 ? expandedIndicator : collapsedIndicator;
+                String dropdownIcon = activeProgress >= 0.5 ? expandedIndicator : collapsedIndicator;
                 double iconX = x + width - pad - iconWidth;
                 renderText(renderer, dropdownIcon, iconX, layout.textY(), textColor);
             }

@@ -3,7 +3,6 @@ package me.sophimoo.exeter.gui.themes.base.widgets.pressable;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WCheckbox;
-import net.minecraft.util.math.MathHelper;
 
 public class WBaseCheckbox extends WCheckbox implements BaseWidget {
     private double animProgress;
@@ -15,8 +14,7 @@ public class WBaseCheckbox extends WCheckbox implements BaseWidget {
 
     @Override
     protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-        animProgress += (checked ? 1 : -1) * delta * 14;
-        animProgress = MathHelper.clamp(animProgress, 0, 1);
+        animProgress = stepProgress(animProgress, checked, delta);
 
         renderBackground(renderer, this, pressed, mouseOver);
 

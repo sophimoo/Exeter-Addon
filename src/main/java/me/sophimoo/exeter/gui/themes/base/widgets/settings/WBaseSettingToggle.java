@@ -24,6 +24,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
     private final MarqueeState marquee = new MarqueeState();
     private double animationProgress;
     private double hoverOverlayProgress;
+    private double indicatorProgress;
 
     public WBaseSettingToggle(BoolSetting setting) {
         this(setting.title, setting.description, setting::get, setting::set, true);
@@ -37,6 +38,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
         this.showIndicator = showIndicator;
         this.animationProgress = getter.getAsBoolean() ? 1.0 : 0.0;
         this.hoverOverlayProgress = 0.0;
+        this.indicatorProgress = getter.getAsBoolean() ? 1.0 : 0.0;
     }
 
     @Override
@@ -68,11 +70,12 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
         );
         animationProgress = animationState.primaryProgress();
         hoverOverlayProgress = animationState.hoverProgress();
+        indicatorProgress = stepProgress(indicatorProgress, active, delta);
 
         renderBackgroundLayers(renderer, active, animationState, delta);
         renderTitle(renderer, delta);
 
-        if (active && showIndicator) renderIndicator(renderer);
+        if (showIndicator && indicatorProgress > 0) renderIndicator(renderer);
     }
 
     private void logDebugInfo() {
@@ -141,6 +144,6 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
     }
 
     private void renderIndicator(GuiRenderer renderer) {
-        renderRowIndicator(renderer, x, y, width, height, 1, moduleIndicatorStyle(theme().accentColor.get()));
+        renderRowIndicator(renderer, x, y, width, height, indicatorProgress, moduleIndicatorStyle(theme().accentColor.get()));
     }
 }

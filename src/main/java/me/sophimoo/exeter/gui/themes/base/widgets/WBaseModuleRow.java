@@ -11,7 +11,6 @@ import meteordevelopment.meteorclient.gui.widgets.pressable.WPressable;
 import meteordevelopment.meteorclient.systems.config.Config;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.render.color.Color;
-import net.minecraft.util.math.MathHelper;
 
 import java.util.function.UnaryOperator;
 
@@ -128,11 +127,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         animationProgress = rowAnimationState.primaryProgress();
         hoverOverlayProgress = rowAnimationState.hoverProgress();
 
-        double fadeInSpeed = theme().moduleSelectSpeed.get();
-        double fadeOutSpeed = theme().moduleDeselectSpeed.get();
-
-        indicatorProgress += delta * (isActive ? fadeInSpeed : fadeOutSpeed) * (isActive ? 1 : -1);
-        indicatorProgress = MathHelper.clamp(indicatorProgress, 0, 1);
+        indicatorProgress = stepProgress(indicatorProgress, isActive, delta);
     }
 
     protected final void renderTitle(GuiRenderer renderer, double pad, ModuleRowLayout layout, Color textColor, double textY, double delta) {
