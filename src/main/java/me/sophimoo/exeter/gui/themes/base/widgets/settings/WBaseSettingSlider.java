@@ -222,7 +222,7 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
         SliderStyle sliderStyle = theme().sliderStyle.get();
         double barSpace = sliderStyle == SliderStyle.FULL_BAR ? 0 : pad;
         double textY = y + (height - barSpace - textHeight) / 2;
-        Color textColor = resolveModuleTextColor(animationProgress);
+        Color textColor = resolveSettingsTextColor(animationProgress);
 
         double progress = (getValue() - min) / (max - min);
         progress = MathHelper.clamp(progress, 0, 1);

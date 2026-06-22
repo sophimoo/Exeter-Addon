@@ -88,8 +88,8 @@ public class WBaseSection extends WSection implements BaseWidget {
             double iconGap = indicatorGap();
             RowAnimationState animationState = animateRow(delta, mouseOver, mouseOver, false, hoverProgress, 0);
             hoverProgress = animationState.primaryProgress();
-            RowSurfaceStyle surfaceStyle = separatorRowSurfaceStyle(mouseOver);
-            renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), localHoverSurfaceProgress(hoverProgress), 0, surfaceStyle);
+            RowSurfaceStyle surfaceStyle = separatorRowSurfaceStyle(animProgress > 0, mouseOver);
+            renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), animProgress, localHoverSurfaceProgress(hoverProgress), surfaceStyle);
             renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
 
             double textAreaX = x + pad;
@@ -97,11 +97,7 @@ public class WBaseSection extends WSection implements BaseWidget {
             if (titleWidth == 0) titleWidth = theme().textWidth(title);
             RowTextLayout layout = resolveRowTextLayout(textAreaX, y, textAreaWidth, height, titleWidth, theme().moduleAlignment.get(), AlignmentY.Center);
 
-            Color textColor = resolveTextStateColor(
-                theme().separatorText.get(),
-                theme().moduleTextHoveredColor.get(),
-                hoverProgress
-            );
+            Color textColor = resolveSeparatorTextColor(hoverProgress);
             renderRowTitle(renderer, marquee, title, titleWidth, delta, false, false, textColor, hoverProgress, layout);
 
             if (showIndicator) {

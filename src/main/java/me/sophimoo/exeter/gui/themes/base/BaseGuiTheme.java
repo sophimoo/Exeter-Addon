@@ -494,6 +494,11 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<SettingColor> itemActiveColor = color(sgSettingsColors, "item-active", "Color of items when active.", new SettingColor(70, 70, 70, 200));
     public final Setting<SettingColor> itemActiveGradientColor = color(sgSettingsColors, "item-active-gradient", "Gradient color of items when active.", new SettingColor(40, 40, 40, 0));
 
+    // Settings text colors
+    public final Setting<SettingColor> settingsTextInactiveColor = color(sgSettingsColors, "settings-text-inactive", "Color of settings text when inactive.", new SettingColor(255, 255, 255));
+    public final Setting<SettingColor> settingsTextActiveColor = color(sgSettingsColors, "settings-text-active", "Color of settings text when active.", new SettingColor(255, 255, 255));
+    public final Setting<SettingColor> settingsTextHoveredColor = color(sgSettingsColors, "settings-text-hovered", "Color of settings text when hovered.", new SettingColor(255, 255, 255));
+
     // Outline
 
     public final MultiStateColorSetting outlineColor = new MultiStateColorSetting(
@@ -540,11 +545,17 @@ public class BaseGuiTheme extends GuiTheme {
             .onChanged(v -> invalidateCurrentScreen())
             .build()
     );
-    public final Setting<SettingColor> separatorColor = color(sgSeparator, "separator", "Color of separator rows.", new SettingColor(61, 61, 61, 150));
-    public final Setting<SettingColor> separatorGradientColor = color(sgSeparator, "separator-gradient", "Gradient color of separator rows.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> separatorInactiveColor = color(sgSeparator, "separator-inactive", "Color of separator rows when inactive.", new SettingColor(61, 61, 61, 150));
+    public final Setting<SettingColor> separatorInactiveGradientColor = color(sgSeparator, "separator-inactive-gradient", "Gradient color of separator rows when inactive.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> separatorActiveColor = color(sgSeparator, "separator-active", "Color of separator rows when active.", new SettingColor(70, 70, 70));
+    public final Setting<SettingColor> separatorActiveGradientColor = color(sgSeparator, "separator-active-gradient", "Gradient color of separator rows when active.", new SettingColor(40, 40, 40, 0));
     public final Setting<SettingColor> separatorHoveredColor = color(sgSeparator, "separator-hovered", "Color of separator rows when hovered.", new SettingColor(60, 60, 60));
     public final Setting<SettingColor> separatorHoveredGradientColor = color(sgSeparator, "separator-hovered-gradient", "Gradient color of separator rows when hovered.", new SettingColor(40, 40, 40, 0));
-    public final Setting<SettingColor> separatorText = color(sgSeparator, "separator-text", "Color of separator text", new SettingColor(255, 255, 255));
+
+    // Separator text colors
+    public final Setting<SettingColor> separatorTextInactiveColor = color(sgSeparator, "separator-text-inactive", "Color of separator text when inactive.", new SettingColor(255, 255, 255));
+    public final Setting<SettingColor> separatorTextActiveColor = color(sgSeparator, "separator-text-active", "Color of separator text when active.", new SettingColor(255, 255, 255));
+    public final Setting<SettingColor> separatorTextHoveredColor = color(sgSeparator, "separator-text-hovered", "Color of separator text when hovered.", new SettingColor(255, 255, 255));
 
     // Scrollbar
 

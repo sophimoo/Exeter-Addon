@@ -134,20 +134,20 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
         );
     }
 
-    default RowSurfaceStyle separatorRowSurfaceStyle(boolean mouseOver) {
+    default RowSurfaceStyle separatorRowSurfaceStyle(boolean active, boolean mouseOver) {
         ModuleGradientDirection gradientDirection = theme().moduleGradientDirection.get();
         boolean renderGradient = theme().gradientApplicationMode.get().shouldApply(false) && gradientDirection != ModuleGradientDirection.NONE;
 
         return createRowSurfaceStyle(
-            theme().separatorColor.get(),
-            theme().separatorGradientColor.get(),
+            theme().separatorInactiveColor.get(),
+            theme().separatorInactiveGradientColor.get(),
             renderGradient,
+            active ? theme().separatorActiveColor.get() : theme().separatorHoveredColor.get(),
+            active ? theme().separatorActiveGradientColor.get() : theme().separatorHoveredGradientColor.get(),
+            theme().gradientApplicationMode.get().shouldApply(active) && gradientDirection != ModuleGradientDirection.NONE,
             theme().separatorHoveredColor.get(),
             theme().separatorHoveredGradientColor.get(),
             renderGradient,
-            null,
-            null,
-            false,
             gradientDirection,
             theme().outlineColor.get(false, mouseOver),
             null
@@ -469,6 +469,34 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
     default Color resolveModuleTextColor(double hoverProgress) {
         return resolveModuleTextColor(0, hoverProgress);
+    }
+
+    default Color resolveSeparatorTextColor(double activeProgress, double hoverProgress) {
+        return resolveTextStateColor(
+            theme().separatorTextInactiveColor.get(),
+            theme().separatorTextActiveColor.get(),
+            theme().separatorTextHoveredColor.get(),
+            activeProgress,
+            hoverProgress
+        );
+    }
+
+    default Color resolveSeparatorTextColor(double hoverProgress) {
+        return resolveSeparatorTextColor(0, hoverProgress);
+    }
+
+    default Color resolveSettingsTextColor(double activeProgress, double hoverProgress) {
+        return resolveTextStateColor(
+            theme().settingsTextInactiveColor.get(),
+            theme().settingsTextActiveColor.get(),
+            theme().settingsTextHoveredColor.get(),
+            activeProgress,
+            hoverProgress
+        );
+    }
+
+    default Color resolveSettingsTextColor(double hoverProgress) {
+        return resolveSettingsTextColor(0, hoverProgress);
     }
 
     default void renderCenteredTextOrTexture(GuiRenderer renderer, String text, double textWidth, GuiTexture texture,

@@ -127,7 +127,7 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
 
         double padX = pad();
         double padY = theme().rowPadY();
-        Color textColor = resolveModuleTextColor(animationProgress);
+        Color textColor = resolveSettingsTextColor(animationProgress);
         double textHeight = theme().textHeight();
 
         if (verticalLayout) {

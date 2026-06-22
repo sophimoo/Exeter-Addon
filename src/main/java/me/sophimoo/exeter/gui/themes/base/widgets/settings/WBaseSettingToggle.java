@@ -112,7 +112,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
 
     private void renderTitle(GuiRenderer renderer, double delta) {
         double padX = pad();
-        Color textColor = resolveModuleTextColor(animationProgress, hoverOverlayProgress);
+        Color textColor = resolveSettingsTextColor(animationProgress, hoverOverlayProgress);
 
         double titleAreaX = x + padX;
         double titleAreaW = Math.max(0, width - padX * 2);
