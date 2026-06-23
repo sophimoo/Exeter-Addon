@@ -187,7 +187,10 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     default void renderRowSurface(GuiRenderer renderer, double x, double y, double width, double height,
                                    ModuleAnimationMode overlayAnimationMode, double overlayProgress,
                                    double hoveredOverlayProgress, RowSurfaceStyle style) {
-        renderSurfaceLayer(renderer, x, y, width, height, ModuleAnimationMode.FADE, 1, style.baseLayer(), style.gradientDirection());
+        double baseProgress = 1 - Math.max(overlayProgress, hoveredOverlayProgress);
+        if (baseProgress > 0 && style.baseLayer() != null) {
+            renderSurfaceLayer(renderer, x, y, width, height, ModuleAnimationMode.FADE, baseProgress, style.baseLayer(), style.gradientDirection());
+        }
 
         if (overlayProgress > 0 && style.overlayLayer() != null) {
             renderSurfaceLayer(renderer, x, y, width, height, overlayAnimationMode, overlayProgress, style.overlayLayer(), style.gradientDirection());
