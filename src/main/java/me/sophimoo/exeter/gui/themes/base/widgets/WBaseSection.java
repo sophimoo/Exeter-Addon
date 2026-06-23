@@ -2,6 +2,7 @@ package me.sophimoo.exeter.gui.themes.base.widgets;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleSettingsIndicator;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
 import meteordevelopment.meteorclient.gui.utils.AlignmentY;
@@ -83,7 +84,15 @@ public class WBaseSection extends WSection implements BaseWidget {
     protected class WBaseHeader extends WHeader {
         private double titleWidth;
         private double hoverProgress;
+        private double exeterIconRotation;
+        private double meteorIconRotation = Double.NaN;
         private final MarqueeState marquee = new MarqueeState();
+
+        private ModuleSettingsIndicator resolveSeparatorIndicatorStyle() {
+            ModuleSettingsIndicator style = theme().moduleSettingsIndicator.get();
+            if (style == ModuleSettingsIndicator.NONE || style == ModuleSettingsIndicator.DROPDOWN) return style;
+            return theme().indicatorsOnSeparators.get() ? style : ModuleSettingsIndicator.NONE;
+        }
 
         public WBaseHeader(String title) {
             super(title);
@@ -111,9 +120,10 @@ public class WBaseSection extends WSection implements BaseWidget {
         protected void onCalculateSize() {
             super.onCalculateSize();
 
+            ModuleSettingsIndicator indicatorStyle = resolveSeparatorIndicatorStyle();
             double pad = pad();
-            double iconWidth = indicatorWidth();
-            double iconGap = indicatorGap();
+            double iconWidth = indicatorWidth(indicatorStyle);
+            double iconGap = indicatorGap(indicatorStyle);
 
             if (titleWidth == 0) titleWidth = theme().textWidth(title);
 
@@ -129,9 +139,9 @@ public class WBaseSection extends WSection implements BaseWidget {
             if (collapsedIndicator == null) collapsedIndicator = "";
             if (expandedIndicator == null) expandedIndicator = "";
 
-            boolean showIndicator = theme().dropdownIndicator.get();
-            double iconWidth = indicatorWidth();
-            double iconGap = indicatorGap();
+            ModuleSettingsIndicator indicatorStyle = resolveSeparatorIndicatorStyle();
+            double iconWidth = indicatorWidth(indicatorStyle);
+            double iconGap = indicatorGap(indicatorStyle);
             RowAnimationState animationState = animateRow(delta, mouseOver, mouseOver, false, hoverProgress, 0);
             hoverProgress = animationState.primaryProgress();
             activeProgress = stepProgress(activeProgress, WBaseSection.this.expanded, delta);
@@ -147,10 +157,23 @@ public class WBaseSection extends WSection implements BaseWidget {
             Color textColor = resolveSeparatorTextColor(hoverProgress);
             renderRowTitle(renderer, marquee, title, titleWidth, delta, false, false, textColor, hoverProgress, layout);
 
-            if (showIndicator) {
-                String dropdownIcon = activeProgress >= 0.5 ? expandedIndicator : collapsedIndicator;
+            if (indicatorStyle != ModuleSettingsIndicator.NONE) {
                 double iconX = x + width - pad - iconWidth;
-                renderText(renderer, dropdownIcon, iconX, layout.textY(), textColor);
+
+                switch (indicatorStyle) {
+                    case EXETER -> {
+                        exeterIconRotation = stepExeterIndicatorRotation(exeterIconRotation, WBaseSection.this.expanded, delta);
+                        renderExeterIndicator(renderer, iconX, y, iconWidth, height, pad, exeterIconRotation, textColor);
+                    }
+                    case METEOR -> {
+                        meteorIconRotation = stepMeteorIndicatorRotation(meteorIconRotation, WBaseSection.this.expanded, delta);
+                        renderMeteorIndicator(renderer, iconX, y, iconWidth, height, pad, meteorIconRotation, textColor);
+                    }
+                    default -> {
+                        String dropdownIcon = activeProgress >= 0.5 ? expandedIndicator : collapsedIndicator;
+                        renderText(renderer, dropdownIcon, iconX, layout.textY(), textColor);
+                    }
+                }
             }
         }
 
@@ -166,23 +189,28 @@ public class WBaseSection extends WSection implements BaseWidget {
             cells.get(0).alignWidget();
         }
 
-        private double indicatorWidth() {
-            if (!theme().dropdownIndicator.get()) return 0;
-
-            String collapsedIndicator = theme().moduleCollapsedIndicator.get();
-            String expandedIndicator = theme().moduleExpandedIndicator.get();
-            if (collapsedIndicator == null) collapsedIndicator = "";
-            if (expandedIndicator == null) expandedIndicator = "";
-
-            return Math.max(theme().textWidth(collapsedIndicator), theme().textWidth(expandedIndicator));
+        private double indicatorWidth(ModuleSettingsIndicator style) {
+            return switch (style) {
+                case NONE -> 0;
+                case EXETER -> theme().textHeight() * EXETER_ICON_SCALE;
+                case METEOR -> theme().textHeight();
+                case DROPDOWN -> {
+                    String collapsedIndicator = theme().moduleCollapsedIndicator.get();
+                    String expandedIndicator = theme().moduleExpandedIndicator.get();
+                    if (collapsedIndicator == null) collapsedIndicator = "";
+                    if (expandedIndicator == null) expandedIndicator = "";
+                    yield Math.max(theme().textWidth(collapsedIndicator), theme().textWidth(expandedIndicator));
+                }
+            };
         }
 
-        private double indicatorGap() {
-            return theme().dropdownIndicator.get() ? pad() : 0;
+        private double indicatorGap(ModuleSettingsIndicator style) {
+            return style != ModuleSettingsIndicator.NONE ? pad() : 0;
         }
 
         private double indicatorRightInset() {
-            return indicatorGap() + indicatorWidth() + indicatorGap();
+            ModuleSettingsIndicator style = resolveSeparatorIndicatorStyle();
+            return indicatorGap(style) + indicatorWidth(style) + indicatorGap(style);
         }
     }
 }

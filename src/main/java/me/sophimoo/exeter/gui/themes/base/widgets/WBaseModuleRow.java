@@ -1,9 +1,9 @@
 package me.sophimoo.exeter.gui.themes.base.widgets;
 
-import me.sophimoo.exeter.BaseAddon;
 import me.sophimoo.exeter.gui.screens.BaseModulesScreen;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleSettingsIndicator;
 import meteordevelopment.meteorclient.gui.utils.AlignmentY;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
@@ -19,10 +19,6 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 
 public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
-    protected static final double EXETER_ICON_SCALE = 1.4;
-    protected static final double EXETER_ICON_ROTATION_SPEED = 120;
-    protected static final Color EXETER_ICON_COLOR = new Color(255, 255, 255);
-
     protected final Module module;
     protected final String title;
 
@@ -32,13 +28,13 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
     protected double hoverOverlayProgress;
     protected double indicatorProgress;
     protected double exeterIconRotation;
+    protected double meteorIconRotation = Double.NaN;
     protected final MarqueeState marquee = new MarqueeState();
 
     protected record ModuleRowLayout(
         String collapsedIndicator,
         String expandedIndicator,
-        boolean useExeterIndicator,
-        boolean showIndicator,
+        ModuleSettingsIndicator indicatorStyle,
         double settingsIconWidth,
         double settingsIconGap
     ) {}
@@ -153,40 +149,40 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
     }
 
     protected void renderSettingsIcon(GuiRenderer renderer, double pad, ModuleRowLayout layout, double textY, double delta, Color textColor) {
-        if (!layout.showIndicator) return;
+        if (layout.indicatorStyle() == ModuleSettingsIndicator.NONE) return;
 
         double settingsIconX = this.x + width - pad - layout.settingsIconWidth;
 
-        if (layout.useExeterIndicator) {
-            double baseIconSize = Math.max(1, Math.min(layout.settingsIconWidth, height - pad * 2));
-            if (isSettingsExpanded()) {
-                exeterIconRotation = (exeterIconRotation + delta * EXETER_ICON_ROTATION_SPEED) % 360;
+        switch (layout.indicatorStyle()) {
+            case EXETER -> {
+                exeterIconRotation = stepExeterIndicatorRotation(exeterIconRotation, isSettingsExpanded(), delta);
+                renderExeterIndicator(renderer, settingsIconX, this.y, layout.settingsIconWidth, height, pad, exeterIconRotation, textColor);
             }
-            double iconSize = baseIconSize;
-            double iconY = this.y + (height - iconSize) / 2;
-            double iconX = settingsIconX + (layout.settingsIconWidth - iconSize) / 2;
-
-            if (BaseAddon.EXETER_ICON_TEXTURE != null) {
-                renderer.rotatedQuad(iconX, iconY, iconSize, iconSize, exeterIconRotation, BaseAddon.EXETER_ICON_TEXTURE, EXETER_ICON_COLOR);
+            case METEOR -> {
+                meteorIconRotation = stepMeteorIndicatorRotation(meteorIconRotation, isSettingsExpanded(), delta);
+                renderMeteorIndicator(renderer, settingsIconX, this.y, layout.settingsIconWidth, height, pad, meteorIconRotation, textColor);
             }
-        } else {
-            String settingsIcon = isSettingsExpanded() ? layout.expandedIndicator : layout.collapsedIndicator;
-            renderText(renderer, settingsIcon, settingsIconX, textY, textColor);
+            default -> {
+                String settingsIcon = isSettingsExpanded() ? layout.expandedIndicator : layout.collapsedIndicator;
+                renderText(renderer, settingsIcon, settingsIconX, textY, textColor);
+            }
         }
     }
 
     protected final ModuleRowLayout computeRowLayout() {
         String collapsedIndicator = safeIndicator(theme().moduleCollapsedIndicator.get());
         String expandedIndicator = safeIndicator(theme().moduleExpandedIndicator.get());
-        boolean useExeterIndicator = theme().exeterIndicator.get();
-        boolean showIndicator = (useExeterIndicator || theme().dropdownIndicator.get()) && theme().inlineModuleSettings.get();
-        double settingsIconWidth = showIndicator
-            ? (useExeterIndicator
-                ? theme().textHeight() * EXETER_ICON_SCALE
-                : Math.max(theme().textWidth(collapsedIndicator), theme().textWidth(expandedIndicator)))
-            : 0;
-        double settingsIconGap = showIndicator ? pad() : 0;
-        return new ModuleRowLayout(collapsedIndicator, expandedIndicator, useExeterIndicator, showIndicator, settingsIconWidth, settingsIconGap);
+        ModuleSettingsIndicator indicatorStyle = theme().inlineModuleSettings.get()
+            ? theme().moduleSettingsIndicator.get()
+            : ModuleSettingsIndicator.NONE;
+        double settingsIconWidth = switch (indicatorStyle) {
+            case NONE -> 0;
+            case EXETER -> theme().textHeight() * EXETER_ICON_SCALE;
+            case METEOR -> theme().textHeight();
+            case DROPDOWN -> Math.max(theme().textWidth(collapsedIndicator), theme().textWidth(expandedIndicator));
+        };
+        double settingsIconGap = settingsIconWidth > 0 ? pad() : 0;
+        return new ModuleRowLayout(collapsedIndicator, expandedIndicator, indicatorStyle, settingsIconWidth, settingsIconGap);
     }
 
     protected final String safeIndicator(String value) {

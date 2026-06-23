@@ -1,5 +1,6 @@
 package me.sophimoo.exeter.gui.themes.base;
 
+import me.sophimoo.exeter.BaseAddon;
 import me.sophimoo.exeter.gui.renderer.BlurRendererAccess;
 import me.sophimoo.exeter.gui.renderer.WorldFramebufferCapture;
 import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
@@ -29,6 +30,10 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     record RowIndicatorStyle(ModuleIndicatorPosition position, double thickness, Color color) {}
     record RowAnimationState(ModuleAnimationMode effectiveAnimationMode, double primaryProgress, double hoverProgress) {}
     record RowTextLayout(double areaX, double areaY, double areaWidth, double areaHeight, double textY, double staticTextX) {}
+
+    double EXETER_ICON_SCALE = 1.4;
+    double EXETER_ICON_ROTATION_SPEED = 120;
+    double METEOR_ICON_ROTATION_SPEED = 14;
 
     default BaseGuiTheme theme() {
         return (BaseGuiTheme) getTheme();
@@ -436,6 +441,34 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
         double progress = currentProgress + delta * (shouldFadeIn ? fadeInSpeed : fadeOutSpeed) * (shouldFadeIn ? 1 : -1);
         return Math.max(0, Math.min(1, progress));
+    }
+
+    default double stepExeterIndicatorRotation(double currentRotation, boolean active, double delta) {
+        if (!active) return currentRotation;
+        return (currentRotation + delta * EXETER_ICON_ROTATION_SPEED) % 360;
+    }
+
+    default double stepMeteorIndicatorRotation(double currentRotation, boolean expanded, double delta) {
+        double target = expanded ? 0 : -90;
+        if (Double.isNaN(currentRotation)) return target;
+        return currentRotation + (target - currentRotation) * Math.min(1, delta * METEOR_ICON_ROTATION_SPEED);
+    }
+
+    default void renderExeterIndicator(GuiRenderer renderer, double iconBoxX, double rowY, double iconBoxWidth,
+                                       double rowHeight, double pad, double rotation, Color color) {
+        if (BaseAddon.EXETER_ICON_TEXTURE == null) return;
+        double iconSize = Math.max(1, Math.min(iconBoxWidth, rowHeight - pad * 2));
+        double iconY = rowY + (rowHeight - iconSize) / 2;
+        double iconX = iconBoxX + (iconBoxWidth - iconSize) / 2;
+        renderer.rotatedQuad(iconX, iconY, iconSize, iconSize, rotation, BaseAddon.EXETER_ICON_TEXTURE, color);
+    }
+
+    default void renderMeteorIndicator(GuiRenderer renderer, double iconBoxX, double rowY, double iconBoxWidth,
+                                       double rowHeight, double pad, double rotation, Color color) {
+        double iconSize = Math.max(1, Math.min(iconBoxWidth, rowHeight - pad * 2));
+        double iconY = rowY + (rowHeight - iconSize) / 2;
+        double iconX = iconBoxX + (iconBoxWidth - iconSize) / 2;
+        renderer.rotatedQuad(iconX, iconY, iconSize, iconSize, rotation, GuiRenderer.TRIANGLE, color);
     }
 
     default double dropdownHeightProgress(double progress, boolean expanding) {

@@ -385,17 +385,17 @@ public class BaseGuiTheme extends GuiTheme {
         .build()
     );
 
-    public final Setting<Boolean> dropdownIndicator = sgModuleRender.add(new BoolSetting.Builder()
-        .name("dropdown-indicator")
-        .description("Shows the module row indicator text used for collapsing and expanding settings.")
-        .defaultValue(true)
+    public final Setting<ModuleSettingsIndicator> moduleSettingsIndicator = sgModuleRender.add(new EnumSetting.Builder<ModuleSettingsIndicator>()
+        .name("module-settings-indicator")
+        .description("Indicator shown on module rows for expanding/collapsing settings.")
+        .defaultValue(ModuleSettingsIndicator.DROPDOWN)
         .onChanged(v -> invalidateCurrentScreen())
         .build()
     );
 
-    public final Setting<Boolean> exeterIndicator = sgModuleRender.add(new BoolSetting.Builder()
-        .name("exeter-indicator")
-        .description("Overrides the module indicator text with the Exeter icon.")
+    public final Setting<Boolean> indicatorsOnSeparators = sgModuleRender.add(new BoolSetting.Builder()
+        .name("indicators-on-separators")
+        .description("Also applies the exeter/meteor indicator to section separators.")
         .defaultValue(false)
         .onChanged(v -> invalidateCurrentScreen())
         .build()
