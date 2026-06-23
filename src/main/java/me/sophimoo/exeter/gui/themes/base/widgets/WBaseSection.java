@@ -154,7 +154,7 @@ public class WBaseSection extends WSection implements BaseWidget {
             if (titleWidth == 0) titleWidth = theme().textWidth(title);
             RowTextLayout layout = resolveRowTextLayout(textAreaX, y, textAreaWidth, height, titleWidth, theme().moduleAlignment.get(), AlignmentY.Center);
 
-            Color textColor = resolveSeparatorTextColor(hoverProgress);
+            Color textColor = resolveSeparatorTextColor(activeProgress, hoverProgress);
             renderRowTitle(renderer, marquee, title, titleWidth, delta, false, false, textColor, hoverProgress, layout);
 
             if (indicatorStyle != ModuleSettingsIndicator.NONE) {
