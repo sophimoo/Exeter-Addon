@@ -2,6 +2,7 @@ package me.sophimoo.exeter.gui.themes.base;
 
 import me.sophimoo.exeter.BaseAddon;
 import me.sophimoo.exeter.gui.renderer.BlurRendererAccess;
+import me.sophimoo.exeter.gui.renderer.GradientRenderer;
 import me.sophimoo.exeter.gui.renderer.WorldFramebufferCapture;
 import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
@@ -543,6 +544,17 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
     default Color resolveSettingsTextColor(double hoverProgress) {
         return resolveSettingsTextColor(0, hoverProgress);
+    }
+
+    default void renderSliderSegment(GuiRenderer renderer, double x, double y, double width, double height,
+                                     String partKey, double hoverProgress) {
+        if (width <= 0 || height <= 0) return;
+
+        Color color = resolveTextStateColor(theme().sliderDirection.get(partKey), theme().itemHoveredColor.get(), hoverProgress);
+        Color gradient = resolveTextStateColor(theme().itemActiveGradientColor.get(), theme().itemHoveredGradientColor.get(), hoverProgress);
+
+        if (theme().sliderGradient.get()) GradientRenderer.render(renderer, x, y, width, height, gradient, color, theme().gradientRender.get());
+        else renderer.quad(x, y, width, height, color);
     }
 
     default void renderCenteredTextOrTexture(GuiRenderer renderer, String text, double textWidth, GuiTexture texture,

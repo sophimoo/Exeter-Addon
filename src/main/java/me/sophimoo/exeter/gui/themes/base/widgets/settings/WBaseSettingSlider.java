@@ -230,9 +230,10 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
         double barY = getBarY();
         double barHeight = getBarHeight();
         double filled = barWidth * progress;
+        double barHoverProgress = theme().sliderStyle.get() == SliderStyle.BOTTOM_BAR ? 0 : animationProgress;
 
-        renderer.quad(barStartX, barY, barWidth, barHeight, theme().sliderDirection.get("right-"));
-        renderer.quad(barStartX, barY, filled, barHeight, theme().sliderDirection.get("left-"));
+        renderSliderSegment(renderer, barStartX, barY, barWidth, barHeight, "right-", barHoverProgress);
+        renderSliderSegment(renderer, barStartX, barY, filled, barHeight, "left-", barHoverProgress);
 
         String valueText = formatValue();
           double actualValueWidth = theme().textWidth(valueText);

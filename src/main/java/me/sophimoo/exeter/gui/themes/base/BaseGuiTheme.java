@@ -5,7 +5,6 @@ import me.sophimoo.exeter.gui.themes.base.utils.*;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.*;
 import me.sophimoo.exeter.gui.themes.base.widgets.*;
 import me.sophimoo.exeter.gui.themes.base.widgets.input.WBaseDropdown;
-import me.sophimoo.exeter.gui.themes.base.widgets.input.WBaseSlider;
 import me.sophimoo.exeter.gui.themes.base.widgets.input.WBaseTextBox;
 import me.sophimoo.exeter.gui.themes.base.widgets.pressable.*;
 import meteordevelopment.meteorclient.MeteorClient;
@@ -355,19 +354,18 @@ public class BaseGuiTheme extends GuiTheme {
 
     // Slider
 
-    public final MultiStateColorSetting sliderHandle = new MultiStateColorSetting(
-            sgSlider,
-            "slider-handle",
-            "", new SettingColor(130, 0, 255),
-            "hovered-", new SettingColor(140, 30, 255),
-            "pressed-", new SettingColor(150, 60, 255),
-            "-gradient", new SettingColor(0, 0, 0, 0)
-    );
     public final MultiStateColorSetting sliderDirection = new MultiStateColorSetting(
             sgSlider,
             "slider",
             "left-", new SettingColor(145, 61, 226),
             "right-", new SettingColor(50, 50, 50, 0)
+    );
+
+    public final Setting<Boolean> sliderGradient = sgSlider.add(new BoolSetting.Builder()
+            .name("slider-gradient")
+            .description("Applies the item gradient color to slider bars.")
+            .defaultValue(true)
+            .build()
     );
 
     public final Setting<SliderStyle> sliderStyle = sgSlider.add(new EnumSetting.Builder<SliderStyle>()
@@ -805,7 +803,9 @@ public class BaseGuiTheme extends GuiTheme {
 
     @Override
     public WSlider slider(double value, double min, double max) {
-        return w(new WBaseSlider(value, min, max));
+        return w(new WSlider(value, min, max) {
+            @Override protected void onRender(meteordevelopment.meteorclient.gui.renderer.GuiRenderer renderer, double mouseX, double mouseY, double delta) {}
+        });
     }
 
     @Override
