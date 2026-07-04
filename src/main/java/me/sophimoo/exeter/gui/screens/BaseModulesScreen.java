@@ -121,10 +121,10 @@ public class BaseModulesScreen extends TabScreen {
     private void refreshExpandedModules() {
         if (controller == null) return;
         expandedModules.clear();
-        refreshModuleSpacing(controller);
+        refreshModulePadding(controller);
     }
 
-    private void refreshModuleSpacing(WContainer container) {
+    private void refreshModulePadding(WContainer container) {
         if (container == null) return;
         for (Cell<?> cell : container.cells) {
             WWidget widget = cell.widget();
@@ -132,14 +132,14 @@ public class BaseModulesScreen extends TabScreen {
                 if (module.isSettingsExpanded()) expandedModules.add(module);
                 cell.padBottom(spacingAfterModule(module));
             } else if (widget instanceof WContainer nested) {
-                refreshModuleSpacing(nested);
+                refreshModulePadding(nested);
             }
         }
     }
 
     private double spacingAfterModule(WBaseModule module) {
         if (theme.inlineModuleSettings.get() && module.isSettingsExpanded()) return theme.separatorPaddingY.get();
-        return moduleSpacing();
+        return modulePadding();
     }
 
     protected void addIcon(WContainer container, Object icon) {
@@ -159,12 +159,12 @@ public class BaseModulesScreen extends TabScreen {
         invalidate();
     }
 
-    private double moduleSpacing() {
-        return theme.moduleSpacing.get();
+    private double modulePadding() {
+        return theme.modulePadding.get();
     }
 
     protected void addModules(WContainer container, List<Module> modules) {
-        double s = moduleSpacing();
+        double s = modulePadding();
 
         for (int i = 0; i < modules.size(); i++) {
             Module module = modules.get(i);

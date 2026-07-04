@@ -325,9 +325,9 @@ public class BaseGuiTheme extends GuiTheme {
             .build()
     );
 
-    public final Setting<Double> moduleSpacing = sgModuleRender.add(new DoubleSetting.Builder()
-            .name("module-spacing")
-            .description("Spacing between modules in module lists.")
+    public final Setting<Double> modulePadding = sgModuleRender.add(new DoubleSetting.Builder()
+            .name("module-padding")
+            .description("Padding between modules in module lists.")
             .defaultValue(0)
             .min(0)
             .max(10)
@@ -346,9 +346,9 @@ public class BaseGuiTheme extends GuiTheme {
             .build()
     );
 
-    public final Setting<Double> itemSpacingY = sgSettingsColors.add(new DoubleSetting.Builder()
-            .name("item-spacing-y")
-            .description("Spacing between items in settings lists.")
+    public final Setting<Double> itemPaddingY = sgSettingsColors.add(new DoubleSetting.Builder()
+            .name("item-padding-y")
+            .description("Padding between items in settings lists.")
             .defaultValue(0)
             .min(0)
             .max(10)
