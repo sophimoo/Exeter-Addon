@@ -63,7 +63,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
         RowAnimationState animationState = animateRow(
             delta,
             mouseOver,
-            active || localHoverAnimationVisible(mouseOver),
+            active,
             mouseOver,
             animationProgress,
             hoverOverlayProgress
@@ -107,7 +107,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
             height,
             animationState.effectiveAnimationMode(),
             animationProgress,
-            active ? localHoverSurfaceProgress(hoverOverlayProgress) : 0,
+            localHoverSurfaceProgress(hoverOverlayProgress),
             surfaceStyle
         );
         renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);

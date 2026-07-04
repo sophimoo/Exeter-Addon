@@ -91,7 +91,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
             height,
             rowAnimationState.effectiveAnimationMode(),
             animationProgress,
-            isActive ? localHoverSurfaceProgress(hoverOverlayProgress) : 0,
+            localHoverSurfaceProgress(hoverOverlayProgress),
             surfaceStyle
         );
         renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
@@ -114,7 +114,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         rowAnimationState = animateRow(
             delta,
             mouseOver,
-            isActive || localHoverAnimationVisible(mouseOver),
+            isActive,
             mouseOver,
             animationProgress,
             hoverOverlayProgress

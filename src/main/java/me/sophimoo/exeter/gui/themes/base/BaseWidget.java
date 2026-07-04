@@ -72,8 +72,8 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
         double fadeInSpeed = theme().moduleSelectSpeed.get();
         double fadeOutSpeed = theme().moduleDeselectSpeed.get();
-        double hoverFadeInSpeed = fadeInSpeed * 4;
-        double hoverFadeOutSpeed = fadeOutSpeed * 4;
+        double hoverFadeInSpeed = fadeInSpeed;
+        double hoverFadeOutSpeed = fadeOutSpeed;
 
         return new RowAnimationState(
             effectiveAnimationMode,
@@ -186,7 +186,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     default void renderRowSurface(GuiRenderer renderer, double x, double y, double width, double height,
                                    ModuleAnimationMode overlayAnimationMode, double overlayProgress,
                                    double hoveredOverlayProgress, RowSurfaceStyle style) {
-        double baseProgress = 1 - Math.max(overlayProgress, hoveredOverlayProgress);
+        double baseProgress = 1 - overlayProgress;
         if (baseProgress > 0 && style.baseLayer() != null) {
             renderSurfaceLayer(renderer, x, y, width, height, ModuleAnimationMode.FADE, baseProgress, style.baseLayer(), style.gradientDirection());
         }

@@ -211,8 +211,8 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
             width,
             height,
             animationState.effectiveAnimationMode(),
-            localHoverSurfaceProgress(animationProgress),
             0,
+            localHoverSurfaceProgress(animationProgress),
             surfaceStyle
         );
         renderInterpolationHover(renderer, x, y, width, height, hoveredForAnimation, delta, surfaceStyle);

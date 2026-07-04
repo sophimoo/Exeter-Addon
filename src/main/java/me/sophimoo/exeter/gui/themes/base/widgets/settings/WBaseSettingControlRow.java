@@ -120,8 +120,8 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
             width,
             height,
             animationState.effectiveAnimationMode(),
-            localHoverSurfaceProgress(animationProgress),
             0,
+            localHoverSurfaceProgress(animationProgress),
             surfaceStyle
         );
         renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
