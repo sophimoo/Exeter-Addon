@@ -152,21 +152,19 @@ public class BaseModulesScreen extends TabScreen {
         invalidate();
     }
 
-    private double spacing() {
-        return theme.scale(theme.moduleSpacing.get());
+    private double moduleSpacing() {
+        return theme.moduleSpacing.get();
     }
 
     protected void addModules(WContainer container, List<Module> modules) {
-        double s = spacing();
-        double outline = theme.scale(theme.windowOutlineThickness.get());
-        double scaled = s + outline / theme.scale(1);
+        double s = moduleSpacing();
 
         for (int i = 0; i < modules.size(); i++) {
             Module module = modules.get(i);
             var cell = container.add(theme.module(module)).expandX();
-            cell.padLeft(scaled).padRight(scaled);
-            if (i == 0) cell.padTop(scaled);
-            if (i == modules.size() - 1) cell.padBottom(scaled);
+            cell.padLeft(s).padRight(s);
+            if (i == 0) cell.padTop(s);
+            if (i == modules.size() - 1) cell.padBottom(s);
         }
     }
 
@@ -179,7 +177,8 @@ public class BaseModulesScreen extends TabScreen {
     protected WWindow createCategory(WContainer c, Category category, List<Module> modules) {
         WBaseWindow w = modulesWindow(category.name);
         w.id = category.name;
-        w.padding = w.spacing = 0;
+        w.padding = theme.windowOutlineThickness.get();
+        w.spacing = 0;
 
         if (theme.categoryIcons()) {
             String iconText = null;
@@ -211,7 +210,7 @@ public class BaseModulesScreen extends TabScreen {
         c.add(w);
         w.view.scrollOnlyWhenMouseOver = true;
         w.view.hasScrollBar = false;
-        w.view.spacing = spacing();
+        w.view.spacing = moduleSpacing();
         addModules(w, modules);
         return w;
     }
@@ -289,17 +288,17 @@ public class BaseModulesScreen extends TabScreen {
 
         WBaseWindow w = modulesWindow("Favorites");
         w.id = "favorites";
-        w.padding = w.spacing = 0;
+        w.padding = theme.windowOutlineThickness.get();
+        w.spacing = 0;
 
         if (theme.categoryIcons()) {
             w.beforeHeaderInit = wContainer -> addIcon(wContainer, Items.NETHER_STAR.getDefaultStack());
         }
 
-        Cell<WWindow> cell = c.add(w);
+Cell<WWindow> cell = c.add(w);
         w.view.scrollOnlyWhenMouseOver = true;
         w.view.hasScrollBar = false;
-        w.view.spacing = spacing();
-
+        w.view.spacing = moduleSpacing();
         addModules(w, favorites);
         return cell;
     }

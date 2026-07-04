@@ -79,7 +79,7 @@ public class ModuleSettingsScreen extends WindowScreen {
 
     private void addBindSection(WVerticalList container) {
         double paddingX = baseTheme != null ? baseTheme.settingsPaddingX.get() : 6;
-        double separatorPaddingY = baseTheme != null ? baseTheme.scale(baseTheme.separatorPaddingY.get()) : 6;
+        double separatorPaddingY = baseTheme != null ? baseTheme.separatorPaddingY.get() : 6;
         double itemSpacing = baseTheme != null ? baseTheme.itemSpacingY.get() : 0;
 
         Cell<WSection> bindSectionCell = container.add(theme.section("Bind", true))

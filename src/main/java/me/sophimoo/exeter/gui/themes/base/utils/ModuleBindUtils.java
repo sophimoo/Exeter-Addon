@@ -29,7 +29,7 @@ public final class ModuleBindUtils {
         bindSection.spacing = 0;
 
         WTable table = bindSection.add(theme.table()).expandX().padHorizontal(paddingX).padTop(separatorPaddingY).widget();
-        table.verticalSpacing = theme.scale(itemSpacing);
+        table.verticalSpacing = itemSpacing;
 
         WKeybind keybindWidget = addKeybindRow(table, module, theme);
         addToggleRows(table, module);

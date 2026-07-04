@@ -15,7 +15,6 @@ import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.util.math.MathHelper;
 
 public class WBaseModule extends WVerticalList implements BaseWidget {
     private final Module module;
@@ -45,8 +44,6 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
         settingsExpanded = !settingsExpanded;
 
         if (settingsContainer == null) {
-            double paddingY = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.scale(baseTheme.separatorPaddingY.get()) : 6;
-
             settingsContainer = new WSettingsDropdown();
             settingsContainer.theme = theme;
             settingsContainer.spacing = 0;
@@ -102,10 +99,10 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
     private void addBindSection(WVerticalList container) {
         double paddingX = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.settingsPaddingX.get() : 6;
-        double separatorPaddingY = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.scale(baseTheme.separatorPaddingY.get()) : 6;
+        double separatorPaddingY = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.separatorPaddingY.get() : 6;
         double itemSpacing = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.itemSpacingY.get() : 0;
 
-        Cell<WSection> bindSectionCell = container.add(theme.section("Bind", false)).expandX().padHorizontal(paddingX).padBottom(separatorPaddingY);
+        Cell<WSection> bindSectionCell = container.add(theme.section("Bind", false)).expandX().padHorizontal(paddingX);
         if (hasModuleSettingsContent) bindSectionCell.padTop(separatorPaddingY);
 
         keybindWidget = ModuleBindUtils.populateBindSection(bindSectionCell, paddingX, separatorPaddingY, itemSpacing, module, theme);
@@ -191,9 +188,9 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
             double animatedHeight = expandedHeight * heightProgress;
             boolean animationChanged = previousAnimProgress != animProgress;
             if (settingsContainerCell != null) {
-                int padTopPx = (heightProgress > 0) ? MathHelper.floor(theme().scale(theme().separatorPaddingY.get()) + 0.5) : 0;
-                if (settingsContainerCell.padTop() != padTopPx) {
-                    settingsContainerCell.padTop(padTopPx);
+                double padTop = (heightProgress > 0) ? theme().separatorPaddingY.get() : 0;
+                if (settingsContainerCell.padTop() != theme().scale(padTop)) {
+                    settingsContainerCell.padTop(padTop);
                     animationChanged = true;
                 }
             }
