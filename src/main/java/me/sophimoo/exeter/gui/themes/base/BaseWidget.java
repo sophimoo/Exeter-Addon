@@ -96,8 +96,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
     default RowSurfaceStyle moduleRowSurfaceStyle(boolean active, boolean pressed, boolean mouseOver, UnaryOperator<Color> colorMapper) {
         ModuleGradientDirection gradientDirection = theme().moduleGradientDirection.get();
-        boolean renderInactiveGradient = theme().gradientApplicationMode.get().shouldApply(false) && gradientDirection != ModuleGradientDirection.NONE;
-        boolean renderActiveGradient = theme().gradientApplicationMode.get().shouldApply(true) && gradientDirection != ModuleGradientDirection.NONE;
+        boolean renderGradient = gradientDirection != ModuleGradientDirection.NONE;
 
         Color inactiveGradient = mapColor(theme().moduleInactiveGradientColor.get(), colorMapper);
         Color activeGradient = mapColor(theme().moduleActiveGradientColor.get(), colorMapper);
@@ -106,13 +105,13 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
         return createRowSurfaceStyle(
             mapColor(theme().moduleInactiveColor.get(), colorMapper),
             inactiveGradient,
-            !active && renderInactiveGradient,
+            renderGradient,
             mapColor(active ? theme().moduleActiveColor.get() : theme().moduleHoveredColor.get(), colorMapper),
             active ? activeGradient : hoveredGradient,
-            theme().gradientApplicationMode.get().shouldApply(active) && gradientDirection != ModuleGradientDirection.NONE,
+            renderGradient,
             mapColor(theme().moduleHoveredColor.get(), colorMapper),
             hoveredGradient,
-            renderInactiveGradient,
+            renderGradient,
             gradientDirection,
             theme().outlineColor.get(pressed, mouseOver),
             colorMapper
@@ -121,7 +120,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
     default RowSurfaceStyle itemRowSurfaceStyle(boolean active, boolean pressed, boolean mouseOver) {
         ModuleGradientDirection gradientDirection = theme().moduleGradientDirection.get();
-        boolean renderGradient = theme().gradientApplicationMode.get().shouldApply(false) && gradientDirection != ModuleGradientDirection.NONE;
+        boolean renderGradient = gradientDirection != ModuleGradientDirection.NONE;
 
         return createRowSurfaceStyle(
             theme().itemBackgroundColor.get(),
@@ -129,7 +128,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
             renderGradient,
             active ? theme().itemActiveColor.get() : theme().itemHoveredBackgroundColor.get(),
             active ? theme().itemActiveGradientColor.get() : theme().itemHoveredBackgroundGradientColor.get(),
-            theme().gradientApplicationMode.get().shouldApply(active) && gradientDirection != ModuleGradientDirection.NONE,
+            renderGradient,
             theme().itemHoveredBackgroundColor.get(),
             theme().itemHoveredBackgroundGradientColor.get(),
             renderGradient,
@@ -141,7 +140,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
     default RowSurfaceStyle separatorRowSurfaceStyle(boolean active, boolean mouseOver) {
         ModuleGradientDirection gradientDirection = theme().moduleGradientDirection.get();
-        boolean renderGradient = theme().gradientApplicationMode.get().shouldApply(false) && gradientDirection != ModuleGradientDirection.NONE;
+        boolean renderGradient = gradientDirection != ModuleGradientDirection.NONE;
 
         return createRowSurfaceStyle(
             theme().separatorInactiveColor.get(),
@@ -149,7 +148,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
             renderGradient,
             active ? theme().separatorActiveColor.get() : theme().separatorHoveredColor.get(),
             active ? theme().separatorActiveGradientColor.get() : theme().separatorHoveredGradientColor.get(),
-            theme().gradientApplicationMode.get().shouldApply(active) && gradientDirection != ModuleGradientDirection.NONE,
+            renderGradient,
             theme().separatorHoveredColor.get(),
             theme().separatorHoveredGradientColor.get(),
             renderGradient,

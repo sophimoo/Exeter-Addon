@@ -292,13 +292,6 @@ public class BaseGuiTheme extends GuiTheme {
         .build()
     );
 
-    public final Setting<GradientApplicationMode> gradientApplicationMode = sgModuleRender.add(new EnumSetting.Builder<GradientApplicationMode>()
-        .name("module-gradient-apply-to")
-        .description("Which module states the gradient should be applied to.")
-        .defaultValue(GradientApplicationMode.ACTIVE)
-        .build()
-    );
-
     public final Setting<ModuleIndicatorPosition> moduleIndicatorPosition = sgModuleRender.add(new EnumSetting.Builder<ModuleIndicatorPosition>()
         .name("module-indicator-position")
         .description("Position of the active module indicator bar. 'None' to disable.")
