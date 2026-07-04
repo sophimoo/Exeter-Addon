@@ -104,6 +104,7 @@ public class BaseModulesScreen extends TabScreen {
         if (expandedModulesDirty) {
             refreshExpandedModules();
             expandedModulesDirty = false;
+            invalidate();
         }
 
         if (theme.inlineModuleSettings.get() && !expandedModules.isEmpty()) {
@@ -120,19 +121,25 @@ public class BaseModulesScreen extends TabScreen {
     private void refreshExpandedModules() {
         if (controller == null) return;
         expandedModules.clear();
-        collectExpandedModules(controller, expandedModules);
+        refreshModuleSpacing(controller);
     }
 
-    private void collectExpandedModules(WContainer container, List<WBaseModule> out) {
+    private void refreshModuleSpacing(WContainer container) {
         if (container == null) return;
         for (Cell<?> cell : container.cells) {
             WWidget widget = cell.widget();
             if (widget instanceof WBaseModule module) {
-                if (module.isSettingsExpanded()) out.add(module);
+                if (module.isSettingsExpanded()) expandedModules.add(module);
+                cell.padBottom(spacingAfterModule(module));
             } else if (widget instanceof WContainer nested) {
-                collectExpandedModules(nested, out);
+                refreshModuleSpacing(nested);
             }
         }
+    }
+
+    private double spacingAfterModule(WBaseModule module) {
+        if (theme.inlineModuleSettings.get() && module.isSettingsExpanded()) return theme.separatorPaddingY.get();
+        return moduleSpacing();
     }
 
     protected void addIcon(WContainer container, Object icon) {
@@ -164,7 +171,7 @@ public class BaseModulesScreen extends TabScreen {
             var cell = container.add(theme.module(module)).expandX();
             cell.padLeft(s).padRight(s);
             if (i == 0) cell.padTop(s);
-            if (i == modules.size() - 1) cell.padBottom(s);
+            cell.padBottom(s);
         }
     }
 
@@ -210,7 +217,7 @@ public class BaseModulesScreen extends TabScreen {
         c.add(w);
         w.view.scrollOnlyWhenMouseOver = true;
         w.view.hasScrollBar = false;
-        w.view.spacing = moduleSpacing();
+        w.view.spacing = 0;
         addModules(w, modules);
         return w;
     }
@@ -295,10 +302,10 @@ public class BaseModulesScreen extends TabScreen {
             w.beforeHeaderInit = wContainer -> addIcon(wContainer, Items.NETHER_STAR.getDefaultStack());
         }
 
-Cell<WWindow> cell = c.add(w);
+        Cell<WWindow> cell = c.add(w);
         w.view.scrollOnlyWhenMouseOver = true;
         w.view.hasScrollBar = false;
-        w.view.spacing = moduleSpacing();
+        w.view.spacing = 0;
         addModules(w, favorites);
         return cell;
     }
