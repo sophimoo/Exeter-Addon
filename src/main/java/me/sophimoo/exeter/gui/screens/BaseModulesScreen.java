@@ -139,7 +139,7 @@ public class BaseModulesScreen extends TabScreen {
 
     private double spacingAfterModule(WBaseModule module) {
         if (theme.inlineModuleSettings.get() && module.isSettingsExpanded()) return theme.separatorPaddingY.get();
-        return modulePadding();
+        return modulePaddingY();
     }
 
     protected void addIcon(WContainer container, Object icon) {
@@ -159,19 +159,24 @@ public class BaseModulesScreen extends TabScreen {
         invalidate();
     }
 
-    private double modulePadding() {
-        return theme.modulePadding.get();
+    private double modulePaddingX() {
+        return theme.modulePaddingX.get();
+    }
+
+    private double modulePaddingY() {
+        return theme.modulePaddingY.get();
     }
 
     protected void addModules(WContainer container, List<Module> modules) {
-        double s = modulePadding();
+        double sx = modulePaddingX();
+        double sy = modulePaddingY();
 
         for (int i = 0; i < modules.size(); i++) {
             Module module = modules.get(i);
             var cell = container.add(theme.module(module)).expandX();
-            cell.padLeft(s).padRight(s);
-            if (i == 0) cell.padTop(s);
-            cell.padBottom(s);
+            cell.padLeft(sx).padRight(sx);
+            if (i == 0) cell.padTop(sy);
+            cell.padBottom(sy);
         }
     }
 

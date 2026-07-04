@@ -111,8 +111,10 @@ public class BaseSettingsWidgetFactory extends SettingsWidgetFactory {
 
     private void group(WVerticalList list, SettingGroup group, String filter) {
         double padding = moduleSettingsPaddingX();
+        double separatorPaddingX = separatorPaddingX();
         double separatorPadding = separatorPaddingY();
-        WSection section = list.add(theme.section(group.name, group.sectionExpanded)).expandX().padHorizontal(padding).widget();
+        WSection section = list.add(theme.section(group.name, group.sectionExpanded)).expandX().widget();
+        section.cells.get(0).padHorizontal(separatorPaddingX);
         section.spacing = 0;
         section.action = () -> group.sectionExpanded = section.isExpanded();
 
@@ -454,12 +456,17 @@ public class BaseSettingsWidgetFactory extends SettingsWidgetFactory {
 
     private double moduleSettingsPaddingX() {
         BaseGuiTheme baseTheme = baseTheme();
-        return baseTheme != null ? baseTheme.settingsPaddingX.get() : 6;
+        return baseTheme != null ? baseTheme.itemPaddingX.get() : 6;
     }
 
     private double separatorPaddingY() {
         BaseGuiTheme baseTheme = baseTheme();
         return baseTheme != null ? baseTheme.separatorPaddingY.get() : 3;
+    }
+
+    private double separatorPaddingX() {
+        BaseGuiTheme baseTheme = baseTheme();
+        return baseTheme != null ? baseTheme.separatorPaddingX.get() : 0;
     }
 
     @FunctionalInterface

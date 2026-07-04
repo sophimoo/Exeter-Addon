@@ -78,15 +78,16 @@ public class ModuleSettingsScreen extends WindowScreen {
     }
 
     private void addBindSection(WVerticalList container) {
-        double paddingX = baseTheme != null ? baseTheme.settingsPaddingX.get() : 6;
+        double paddingX = baseTheme != null ? baseTheme.itemPaddingX.get() : 6;
+        double separatorPaddingX = baseTheme != null ? baseTheme.separatorPaddingX.get() : 0;
         double separatorPaddingY = baseTheme != null ? baseTheme.separatorPaddingY.get() : 6;
         double itemSpacing = baseTheme != null ? baseTheme.itemPaddingY.get() : 0;
 
         Cell<WSection> bindSectionCell = container.add(theme.section("Bind", true))
             .expandX()
             .padTop(separatorPaddingY)
-            .padHorizontal(paddingX)
             .padBottom(separatorPaddingY);
+        bindSectionCell.widget().cells.get(0).padHorizontal(separatorPaddingX);
 
         keybindWidget = ModuleBindUtils.populateBindSection(bindSectionCell, paddingX, separatorPaddingY, itemSpacing, module, theme);
         keybindWidget.actionOnSet = () -> Modules.get().setModuleToBind(module);
