@@ -90,7 +90,7 @@ public class WBaseSection extends WSection implements BaseWidget {
 
         private ModuleSettingsIndicator resolveSeparatorIndicatorStyle() {
             ModuleSettingsIndicator style = theme().moduleSettingsIndicator.get();
-            if (style == ModuleSettingsIndicator.NONE || style == ModuleSettingsIndicator.DROPDOWN) return style;
+            if (style == ModuleSettingsIndicator.NONE) return style;
             return theme().indicatorsOnSeparators.get() ? style : ModuleSettingsIndicator.NONE;
         }
 

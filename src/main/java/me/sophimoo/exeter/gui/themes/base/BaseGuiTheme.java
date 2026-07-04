@@ -388,7 +388,7 @@ public class BaseGuiTheme extends GuiTheme {
 
     public final Setting<Boolean> indicatorsOnSeparators = sgModuleRender.add(new BoolSetting.Builder()
         .name("indicators-on-separators")
-        .description("Also applies the exeter/meteor indicator to section separators.")
+        .description("Also applies the selected module indicator to section separators.")
         .defaultValue(false)
         .onChanged(v -> invalidateCurrentScreen())
         .build()
