@@ -89,7 +89,7 @@ public class WBaseSection extends WSection implements BaseWidget {
         private final MarqueeState marquee = new MarqueeState();
 
         private ModuleSettingsIndicator resolveSeparatorIndicatorStyle() {
-            ModuleSettingsIndicator style = theme().moduleSettingsIndicator.get();
+            ModuleSettingsIndicator style = theme().indicatorType.get();
             if (style == ModuleSettingsIndicator.NONE) return style;
             return theme().indicatorsOnSeparators.get() ? style : ModuleSettingsIndicator.NONE;
         }
@@ -134,8 +134,8 @@ public class WBaseSection extends WSection implements BaseWidget {
         @Override
         protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
             double pad = pad();
-            String collapsedIndicator = theme().moduleCollapsedIndicator.get();
-            String expandedIndicator = theme().moduleExpandedIndicator.get();
+            String collapsedIndicator = theme().collapsedIndicator.get();
+            String expandedIndicator = theme().expandedIndicator.get();
             if (collapsedIndicator == null) collapsedIndicator = "";
             if (expandedIndicator == null) expandedIndicator = "";
 
@@ -195,8 +195,8 @@ public class WBaseSection extends WSection implements BaseWidget {
                 case EXETER -> theme().textHeight() * EXETER_ICON_SCALE;
                 case METEOR -> theme().textHeight();
                 case DROPDOWN -> {
-                    String collapsedIndicator = theme().moduleCollapsedIndicator.get();
-                    String expandedIndicator = theme().moduleExpandedIndicator.get();
+                    String collapsedIndicator = theme().collapsedIndicator.get();
+                    String expandedIndicator = theme().expandedIndicator.get();
                     if (collapsedIndicator == null) collapsedIndicator = "";
                     if (expandedIndicator == null) expandedIndicator = "";
                     yield Math.max(theme().textWidth(collapsedIndicator), theme().textWidth(expandedIndicator));

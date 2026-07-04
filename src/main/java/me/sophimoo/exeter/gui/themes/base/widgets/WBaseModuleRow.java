@@ -170,10 +170,10 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
     }
 
     protected final ModuleRowLayout computeRowLayout() {
-        String collapsedIndicator = safeIndicator(theme().moduleCollapsedIndicator.get());
-        String expandedIndicator = safeIndicator(theme().moduleExpandedIndicator.get());
+        String collapsedIndicator = safeIndicator(theme().collapsedIndicator.get());
+        String expandedIndicator = safeIndicator(theme().expandedIndicator.get());
         ModuleSettingsIndicator indicatorStyle = theme().inlineModuleSettings.get()
-            ? theme().moduleSettingsIndicator.get()
+            ? theme().indicatorType.get()
             : ModuleSettingsIndicator.NONE;
         double settingsIconWidth = switch (indicatorStyle) {
             case NONE -> 0;

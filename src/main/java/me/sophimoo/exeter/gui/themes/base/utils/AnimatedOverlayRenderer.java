@@ -1,7 +1,7 @@
 package me.sophimoo.exeter.gui.themes.base.utils;
 
 import me.sophimoo.exeter.gui.renderer.GradientRenderer;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleAnimationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.SelectionRenderingMode;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.utils.render.color.Color;
@@ -12,7 +12,7 @@ public final class AnimatedOverlayRenderer {
 
     public static void render(GuiRenderer renderer,
                               double x, double y, double width, double height,
-                              ModuleAnimationMode mode, double progress,
+                              SelectionRenderingMode mode, double progress,
                               Color bgColor, Color gradientColor, ModuleGradientDirection gradientDir) {
         double rx = x;
         double ry = y;

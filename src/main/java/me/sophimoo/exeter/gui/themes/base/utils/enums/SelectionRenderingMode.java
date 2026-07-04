@@ -1,6 +1,6 @@
 package me.sophimoo.exeter.gui.themes.base.utils.enums;
 
-public enum ModuleAnimationMode {
+public enum SelectionRenderingMode {
     FADE("Fade"),
     SLIDE_LEFT("Slide Left"),
     SLIDE_RIGHT("Slide Right"),
@@ -10,7 +10,7 @@ public enum ModuleAnimationMode {
 
     private final String title;
 
-    ModuleAnimationMode(String title) { this.title = title; }
+    SelectionRenderingMode(String title) { this.title = title; }
 
     @Override
     public String toString() {

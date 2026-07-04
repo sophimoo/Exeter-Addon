@@ -6,7 +6,7 @@ import me.sophimoo.exeter.gui.renderer.WorldFramebufferCapture;
 import me.sophimoo.exeter.gui.themes.base.utils.AnimatedOverlayRenderer;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
 import me.sophimoo.exeter.gui.themes.base.utils.InterpolationState;
-import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleAnimationMode;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.SelectionRenderingMode;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleIndicatorPosition;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.TextHoverDisplacementDirection;
@@ -28,7 +28,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     record RowSurfaceStyle(SurfaceLayer baseLayer, SurfaceLayer overlayLayer, SurfaceLayer hoveredOverlayLayer,
                            ModuleGradientDirection gradientDirection, double outlineThickness, Color outlineColor) {}
     record RowIndicatorStyle(ModuleIndicatorPosition position, double thickness, Color color) {}
-    record RowAnimationState(ModuleAnimationMode effectiveAnimationMode, double primaryProgress, double hoverProgress) {}
+    record RowAnimationState(SelectionRenderingMode effectiveAnimationMode, double primaryProgress, double hoverProgress) {}
     record RowTextLayout(double areaX, double areaY, double areaWidth, double areaHeight, double textY, double staticTextX) {}
 
     double EXETER_ICON_SCALE = 1.4;
@@ -68,10 +68,10 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     default RowAnimationState animateRow(double delta, boolean mouseOver,
                                          boolean primaryVisible, boolean hoverVisible,
                                          double primaryProgress, double hoverProgress) {
-        ModuleAnimationMode effectiveAnimationMode = isInterpolationMode() ? ModuleAnimationMode.FADE : theme().moduleAnimationMode.get();
+        SelectionRenderingMode effectiveAnimationMode = isInterpolationMode() ? SelectionRenderingMode.FADE : theme().selectionRenderingMode.get();
 
-        double fadeInSpeed = theme().moduleSelectSpeed.get();
-        double fadeOutSpeed = theme().moduleDeselectSpeed.get();
+        double fadeInSpeed = theme().selectionSelectSpeed.get();
+        double fadeOutSpeed = theme().selectionDeselectSpeed.get();
         double hoverFadeInSpeed = fadeInSpeed;
         double hoverFadeOutSpeed = fadeOutSpeed;
 
@@ -83,7 +83,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     }
 
     default boolean isInterpolationMode() {
-        return theme().moduleAnimationMode.get() == ModuleAnimationMode.INTERPOLATE;
+        return theme().selectionRenderingMode.get() == SelectionRenderingMode.INTERPOLATE;
     }
 
     default boolean localHoverAnimationVisible(boolean hovered) {
@@ -95,7 +95,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     }
 
     default RowSurfaceStyle moduleRowSurfaceStyle(boolean active, boolean pressed, boolean mouseOver, UnaryOperator<Color> colorMapper) {
-        ModuleGradientDirection gradientDirection = theme().moduleGradientDirection.get();
+        ModuleGradientDirection gradientDirection = theme().gradientRender.get();
         boolean renderGradient = gradientDirection != ModuleGradientDirection.NONE;
 
         Color inactiveGradient = mapColor(theme().moduleInactiveGradientColor.get(), colorMapper);
@@ -119,18 +119,18 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     }
 
     default RowSurfaceStyle itemRowSurfaceStyle(boolean active, boolean pressed, boolean mouseOver) {
-        ModuleGradientDirection gradientDirection = theme().moduleGradientDirection.get();
+        ModuleGradientDirection gradientDirection = theme().gradientRender.get();
         boolean renderGradient = gradientDirection != ModuleGradientDirection.NONE;
 
         return createRowSurfaceStyle(
-            theme().itemBackgroundColor.get(),
-            theme().itemBackgroundGradientColor.get(),
+            theme().itemInactiveColor.get(),
+            theme().itemInactiveGradientColor.get(),
             renderGradient,
-            active ? theme().itemActiveColor.get() : theme().itemHoveredBackgroundColor.get(),
-            active ? theme().itemActiveGradientColor.get() : theme().itemHoveredBackgroundGradientColor.get(),
+            active ? theme().itemActiveColor.get() : theme().itemHoveredColor.get(),
+            active ? theme().itemActiveGradientColor.get() : theme().itemHoveredGradientColor.get(),
             renderGradient,
-            theme().itemHoveredBackgroundColor.get(),
-            theme().itemHoveredBackgroundGradientColor.get(),
+            theme().itemHoveredColor.get(),
+            theme().itemHoveredGradientColor.get(),
             renderGradient,
             gradientDirection,
             theme().outlineColor.get(pressed, mouseOver),
@@ -139,7 +139,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     }
 
     default RowSurfaceStyle separatorRowSurfaceStyle(boolean active, boolean mouseOver) {
-        ModuleGradientDirection gradientDirection = theme().moduleGradientDirection.get();
+        ModuleGradientDirection gradientDirection = theme().gradientRender.get();
         boolean renderGradient = gradientDirection != ModuleGradientDirection.NONE;
 
         return createRowSurfaceStyle(
@@ -160,8 +160,8 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
     default RowIndicatorStyle moduleIndicatorStyle(Color color) {
         return new RowIndicatorStyle(
-            theme().moduleIndicatorPosition.get(),
-            theme().scale(theme().moduleIndicatorThickness.get()),
+            theme().activeIndicatorPosition.get(),
+            theme().scale(theme().activeIndicatorThickness.get()),
             color
         );
     }
@@ -184,11 +184,11 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     }
 
     default void renderRowSurface(GuiRenderer renderer, double x, double y, double width, double height,
-                                   ModuleAnimationMode overlayAnimationMode, double overlayProgress,
+                                    SelectionRenderingMode overlayAnimationMode, double overlayProgress,
                                    double hoveredOverlayProgress, RowSurfaceStyle style) {
         double baseProgress = 1 - overlayProgress;
         if (baseProgress > 0 && style.baseLayer() != null) {
-            renderSurfaceLayer(renderer, x, y, width, height, ModuleAnimationMode.FADE, baseProgress, style.baseLayer(), style.gradientDirection());
+            renderSurfaceLayer(renderer, x, y, width, height, SelectionRenderingMode.FADE, baseProgress, style.baseLayer(), style.gradientDirection());
         }
 
         if (overlayProgress > 0 && style.overlayLayer() != null) {
@@ -216,7 +216,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
         InterpolationState interpolation = theme().getInterpolation(getInterpolationKey());
         interpolation.notifyHover(x, y, width, height, hovered);
-        interpolation.update(delta, theme().moduleSelectSpeed.get(), theme().moduleSelectSpeed.get(), theme().moduleDeselectSpeed.get());
+        interpolation.update(delta, theme().selectionSelectSpeed.get(), theme().selectionSelectSpeed.get(), theme().selectionDeselectSpeed.get());
 
         double[] isect = interpolation.getIntersection(x, y, width, height);
         if (isect == null) return;
@@ -410,7 +410,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     }
 
     private void renderSurfaceLayer(GuiRenderer renderer, double x, double y, double width, double height,
-                                    ModuleAnimationMode animationMode, double progress, SurfaceLayer layer,
+                                    SelectionRenderingMode animationMode, double progress, SurfaceLayer layer,
                                     ModuleGradientDirection gradientDirection) {
         if (layer == null || layer.color() == null) return;
 
@@ -434,7 +434,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
     default double stepProgress(double currentProgress, boolean shouldFadeIn, double delta) {
         return stepAnimationProgress(currentProgress, shouldFadeIn, delta,
-            theme().moduleSelectSpeed.get(), theme().moduleDeselectSpeed.get());
+            theme().selectionSelectSpeed.get(), theme().selectionDeselectSpeed.get());
     }
 
     default double stepAnimationProgress(double currentProgress, boolean shouldFadeIn, double delta, double fadeInSpeed, double fadeOutSpeed) {
@@ -533,9 +533,9 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
     default Color resolveSettingsTextColor(double activeProgress, double hoverProgress) {
         return resolveTextStateColor(
-            theme().settingsTextInactiveColor.get(),
-            theme().settingsTextActiveColor.get(),
-            theme().settingsTextHoveredColor.get(),
+            theme().itemTextInactiveColor.get(),
+            theme().itemTextActiveColor.get(),
+            theme().itemTextHoveredColor.get(),
             activeProgress,
             hoverProgress
         );

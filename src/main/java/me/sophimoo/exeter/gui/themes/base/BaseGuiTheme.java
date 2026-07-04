@@ -61,86 +61,70 @@ public class BaseGuiTheme extends GuiTheme {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
     private final SettingGroup sgColors = settings.createGroup("Colors");
     private final SettingGroup sgTextColors = settings.createGroup("Text");
+    private final SettingGroup sgSnapping = settings.createGroup("Snapping");
+    private final SettingGroup sgAlignment = settings.createGroup("Alignment");
+    private final SettingGroup sgBlur = settings.createGroup("Blur");
     private final SettingGroup sgBackgroundColors = settings.createGroup("Background");
     private final SettingGroup sgOutline = settings.createGroup("Outline");
     private final SettingGroup sgScrollbar = settings.createGroup("Scrollbar");
     private final SettingGroup sgSlider = settings.createGroup("Slider");
-    private final SettingGroup sgBlur = settings.createGroup("Blur");
-    private final SettingGroup sgModuleAnimation = settings.createGroup("Module Animation");
+    private final SettingGroup sgSelectionRendering = settings.createGroup("Selection Rendering");
+    private final SettingGroup sgIndicatorRender = settings.createGroup("Indicator Rendering");
     private final SettingGroup sgGeneralRender = settings.createGroup("General Rendering");
     private final SettingGroup sgModuleRender = settings.createGroup("Module Rendering");
     private final SettingGroup sgSeparatorRender = settings.createGroup("Separator Rendering");
     private final SettingGroup sgItemRender = settings.createGroup("Item Rendering");
-    private final SettingGroup sgTextShadow = settings.createGroup("Text Shadow");
     private final SettingGroup sgStarscript = settings.createGroup("Starscript");
-    // https://github.com/X-C-0/catppuccin-addon/blob/d642959fbaa9e5757013ea38f57556eb88c8b822/src/main/java/me/pindour/catppuccin/gui/themes/catppuccin/CatppuccinGuiTheme.java#L70
-    private final SettingGroup sgSnapping = settings.createGroup("Snapping");
 
 
     // General
 
     public final Setting<Double> scale = sgGeneral.add(new DoubleSetting.Builder()
-        .name("scale")
-        .description("Scale of the GUI.")
-        .defaultValue(1)
-        .min(0.75)
-        .sliderRange(0.75, 4)
-        .onSliderRelease()
-        .onChanged(aDouble -> {
-            if (mc.currentScreen instanceof WidgetScreen) ((WidgetScreen) mc.currentScreen).invalidate();
-        })
-        .build()
+            .name("scale")
+            .description("Scale of the GUI.")
+            .defaultValue(1)
+            .min(0.75)
+            .sliderRange(0.75, 4)
+            .onSliderRelease()
+            .onChanged(aDouble -> {
+                if (mc.currentScreen instanceof WidgetScreen) ((WidgetScreen) mc.currentScreen).invalidate();
+            })
+            .build()
     );
 
-    public final Setting<AlignmentX> categoryAlignment = sgGeneral.add(new EnumSetting.Builder<AlignmentX>()
-            .name("category-alignment")
-            .description("How category lists are aligned horizontally.")
-            .defaultValue(AlignmentX.Left)
+    public final Setting<Boolean> categoryIcons = sgGeneral.add(new BoolSetting.Builder()
+            .name("category-icons")
+            .description("Adds item icons to module categories.")
+            .defaultValue(false)
+            .build()
+    );
+
+    public final Setting<Boolean> fixedCategorySize = sgGeneral.add(new BoolSetting.Builder()
+            .name("fixed-category-size")
+            .description("Forces category windows to a fixed width.")
+            .defaultValue(false)
             .onChanged(v -> invalidateCurrentScreen())
             .build()
     );
 
-    public final Setting<AlignmentX> categoryTitleAlignment = sgGeneral.add(new EnumSetting.Builder<AlignmentX>()
-        .name("category-title-alignment")
-        .description("How category window titles are aligned.")
-        .defaultValue(AlignmentX.Center)
-        .onChanged(v -> invalidateCurrentScreen())
-        .build()
-    );
-
-    public final Setting<Boolean> categoryIcons = sgGeneral.add(new BoolSetting.Builder()
-        .name("category-icons")
-        .description("Adds item icons to module categories.")
-        .defaultValue(false)
-        .build()
-    );
-
-    public final Setting<Boolean> fixedCategorySize = sgGeneral.add(new BoolSetting.Builder()
-        .name("fixed-category-size")
-        .description("Forces category windows to a fixed width.")
-        .defaultValue(false)
-        .onChanged(v -> invalidateCurrentScreen())
-        .build()
-    );
-
     public final Setting<Integer> fixedCategoryWidth = sgGeneral.add(new IntSetting.Builder()
-        .name("fixed-category-width")
-        .description("Width used for category windows when fixed sizing is enabled.")
-        .defaultValue(220)
-        .range(1, 400)
-        .sliderRange(1, 400)
-        .onChanged(v -> invalidateCurrentScreen())
-        .build()
+            .name("fixed-category-width")
+            .description("Width used for category windows when fixed sizing is enabled.")
+            .defaultValue(220)
+            .range(1, 400)
+            .sliderRange(1, 400)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
     );
 
     public final Setting<Boolean> hideHUD = sgGeneral.add(new BoolSetting.Builder()
-        .name("hide-HUD")
-        .description("Hide HUD when in GUI.")
-        .defaultValue(false)
-        .onChanged(v -> {
-            if (mc.currentScreen instanceof WidgetScreen) mc.options.hudHidden = v;
-        })
-        .build()
+            .name("hide-HUD")
+            .description("Hide HUD when in GUI.")
+            .defaultValue(false)
+            .onChanged(v -> {
+                if (mc.currentScreen instanceof WidgetScreen) mc.options.hudHidden = v;
+            })
+            .build()
     );
 
     public final Setting<Boolean> inlineModuleSettings = sgGeneral.add(new BoolSetting.Builder()
@@ -158,28 +142,6 @@ public class BaseGuiTheme extends GuiTheme {
             .build()
     );
 
-    // Snapping
-    // https://github.com/X-C-0/catppuccin-addon/blob/d642959fbaa9e5757013ea38f57556eb88c8b822/src/main/java/me/pindour/catppuccin/gui/themes/catppuccin/CatppuccinGuiTheme.java#L190
-
-    public final Setting<Boolean> snapModuleCategories = sgSnapping.add(new BoolSetting.Builder()
-        .name("snap-module-categories")
-        .description("Snaps module screen windows to the grid.")
-        .defaultValue(true)
-        .build()
-    );
-
-    public final Setting<Integer> snappingGridSize = sgSnapping.add(new IntSetting.Builder()
-        .name("grid-size")
-        .description("The size of the snapping grid.")
-        .defaultValue(10)
-        .range(5, 50)
-        .sliderRange(5, 50)
-        .build()
-    );
-
-
-    // Padding
-
     public final Setting<Double> globalPadding = sgGeneral.add(new DoubleSetting.Builder()
             .name("global-padding")
             .description("Global padding applied to all GUI elements.")
@@ -192,239 +154,19 @@ public class BaseGuiTheme extends GuiTheme {
     );
 
     public final Setting<Boolean> debugWidgetSizes = sgGeneral.add(new BoolSetting.Builder()
-        .name("debug-widget-sizes")
-        .description("Prints button and setting row sizes to the game log.")
-        .defaultValue(false)
-        .build()
-    );
-
-    // Gui
-
-    public final Setting<Integer> widgetBlurStrength = sgBlur.add(new IntSetting.Builder()
-        .name("gui-blur")
-        .description("Blur strength behind gui. Higher values = more blur.")
-        .defaultValue(0)
-        .min(0)
-        .max(5)
-        .sliderRange(0, 5)
-        .onChanged(v -> updateBlurCapture())
-        .build()
-    );
-
-    public final Setting<Double> blurTextureScale = sgBlur.add(new DoubleSetting.Builder()
-        .name("blur-texture-scale")
-        .description("Scale of the blur texture. Lower values = blurrier but faster.")
-        .defaultValue(0.25)
-        .min(0.01)
-        .max(1)
-        .sliderRange(0.01, 1)
-        .onChanged(v -> updateBlurCapture())
-        .build()
-    );
-
-    public final Setting<Boolean> darkening = sgBlur.add(new BoolSetting.Builder()
-            .name("darkening")
-            .description("Darkens the background when the GUI is open.")
+            .name("debug-widget-sizes")
+            .description("Prints button and setting row sizes to the game log.")
             .defaultValue(false)
             .build()
     );
 
-    // Module animation
-
-    public final Setting<ModuleAnimationMode> moduleAnimationMode = sgModuleAnimation.add(new EnumSetting.Builder<ModuleAnimationMode>()
-        .name("module-animation-mode")
-        .description("Animation style for module hover and active states.")
-        .defaultValue(ModuleAnimationMode.SLIDE_LEFT)
-        .build()
-    );
-
-    public final Setting<Double> moduleSelectSpeed = sgModuleAnimation.add(new DoubleSetting.Builder()
-            .name("module-select-speed")
-            .description("Speed of module select animation.")
-            .defaultValue(6)
-            .min(0)
-            .max(32)
-            .sliderRange(0, 32)
-            .build()
-    );
-
-    public final Setting<Double> moduleDeselectSpeed = sgModuleAnimation.add(new DoubleSetting.Builder()
-            .name("module-deselect-speed")
-            .description("Speed of module deselect animation.")
-            .defaultValue(4)
-            .min(0)
-            .max(32)
-            .sliderRange(0, 32)
-            .build()
-    );
-
-    // Module rendering
-
-    public final Setting<AlignmentX> moduleAlignment = sgGeneralRender.add(new EnumSetting.Builder<AlignmentX>()
-            .name("module-title-alignment")
-            .description("How module titles are aligned horizontally.")
-            .defaultValue(AlignmentX.Center)
-            .build()
-    );
-
-    public final Setting<AlignmentY> moduleAlignmentY = sgGeneralRender.add(new EnumSetting.Builder<AlignmentY>()
-            .name("module-vertical-alignment")
-            .description("How module titles are aligned vertically.")
-            .defaultValue(AlignmentY.Center)
-            .build()
-    );
-
-    public final Setting<ModuleGradientDirection> moduleGradientDirection = sgGeneralRender.add(new EnumSetting.Builder<ModuleGradientDirection>()
-        .name("module-gradient-direction")
-        .description("Gradient direction for active module background. 'None' uses solid color.")
-        .defaultValue(ModuleGradientDirection.NONE)
-        .build()
-    );
-
-    public final Setting<ModuleIndicatorPosition> moduleIndicatorPosition = sgGeneralRender.add(new EnumSetting.Builder<ModuleIndicatorPosition>()
-        .name("module-indicator-position")
-        .description("Position of the active module indicator bar. 'None' to disable.")
-        .defaultValue(ModuleIndicatorPosition.LEFT)
-        .build()
-    );
-
-    public final Setting<Double> moduleIndicatorThickness = sgGeneralRender.add(new DoubleSetting.Builder()
-        .name("module-indicator-thickness")
-        .description("Thickness of the active module indicator bar.")
-        .defaultValue(2)
-        .min(1)
-        .sliderRange(1, 8)
-        .build()
-    );
-
-    public final Setting<Double> moduleOutlineThickness = sgGeneralRender.add(new DoubleSetting.Builder()
-            .name("module-outline-thickness")
-            .description("Thickness of module outlines.")
-            .defaultValue(0)
-            .min(0)
-            .max(5)
-            .sliderRange(0, 5)
-            .build()
-    );
-
-    public final Setting<Double> itemHeight = sgItemRender.add(new DoubleSetting.Builder()
-            .name("item-height")
-            .description("Height of settings items.")
-            .defaultValue(0)
-            .min(0)
-            .max(50)
-            .sliderRange(0, 50)
-            .onChanged(v -> invalidateCurrentScreen())
-            .build()
-    );
-
-    public final Setting<Double> itemPaddingX = sgItemRender.add(new DoubleSetting.Builder()
-            .name("item-padding-x")
-            .description("Horizontal padding for settings items.")
-            .defaultValue(4)
-            .min(0)
-            .max(30)
-            .sliderRange(0, 30)
-            .onChanged(v -> invalidateCurrentScreen())
-            .build()
-    );
-
-    public final Setting<Double> itemPaddingY = sgItemRender.add(new DoubleSetting.Builder()
-            .name("item-padding-y")
-            .description("Padding between items in settings lists.")
-            .defaultValue(0)
-            .min(0)
-            .max(10)
-            .sliderRange(0, 10)
-            .onChanged(v -> invalidateCurrentScreen())
-            .build()
-    );
-
-
-    public final Setting<String> moduleCollapsedIndicator = sgGeneralRender.add(new StringSetting.Builder()
-        .name("module-collapsed-indicator")
-        .description("Text shown on module rows when settings are collapsed.")
-        .defaultValue("⏵")
-        .onChanged(v -> invalidateCurrentScreen())
-        .build()
-    );
-
-    public final Setting<String> moduleExpandedIndicator = sgGeneralRender.add(new StringSetting.Builder()
-        .name("module-expanded-indicator")
-        .description("Text shown on module rows when settings are expanded.")
-        .defaultValue("⏷")
-        .onChanged(v -> invalidateCurrentScreen())
-        .build()
-    );
-
-    public final Setting<ModuleSettingsIndicator> moduleSettingsIndicator = sgGeneralRender.add(new EnumSetting.Builder<ModuleSettingsIndicator>()
-        .name("module-settings-indicator")
-        .description("Indicator shown on module rows for expanding/collapsing settings.")
-        .defaultValue(ModuleSettingsIndicator.DROPDOWN)
-        .onChanged(v -> invalidateCurrentScreen())
-        .build()
-    );
-
-    public final Setting<Boolean> indicatorsOnSeparators = sgGeneralRender.add(new BoolSetting.Builder()
-        .name("indicators-on-separators")
-        .description("Also applies the selected module indicator to section separators.")
-        .defaultValue(false)
-        .onChanged(v -> invalidateCurrentScreen())
-        .build()
-    );
-
-    // Module colors
-    public final Setting<Double> moduleHeight = sgModuleRender.add(new DoubleSetting.Builder()
-            .name("module-height")
-            .description("Height of module buttons in module lists.")
-            .defaultValue(0)
-            .min(0)
-            .max(50)
-            .sliderRange(0, 50)
-            .onChanged(v -> invalidateCurrentScreen())
-            .build()
-    );
-
-    public final Setting<Double> modulePaddingX = sgModuleRender.add(new DoubleSetting.Builder()
-            .name("module-padding-x")
-            .description("Horizontal padding between modules in module lists.")
-            .defaultValue(0)
-            .min(0)
-            .max(10)
-            .sliderRange(0, 10)
-            .build()
-    );
-
-    public final Setting<Double> modulePaddingY = sgModuleRender.add(new DoubleSetting.Builder()
-            .name("module-padding-y")
-            .description("Vertical padding between modules in module lists.")
-            .defaultValue(0)
-            .min(0)
-            .max(10)
-            .sliderRange(0, 10)
-            .build()
-    );
-
-    public final Setting<SettingColor> moduleInactiveColor = color(sgModuleRender, "module-inactive", "Color of module when inactive.", new SettingColor(40, 40, 40, 0));
-    public final Setting<SettingColor> moduleInactiveGradientColor = color(sgModuleRender, "module-inactive-gradient", "Gradient color for inactive modules. 'None' uses inactive color.", new SettingColor(40, 40, 40, 0));
-    public final Setting<SettingColor> moduleActiveColor = color(sgModuleRender, "module-active", "Color of module when active.", new SettingColor(70, 70, 70));
-    public final Setting<SettingColor> moduleActiveGradientColor = color(sgModuleRender, "module-active-gradient", "Gradient color for active modules. 'None' uses inactive color.", new SettingColor(40, 40, 40, 0));
-    public final Setting<SettingColor> moduleHoveredColor = color(sgModuleRender, "module-hovered", "Color of module when hovered.", new SettingColor(60, 60, 60));
-    public final Setting<SettingColor> moduleHoveredGradientColor = color(sgModuleRender, "module-hovered-gradient", "Gradient color for hovered modules.", new SettingColor(40, 40, 40, 0));
-
-    // Module text colors
-    public final Setting<SettingColor> moduleTextInactiveColor = color(sgModuleRender, "module-text-inactive", "Color of module text when inactive.", new SettingColor(255, 255, 255));
-    public final Setting<SettingColor> moduleTextActiveColor = color(sgModuleRender, "module-text-active", "Color of module text when active.", new SettingColor(255, 255, 255));
-    public final Setting<SettingColor> moduleTextHoveredColor = color(sgModuleRender, "module-text-hovered", "Color of module text when hovered.", new SettingColor(255, 255, 255));
-
-
     // Colors
     public final Setting<Boolean> followAccentHue = sgColors.add(new BoolSetting.Builder()
-        .name("follow-accent-hue")
-        .description("Affects all GUI colors, disabling it after restarting will reset a lot of settings")
-        .defaultValue(false)
-        .onChanged(this::onFollowAccentHueChanged)
-        .build()
+            .name("follow-accent-hue")
+            .description("Colors will follow the hue of the accent color")
+            .defaultValue(false)
+            .onChanged(this::onFollowAccentHueChanged)
+            .build()
     );
 
     public final Setting<SettingColor> accentColor = color("accent", "Main color of the GUI.", new SettingColor(145, 61, 226), false);
@@ -440,44 +182,124 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<SettingColor> titleTextColor = color(sgTextColors, "title-text", "Color of title text.", new SettingColor(255, 255, 255), false);
     public final Setting<SettingColor> loggedInColor = color(sgTextColors, "logged-in-text", "Color of logged in account name.", new SettingColor(45, 225, 45), false);
     public final Setting<SettingColor> placeholderColor = color(sgTextColors, "placeholder", "Color of placeholder text.", new SettingColor(255, 255, 255, 20), false);
+    public final Setting<Boolean> textShadow = sgTextColors.add(new BoolSetting.Builder()
+            .name("text-shadow")
+            .description("Renders shadow behind text")
+            .defaultValue(false)
+            .build()
+    );
+
+    public final Setting<Double> textShadowOffset = sgTextColors.add(new DoubleSetting.Builder()
+            .name("text-shadow-offset")
+            .description("Only affects non-mc font")
+            .defaultValue(1.0)
+            .min(0.5)
+            .max(3.0)
+            .sliderRange(0.5, 3.0)
+            .build()
+    );
     public final Setting<Boolean> textHoverDisplacement = sgTextColors.add(new BoolSetting.Builder()
-        .name("text-hover-displacement")
-        .description("Displaces text when hovered")
-        .defaultValue(false)
-        .build()
+            .name("text-hover-displacement")
+            .description("Displaces text when hovered")
+            .defaultValue(false)
+            .build()
     );
     public final Setting<TextHoverDisplacementDirection> textHoverDisplacementDirection = sgTextColors.add(new EnumSetting.Builder<TextHoverDisplacementDirection>()
-        .name("text-hover-displacement-direction")
-        .description("Direction to displace text on hover")
-        .defaultValue(TextHoverDisplacementDirection.RIGHT)
-        .build()
+            .name("text-hover-displacement-direction")
+            .description("Direction to displace text on hover")
+            .defaultValue(TextHoverDisplacementDirection.RIGHT)
+            .build()
     );
     public final Setting<Double> textHoverDisplacementAmount = sgTextColors.add(new DoubleSetting.Builder()
-        .name("text-hover-displacement-amount")
-        .description("How far hovered module and setting text displaces")
-        .defaultValue(2)
-        .min(0)
-        .max(20)
-        .sliderRange(0, 20)
-        .build()
+            .name("text-hover-displacement-amount")
+            .description("How far hovered module and setting text displaces")
+            .defaultValue(2)
+            .min(0)
+            .max(20)
+            .sliderRange(0, 20)
+            .build()
     );
 
-    // Text Shadow
-    public final Setting<Boolean> textShadow = sgTextShadow.add(new BoolSetting.Builder()
-        .name("text-shadow")
-        .description("Renders shadow behind text")
-        .defaultValue(true)
-        .build()
+    // Snapping
+    // https://github.com/X-C-0/catppuccin-addon/blob/d642959fbaa9e5757013ea38f57556eb88c8b822/src/main/java/me/pindour/catppuccin/gui/themes/catppuccin/CatppuccinGuiTheme.java#L190
+
+    public final Setting<Boolean> snapModuleCategories = sgSnapping.add(new BoolSetting.Builder()
+            .name("snap-module-categories")
+            .description("Snaps module screen windows to the grid.")
+            .defaultValue(true)
+            .build()
     );
 
-    public final Setting<Double> textShadowOffset = sgTextShadow.add(new DoubleSetting.Builder()
-        .name("text-shadow-offset")
-        .description("Only affects non-mc font")
-        .defaultValue(1.0)
-        .min(0.5)
-        .max(3.0)
-        .sliderRange(0.5, 3.0)
-        .build()
+    public final Setting<Integer> snappingGridSize = sgSnapping.add(new IntSetting.Builder()
+            .name("grid-size")
+            .description("The size of the snapping grid.")
+            .defaultValue(10)
+            .range(5, 50)
+            .sliderRange(5, 50)
+            .build()
+    );
+
+    // Alignment
+
+    public final Setting<AlignmentX> categoryAlignment = sgAlignment.add(new EnumSetting.Builder<AlignmentX>()
+            .name("category-alignment")
+            .description("How category lists are aligned horizontally.")
+            .defaultValue(AlignmentX.Left)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<AlignmentX> categoryTitleAlignment = sgAlignment.add(new EnumSetting.Builder<AlignmentX>()
+            .name("category-title-alignment")
+            .description("How category window titles are aligned.")
+            .defaultValue(AlignmentX.Center)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<AlignmentX> moduleAlignment = sgAlignment.add(new EnumSetting.Builder<AlignmentX>()
+            .name("module-title-alignment")
+            .description("How module titles are aligned horizontally.")
+            .defaultValue(AlignmentX.Center)
+            .build()
+    );
+
+    public final Setting<AlignmentY> moduleAlignmentY = sgAlignment.add(new EnumSetting.Builder<AlignmentY>()
+            .name("module-vertical-alignment")
+            .description("How module titles are aligned vertically.")
+            .defaultValue(AlignmentY.Center)
+            .build()
+    );
+
+    // Blur
+
+    public final Setting<Integer> widgetBlurStrength = sgBlur.add(new IntSetting.Builder()
+            .name("gui-blur")
+            .description("Blur strength behind gui. Higher values = more blur.")
+            .defaultValue(0)
+            .min(0)
+            .max(5)
+            .sliderRange(0, 5)
+            .onChanged(v -> updateBlurCapture())
+            .build()
+    );
+
+    public final Setting<Double> blurTextureScale = sgBlur.add(new DoubleSetting.Builder()
+            .name("blur-texture-scale")
+            .description("Scale of the blur texture. Lower values = blurrier but faster.")
+            .defaultValue(0.25)
+            .min(0.01)
+            .max(1)
+            .sliderRange(0.01, 1)
+            .onChanged(v -> updateBlurCapture())
+            .build()
+    );
+
+    public final Setting<Boolean> darkening = sgBlur.add(new BoolSetting.Builder()
+            .name("darkening")
+            .description("Darkens the background when the GUI is open.")
+            .defaultValue(false)
+            .build()
     );
 
     // Background
@@ -489,19 +311,6 @@ public class BaseGuiTheme extends GuiTheme {
             "pressed-", new SettingColor(40, 40, 40, 200)
     );
 
-    public final Setting<SettingColor> itemBackgroundColor = color(sgItemRender, "item-background", "Color of items.", new SettingColor(43, 43, 43, 150));
-    public final Setting<SettingColor> itemBackgroundGradientColor = color(sgItemRender, "item-background-gradient", "Gradient color of items.", new SettingColor(40, 40, 40, 0));
-    public final Setting<SettingColor> itemHoveredBackgroundColor = color(sgItemRender, "hovered-item-background", "Color of items when hovered.", new SettingColor(60, 60, 60, 255));
-    public final Setting<SettingColor> itemHoveredBackgroundGradientColor = color(sgItemRender, "hovered-item-background-gradient", "Gradient color of items when hovered.", new SettingColor(40, 40, 40, 0));
-
-    public final Setting<SettingColor> itemActiveColor = color(sgItemRender, "item-active", "Color of items when active.", new SettingColor(70, 70, 70, 200));
-    public final Setting<SettingColor> itemActiveGradientColor = color(sgItemRender, "item-active-gradient", "Gradient color of items when active.", new SettingColor(40, 40, 40, 0));
-
-    // Settings text colors
-    public final Setting<SettingColor> settingsTextInactiveColor = color(sgItemRender, "settings-text-inactive", "Color of settings text when inactive.", new SettingColor(255, 255, 255));
-    public final Setting<SettingColor> settingsTextActiveColor = color(sgItemRender, "settings-text-active", "Color of settings text when active.", new SettingColor(255, 255, 255));
-    public final Setting<SettingColor> settingsTextHoveredColor = color(sgItemRender, "settings-text-hovered", "Color of settings text when hovered.", new SettingColor(255, 255, 255));
-
     // Outline
 
     public final MultiStateColorSetting outlineColor = new MultiStateColorSetting(
@@ -511,8 +320,6 @@ public class BaseGuiTheme extends GuiTheme {
             "hovered-", new SettingColor(60, 60, 60),
             "pressed-", new SettingColor(70, 70, 70, 200)
     );
-
-
 
     public final Setting<SettingColor> windowOutlineColor = color(sgOutline, "window-outline", "Color of window outlines.", new SettingColor(145, 61, 226));
 
@@ -526,49 +333,15 @@ public class BaseGuiTheme extends GuiTheme {
             .build()
     );
 
-    // Separator
-
-    public final Setting<Double> separatorHeight = sgSeparatorRender.add(new DoubleSetting.Builder()
-            .name("separator-height")
-            .description("Height of separator rows.")
+    public final Setting<Double> moduleOutlineThickness = sgOutline.add(new DoubleSetting.Builder()
+            .name("module-outline-thickness")
+            .description("Thickness of module outlines.")
             .defaultValue(0)
             .min(0)
-            .max(50)
-            .sliderRange(0, 50)
-            .onChanged(v -> invalidateCurrentScreen())
+            .max(5)
+            .sliderRange(0, 5)
             .build()
     );
-    public final Setting<Double> separatorPaddingX = sgSeparatorRender.add(new DoubleSetting.Builder()
-            .name("separator-padding-x")
-            .description("Horizontal padding for separators in module settings.")
-            .defaultValue(0)
-            .min(0)
-            .max(30)
-            .sliderRange(0, 30)
-            .onChanged(v -> invalidateCurrentScreen())
-            .build()
-    );
-    public final Setting<Double> separatorPaddingY = sgSeparatorRender.add(new DoubleSetting.Builder()
-            .name("separator-padding-y")
-            .description("Vertical padding for separators in module settings.")
-            .defaultValue(6)
-            .min(0)
-            .max(30)
-            .sliderRange(0, 30)
-            .onChanged(v -> invalidateCurrentScreen())
-            .build()
-    );
-    public final Setting<SettingColor> separatorInactiveColor = color(sgSeparatorRender, "separator-inactive", "Color of separator rows when inactive.", new SettingColor(61, 61, 61, 150));
-    public final Setting<SettingColor> separatorInactiveGradientColor = color(sgSeparatorRender, "separator-inactive-gradient", "Gradient color of separator rows when inactive.", new SettingColor(40, 40, 40, 0));
-    public final Setting<SettingColor> separatorActiveColor = color(sgSeparatorRender, "separator-active", "Color of separator rows when active.", new SettingColor(70, 70, 70));
-    public final Setting<SettingColor> separatorActiveGradientColor = color(sgSeparatorRender, "separator-active-gradient", "Gradient color of separator rows when active.", new SettingColor(40, 40, 40, 0));
-    public final Setting<SettingColor> separatorHoveredColor = color(sgSeparatorRender, "separator-hovered", "Color of separator rows when hovered.", new SettingColor(60, 60, 60));
-    public final Setting<SettingColor> separatorHoveredGradientColor = color(sgSeparatorRender, "separator-hovered-gradient", "Gradient color of separator rows when hovered.", new SettingColor(40, 40, 40, 0));
-
-    // Separator text colors
-    public final Setting<SettingColor> separatorTextInactiveColor = color(sgSeparatorRender, "separator-text-inactive", "Color of separator text when inactive.", new SettingColor(255, 255, 255));
-    public final Setting<SettingColor> separatorTextActiveColor = color(sgSeparatorRender, "separator-text-active", "Color of separator text when active.", new SettingColor(255, 255, 255));
-    public final Setting<SettingColor> separatorTextHoveredColor = color(sgSeparatorRender, "separator-text-hovered", "Color of separator text when hovered.", new SettingColor(255, 255, 255));
 
     // Scrollbar
 
@@ -608,13 +381,234 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<Double> sliderSpacing = sgSlider.add(new DoubleSetting.Builder()
             .name("slider-spacing")
             .description("How many pixels the slider bar is inset from the edges in FullBar mode.")
-                .defaultValue(0)
+            .defaultValue(0)
             .min(0)
             .max(10)
             .sliderRange(0, 10)
             .onChanged(v -> invalidateCurrentScreen())
             .build()
     );
+
+    // Selection rendering
+
+    public final Setting<SelectionRenderingMode> selectionRenderingMode = sgSelectionRendering.add(new EnumSetting.Builder<SelectionRenderingMode>()
+            .name("selection-rendering-mode")
+            .description("Animation style for row selection")
+            .defaultValue(SelectionRenderingMode.SLIDE_LEFT)
+            .build()
+    );
+
+    public final Setting<Double> selectionSelectSpeed = sgSelectionRendering.add(new DoubleSetting.Builder()
+            .name("selection-select-speed")
+            .description("Speed of selection select animations.")
+            .defaultValue(6)
+            .min(0)
+            .max(32)
+            .sliderRange(0, 32)
+            .build()
+    );
+
+    public final Setting<Double> selectionDeselectSpeed = sgSelectionRendering.add(new DoubleSetting.Builder()
+            .name("selection-deselect-speed")
+            .description("Speed of selection deselect animation.")
+            .defaultValue(4)
+            .min(0)
+            .max(32)
+            .sliderRange(0, 32)
+            .build()
+    );
+
+    // Indicator rendering
+
+    public final Setting<ModuleSettingsIndicator> indicatorType = sgIndicatorRender.add(new EnumSetting.Builder<ModuleSettingsIndicator>()
+            .name("indicator-type")
+            .description("Indicator shown on active rows for expanding/collapsing settings.")
+            .defaultValue(ModuleSettingsIndicator.METEOR)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<Boolean> indicatorsOnSeparators = sgIndicatorRender.add(new BoolSetting.Builder()
+            .name("indicators-on-separators")
+            .description("Applies the toggle indicator to separator rows.")
+            .defaultValue(true)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<String> collapsedIndicator = sgIndicatorRender.add(new StringSetting.Builder()
+            .name("collapsed-indicator")
+            .description("Text shown on module rows when settings are collapsed.")
+            .defaultValue("⏵")
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<String> expandedIndicator = sgIndicatorRender.add(new StringSetting.Builder()
+            .name("expanded-indicator")
+            .description("Text shown on module rows when settings are expanded.")
+            .defaultValue("⏷")
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    // General rendering
+
+    public final Setting<ModuleGradientDirection> gradientRender = sgGeneralRender.add(new EnumSetting.Builder<ModuleGradientDirection>()
+            .name("gradient-render")
+            .description("Gradient direction for active module background. 'None' uses solid color.")
+            .defaultValue(ModuleGradientDirection.NONE)
+            .build()
+    );
+
+    public final Setting<ModuleIndicatorPosition> activeIndicatorPosition = sgGeneralRender.add(new EnumSetting.Builder<ModuleIndicatorPosition>()
+            .name("active-indicator-position")
+            .description("Position of the active module indicator bar. 'None' to disable.")
+            .defaultValue(ModuleIndicatorPosition.LEFT)
+            .build()
+    );
+
+    public final Setting<Double> activeIndicatorThickness = sgGeneralRender.add(new DoubleSetting.Builder()
+            .name("active-indicator-thickness")
+            .description("Thickness of the active module indicator bar.")
+            .defaultValue(2)
+            .min(1)
+            .sliderRange(1, 8)
+            .build()
+    );
+
+    // Module rendering
+
+    public final Setting<Double> moduleHeight = sgModuleRender.add(new DoubleSetting.Builder()
+            .name("module-height")
+            .description("Height of module buttons in module lists.")
+            .defaultValue(0)
+            .min(0)
+            .max(50)
+            .sliderRange(0, 50)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<Double> modulePaddingX = sgModuleRender.add(new DoubleSetting.Builder()
+            .name("module-padding-x")
+            .description("Horizontal padding between modules in module lists.")
+            .defaultValue(0)
+            .min(0)
+            .max(10)
+            .sliderRange(0, 10)
+            .build()
+    );
+
+    public final Setting<Double> modulePaddingY = sgModuleRender.add(new DoubleSetting.Builder()
+            .name("module-padding-y")
+            .description("Vertical padding between modules in module lists.")
+            .defaultValue(0)
+            .min(0)
+            .max(10)
+            .sliderRange(0, 10)
+            .build()
+    );
+
+    public final Setting<SettingColor> moduleInactiveColor = color(sgModuleRender, "module-inactive", "Color of module when inactive.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> moduleInactiveGradientColor = color(sgModuleRender, "module-inactive-gradient", "Gradient color for inactive modules. 'None' uses inactive color.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> moduleActiveColor = color(sgModuleRender, "module-active", "Color of module when active.", new SettingColor(70, 70, 70));
+    public final Setting<SettingColor> moduleActiveGradientColor = color(sgModuleRender, "module-active-gradient", "Gradient color for active modules. 'None' uses inactive color.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> moduleHoveredColor = color(sgModuleRender, "module-hovered", "Color of module when hovered.", new SettingColor(60, 60, 60));
+    public final Setting<SettingColor> moduleHoveredGradientColor = color(sgModuleRender, "module-hovered-gradient", "Gradient color for hovered modules.", new SettingColor(40, 40, 40, 0));
+
+    public final Setting<SettingColor> moduleTextInactiveColor = color(sgModuleRender, "module-text-inactive", "Color of module text when inactive.", new SettingColor(255, 255, 255));
+    public final Setting<SettingColor> moduleTextActiveColor = color(sgModuleRender, "module-text-active", "Color of module text when active.", new SettingColor(255, 255, 255));
+    public final Setting<SettingColor> moduleTextHoveredColor = color(sgModuleRender, "module-text-hovered", "Color of module text when hovered.", new SettingColor(255, 255, 255));
+
+    // Separator rendering
+
+    public final Setting<Double> separatorHeight = sgSeparatorRender.add(new DoubleSetting.Builder()
+            .name("separator-height")
+            .description("Height of separator rows.")
+            .defaultValue(0)
+            .min(0)
+            .max(50)
+            .sliderRange(0, 50)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+    public final Setting<Double> separatorPaddingX = sgSeparatorRender.add(new DoubleSetting.Builder()
+            .name("separator-padding-x")
+            .description("Horizontal padding for separators in module settings.")
+            .defaultValue(2)
+            .min(0)
+            .max(30)
+            .sliderRange(0, 30)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+    public final Setting<Double> separatorPaddingY = sgSeparatorRender.add(new DoubleSetting.Builder()
+            .name("separator-padding-y")
+            .description("Vertical padding for separators in module settings.")
+            .defaultValue(6)
+            .min(0)
+            .max(30)
+            .sliderRange(0, 30)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+    public final Setting<SettingColor> separatorInactiveColor = color(sgSeparatorRender, "separator-inactive", "Color of separator rows when inactive.", new SettingColor(70, 70, 70, 255));
+    public final Setting<SettingColor> separatorInactiveGradientColor = color(sgSeparatorRender, "separator-inactive-gradient", "Gradient color of separator rows when inactive.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> separatorActiveColor = color(sgSeparatorRender, "separator-active", "Color of separator rows when active.", new SettingColor(70, 70, 70));
+    public final Setting<SettingColor> separatorActiveGradientColor = color(sgSeparatorRender, "separator-active-gradient", "Gradient color of separator rows when active.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> separatorHoveredColor = color(sgSeparatorRender, "separator-hovered", "Color of separator rows when hovered.", new SettingColor(60, 60, 60));
+    public final Setting<SettingColor> separatorHoveredGradientColor = color(sgSeparatorRender, "separator-hovered-gradient", "Gradient color of separator rows when hovered.", new SettingColor(40, 40, 40, 0));
+
+    public final Setting<SettingColor> separatorTextInactiveColor = color(sgSeparatorRender, "separator-text-inactive", "Color of separator text when inactive.", new SettingColor(255, 255, 255));
+    public final Setting<SettingColor> separatorTextActiveColor = color(sgSeparatorRender, "separator-text-active", "Color of separator text when active.", new SettingColor(255, 255, 255));
+    public final Setting<SettingColor> separatorTextHoveredColor = color(sgSeparatorRender, "separator-text-hovered", "Color of separator text when hovered.", new SettingColor(255, 255, 255));
+
+    // Item rendering
+
+    public final Setting<Double> itemHeight = sgItemRender.add(new DoubleSetting.Builder()
+            .name("item-height")
+            .description("Height of settings items.")
+            .defaultValue(0)
+            .min(0)
+            .max(50)
+            .sliderRange(0, 50)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<Double> itemPaddingX = sgItemRender.add(new DoubleSetting.Builder()
+            .name("item-padding-x")
+            .description("Horizontal padding for settings items.")
+            .defaultValue(4)
+            .min(0)
+            .max(30)
+            .sliderRange(0, 30)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<Double> itemPaddingY = sgItemRender.add(new DoubleSetting.Builder()
+            .name("item-padding-y")
+            .description("Padding between items in settings lists.")
+            .defaultValue(0)
+            .min(0)
+            .max(10)
+            .sliderRange(0, 10)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<SettingColor> itemInactiveColor = color(sgItemRender, "item-inactive", "Color of items when inactive.", new SettingColor(43, 43, 43, 150));
+    public final Setting<SettingColor> itemInactiveGradientColor = color(sgItemRender, "item-inactive-gradient", "Gradient color of items when inactive.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> itemActiveColor = color(sgItemRender, "item-active", "Color of items when active.", new SettingColor(70, 70, 70, 200));
+    public final Setting<SettingColor> itemActiveGradientColor = color(sgItemRender, "item-active-gradient", "Gradient color of items when active.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> itemHoveredColor = color(sgItemRender, "item-hovered", "Color of items when hovered.", new SettingColor(60, 60, 60, 255));
+    public final Setting<SettingColor> itemHoveredGradientColor = color(sgItemRender, "item-hovered-gradient", "Gradient color of items when hovered.", new SettingColor(40, 40, 40, 0));
+
+    public final Setting<SettingColor> itemTextInactiveColor = color(sgItemRender, "item-text-inactive", "Color of item text when inactive.", new SettingColor(255, 255, 255));
+    public final Setting<SettingColor> itemTextActiveColor = color(sgItemRender, "item-text-active", "Color of item text when active.", new SettingColor(255, 255, 255));
+    public final Setting<SettingColor> itemTextHoveredColor = color(sgItemRender, "item-text-hovered", "Color of item text when hovered.", new SettingColor(255, 255, 255));
 
     // Starscript
 
@@ -661,11 +655,11 @@ public class BaseGuiTheme extends GuiTheme {
 
     private Setting<SettingColor> color(SettingGroup group, String name, String description, SettingColor color, boolean linkAccentHue) {
         Setting<SettingColor> setting = group.add(new ColorSetting.Builder()
-            .name(name + "-color")
-            .description(description)
-            .defaultValue(color)
-            .onChanged(c -> onAnyColorChanged())
-            .build());
+                .name(name + "-color")
+                .description(description)
+                .defaultValue(color)
+                .onChanged(c -> onAnyColorChanged())
+                .build());
 
         if (linkAccentHue) accentHueLinkedColors.add(setting);
 
@@ -745,6 +739,7 @@ public class BaseGuiTheme extends GuiTheme {
 
         return new SettingColor(r, g, b, color.a);
     }
+
     private void invalidateCurrentScreen() {
         if (mc.currentScreen instanceof WidgetScreen screen) screen.invalidate();
     }
@@ -1074,8 +1069,10 @@ public class BaseGuiTheme extends GuiTheme {
             String displayName = baseName.replace('-', ' ');
 
             if (affix.isEmpty()) return "Color of " + displayName + ".";
-            if (affix.endsWith("-")) return "Color of " + affix.substring(0, affix.length() - 1).replace('-', ' ') + " " + displayName + ".";
-            if (affix.startsWith("-")) return "Color of " + displayName + " " + affix.substring(1).replace('-', ' ') + ".";
+            if (affix.endsWith("-"))
+                return "Color of " + affix.substring(0, affix.length() - 1).replace('-', ' ') + " " + displayName + ".";
+            if (affix.startsWith("-"))
+                return "Color of " + displayName + " " + affix.substring(1).replace('-', ' ') + ".";
 
             return "Color of " + (affix + baseName).replace('-', ' ') + ".";
         }
