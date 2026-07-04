@@ -8,6 +8,7 @@ import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.Cell;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
+import meteordevelopment.meteorclient.gui.widgets.containers.WWindow;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 
 public class WBaseSettingControlRow extends WContainer implements BaseWidget {
@@ -150,10 +151,21 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
         if (forceVerticalLayout) return true;
         if (alwaysHorizontalLayout) return false;
 
-        double referenceWidth = theme().fixedCategorySize.get() ? theme().fixedCategoryWidth.get() : horizontalWidth;
-        double safeReferenceWidth = Math.max(1, referenceWidth);
+        double safeReferenceWidth = Math.max(1, layoutReferenceWidth(horizontalWidth));
         double controlRatio = controlWidth / safeReferenceWidth;
         return controlRatio > CONTROL_DOMINANCE_VERTICAL_THRESHOLD;
+    }
+
+    private double layoutReferenceWidth(double horizontalWidth) {
+        if (!theme().fixedCategorySize.get()) return horizontalWidth;
+
+        for (WWidget widget = this; widget != null; widget = widget.parent) {
+            if (widget instanceof WWindow window) {
+                return theme().shouldUseFixedCategoryWidth(window.id) ? theme().fixedCategoryWidth.get() : horizontalWidth;
+            }
+        }
+
+        return horizontalWidth;
     }
 
     private void renderTitle(GuiRenderer renderer, double delta, Color textColor, double textY, double titleAreaX, double titleAreaW) {
