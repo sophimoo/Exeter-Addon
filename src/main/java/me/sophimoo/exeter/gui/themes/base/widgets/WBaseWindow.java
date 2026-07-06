@@ -74,8 +74,18 @@ public class WBaseWindow extends WWindow implements BaseWidget {
     }
 
     private class WBaseHeader extends WHeader {
+        private double activeProgress = WBaseWindow.this.expanded ? 1.0 : 0.0;
+        private double hoverProgress;
+
         public WBaseHeader(WWidget icon) {
             super(icon);
+        }
+
+        @Override
+        protected void onCalculateSize() {
+            super.onCalculateSize();
+            double pad = pad();
+            height = resolveCategoryTitleRowHeight(Math.max(height, pad + theme().textHeight() + pad));
         }
 
         @Override
@@ -84,6 +94,9 @@ public class WBaseWindow extends WWindow implements BaseWidget {
 
             Cell<?> titleCell = getTitleLabelCell();
             if (titleCell == null) return;
+
+            double pad = pad();
+            titleCell.padLeft(pad).padRight(pad).centerY();
 
             AlignmentX alignment = theme().categoryTitleAlignment.get();
             if (alignment == AlignmentX.Center) {
@@ -115,7 +128,18 @@ public class WBaseWindow extends WWindow implements BaseWidget {
 
         @Override
         protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-            renderQuadWithOptionalBlur(renderer, x, y, width, height, theme().accentColor.get());
+            RowAnimationState animationState = animateRow(delta, mouseOver, mouseOver, false, hoverProgress, 0);
+            hoverProgress = animationState.primaryProgress();
+            activeProgress = stepProgress(activeProgress, WBaseWindow.this.expanded, delta);
+
+            RowSurfaceStyle surfaceStyle = categoryTitleRowSurfaceStyle(activeProgress > 0, mouseOver);
+            renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), activeProgress, localHoverSurfaceProgress(hoverProgress), surfaceStyle);
+            renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
+
+            Cell<?> titleCell = getTitleLabelCell();
+            if (titleCell != null && titleCell.widget() instanceof WLabel label) {
+                label.color = resolveCategoryTitleTextColor(activeProgress, hoverProgress);
+            }
         }
 
         // https://github.com/X-C-0/catppuccin-addon/blob/d642959fbaa9e5757013ea38f57556eb88c8b822/src/main/java/me/pindour/catppuccin/gui/themes/catppuccin/widgets/container/WCatppuccinWindow.java#L259

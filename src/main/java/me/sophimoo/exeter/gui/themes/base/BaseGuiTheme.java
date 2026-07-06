@@ -71,6 +71,7 @@ public class BaseGuiTheme extends GuiTheme {
     private final SettingGroup sgIndicatorRender = settings.createGroup("Indicator Rendering");
     private final SettingGroup sgGeneralRender = settings.createGroup("General Rendering");
     private final SettingGroup sgModuleRender = settings.createGroup("Module Rendering");
+    private final SettingGroup sgCategoryTitleRender = settings.createGroup("Category Title Rendering");
     private final SettingGroup sgSeparatorRender = settings.createGroup("Separator Rendering");
     private final SettingGroup sgItemRender = settings.createGroup("Item Rendering");
     private final SettingGroup sgStarscript = settings.createGroup("Starscript");
@@ -175,10 +176,10 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<SettingColor> favoriteColor = color("favorite", "Color of checked favorite button.", new SettingColor(250, 215, 0));
 
     // Text
-    public final Setting<SettingColor> textColor = color(sgTextColors, "text", "Color of text.", new SettingColor(255, 255, 255), false);
+    public final Setting<SettingColor> textColor = color(sgTextColors, "text", "Color of text.", new SettingColor(255, 255, 255));
     public final Setting<SettingColor> textSecondaryColor = color(sgTextColors, "text-secondary-text", "Color of secondary text.", new SettingColor(150, 150, 150), false);
     public final Setting<SettingColor> textHighlightColor = color(sgTextColors, "text-highlight", "Color of text highlighting.", new SettingColor(45, 125, 245, 100), false);
-    public final Setting<SettingColor> titleTextColor = color(sgTextColors, "title-text", "Color of title text.", new SettingColor(255, 255, 255), false);
+    public final Setting<SettingColor> titleTextColor = color(sgTextColors, "title-text", "Color of title text.", new SettingColor(255, 255, 255));
     public final Setting<SettingColor> loggedInColor = color(sgTextColors, "logged-in-text", "Color of logged in account name.", new SettingColor(45, 225, 45), false);
     public final Setting<SettingColor> placeholderColor = color(sgTextColors, "placeholder", "Color of placeholder text.", new SettingColor(255, 255, 255, 20), false);
     public final Setting<Boolean> textShadow = sgTextColors.add(new BoolSetting.Builder()
@@ -518,6 +519,30 @@ public class BaseGuiTheme extends GuiTheme {
     public final Setting<SettingColor> moduleTextInactiveColor = color(sgModuleRender, "module-text-inactive", "Color of module text when inactive.", new SettingColor(255, 255, 255));
     public final Setting<SettingColor> moduleTextActiveColor = color(sgModuleRender, "module-text-active", "Color of module text when active.", new SettingColor(255, 255, 255));
     public final Setting<SettingColor> moduleTextHoveredColor = color(sgModuleRender, "module-text-hovered", "Color of module text when hovered.", new SettingColor(255, 255, 255));
+
+    // Category title rendering
+
+    public final Setting<Double> categoryTitleHeight = sgCategoryTitleRender.add(new DoubleSetting.Builder()
+            .name("category-title-height")
+            .description("Height of category title rows.")
+            .defaultValue(0)
+            .min(0)
+            .max(50)
+            .sliderRange(0, 50)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<SettingColor> categoryTitleInactiveColor = color(sgCategoryTitleRender, "category-title-inactive", "Color of category titles when inactive.", new SettingColor(145, 61, 226));
+    public final Setting<SettingColor> categoryTitleInactiveGradientColor = color(sgCategoryTitleRender, "category-title-inactive-gradient", "Gradient color of category titles when inactive.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> categoryTitleActiveColor = color(sgCategoryTitleRender, "category-title-active", "Color of category titles when active.", new SettingColor(145, 61, 226));
+    public final Setting<SettingColor> categoryTitleActiveGradientColor = color(sgCategoryTitleRender, "category-title-active-gradient", "Gradient color of category titles when active.", new SettingColor(40, 40, 40, 0));
+    public final Setting<SettingColor> categoryTitleHoveredColor = color(sgCategoryTitleRender, "category-title-hovered", "Color of category titles when hovered.", new SettingColor(145, 61, 226));
+    public final Setting<SettingColor> categoryTitleHoveredGradientColor = color(sgCategoryTitleRender, "category-title-hovered-gradient", "Gradient color of category titles when hovered.", new SettingColor(40, 40, 40, 0));
+
+    public final Setting<SettingColor> categoryTitleTextInactiveColor = color(sgCategoryTitleRender, "category-title-text-inactive", "Color of category title text when inactive.", new SettingColor(255, 255, 255));
+    public final Setting<SettingColor> categoryTitleTextActiveColor = color(sgCategoryTitleRender, "category-title-text-active", "Color of category title text when active.", new SettingColor(255, 255, 255));
+    public final Setting<SettingColor> categoryTitleTextHoveredColor = color(sgCategoryTitleRender, "category-title-text-hovered", "Color of category title text when hovered.", new SettingColor(255, 255, 255));
 
     // Separator rendering
 

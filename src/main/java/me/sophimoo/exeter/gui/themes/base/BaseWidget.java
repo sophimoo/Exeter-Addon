@@ -58,6 +58,12 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
         return defaultHeight;
     }
 
+    default double resolveCategoryTitleRowHeight(double defaultHeight) {
+        double customHeight = theme().categoryTitleHeight.get();
+        if (customHeight > 0) return theme().scale(customHeight);
+        return defaultHeight;
+    }
+
     default double moduleRowBaseHeight(double extraPx) {
         return resolveModuleRowHeight(theme().rowPadY() + theme().textHeight() + theme().rowPadY() + theme().scaledPx(extraPx));
     }
@@ -152,6 +158,26 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
             renderGradient,
             theme().separatorHoveredColor.get(),
             theme().separatorHoveredGradientColor.get(),
+            renderGradient,
+            gradientDirection,
+            theme().outlineColor.get(false, mouseOver),
+            null
+        );
+    }
+
+    default RowSurfaceStyle categoryTitleRowSurfaceStyle(boolean active, boolean mouseOver) {
+        ModuleGradientDirection gradientDirection = theme().gradientRender.get();
+        boolean renderGradient = gradientDirection != ModuleGradientDirection.NONE;
+
+        return createRowSurfaceStyle(
+            theme().categoryTitleInactiveColor.get(),
+            theme().categoryTitleInactiveGradientColor.get(),
+            renderGradient,
+            active ? theme().categoryTitleActiveColor.get() : theme().categoryTitleHoveredColor.get(),
+            active ? theme().categoryTitleActiveGradientColor.get() : theme().categoryTitleHoveredGradientColor.get(),
+            renderGradient,
+            theme().categoryTitleHoveredColor.get(),
+            theme().categoryTitleHoveredGradientColor.get(),
             renderGradient,
             gradientDirection,
             theme().outlineColor.get(false, mouseOver),
@@ -530,6 +556,16 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
     default Color resolveSeparatorTextColor(double hoverProgress) {
         return resolveSeparatorTextColor(0, hoverProgress);
+    }
+
+    default Color resolveCategoryTitleTextColor(double activeProgress, double hoverProgress) {
+        return resolveTextStateColor(
+            theme().categoryTitleTextInactiveColor.get(),
+            theme().categoryTitleTextActiveColor.get(),
+            theme().categoryTitleTextHoveredColor.get(),
+            activeProgress,
+            hoverProgress
+        );
     }
 
     default Color resolveSettingsTextColor(double activeProgress, double hoverProgress) {
