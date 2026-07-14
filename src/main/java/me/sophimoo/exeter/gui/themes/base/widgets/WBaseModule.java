@@ -162,9 +162,11 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
         private double expandedHeight;
         private double cachedExpandedHeight = -1;
         private double cachedExpandedWidth = -1;
+        private double collapsedWidth;
 
         public void setExpanded(boolean expanded) {
             if (this.expanded == expanded) return;
+            if (expanded && animProgress <= 0) collapsedWidth = WBaseModule.this.width;
             this.expanded = expanded;
             if (expanded) settingsTickCooldown = 0;
         }
@@ -190,6 +192,8 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
             expandedHeight = cachedExpandedHeight;
             height = Math.round(expandedHeight * heightProgress);
+            double expandedWidth = Math.max(collapsedWidth, cachedExpandedWidth);
+            width = Math.round(collapsedWidth + (expandedWidth - collapsedWidth) * heightProgress);
         }
 
         @Override
