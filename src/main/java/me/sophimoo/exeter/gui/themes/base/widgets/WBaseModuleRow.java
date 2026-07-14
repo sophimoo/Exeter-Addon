@@ -79,8 +79,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
 
         updateAnimationProgresses(mouseX, mouseY, delta);
         boolean isActive = module.isActive();
-        boolean dimmedBySearch = isDimmedBySearch();
-        UnaryOperator<Color> colorMapper = color -> maybeDim(color, dimmedBySearch);
+        UnaryOperator<Color> colorMapper = UnaryOperator.identity();
 
         RowSurfaceStyle surfaceStyle = moduleRowSurfaceStyle(isActive, pressed, mouseOver, colorMapper);
         renderRowSurface(
@@ -100,11 +99,14 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
             renderRowIndicator(renderer, x, y, width, height, indicatorProgress, moduleIndicatorStyle(colorMapper.apply(theme().accentColor.get())));
         }
 
-        Color textColor = resolveTextColor(dimmedBySearch);
+        Color textColor = resolveTextColor();
         double textY = resolveTextY(pad);
         renderTitle(renderer, pad, layout, textColor, textY, delta);
 
         renderSettingsIcon(renderer, pad, layout, textY, delta, textColor);
+        if (mc.currentScreen instanceof BaseModulesScreen screen) {
+            screen.queueDimmingOverlay(renderer, this, resolveSearchOverlayProgress());
+        }
     }
 
     protected RowAnimationState rowAnimationState = new RowAnimationState(null, 0, 0);
@@ -189,8 +191,8 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         return value == null ? "" : value;
     }
 
-    protected final Color resolveTextColor(boolean dimmedBySearch) {
-        return maybeDim(resolveModuleTextColor(animationProgress, hoverOverlayProgress), dimmedBySearch);
+    protected final Color resolveTextColor() {
+        return resolveModuleTextColor(animationProgress, hoverOverlayProgress);
     }
 
     protected final double resolveTextY(double pad) {
@@ -204,21 +206,18 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
 
     protected abstract boolean isSettingsExpanded();
 
-    private boolean isDimmedBySearch() {
-        if (!(mc.currentScreen instanceof BaseModulesScreen screen)) return false;
-        return screen.isSearchActive() && !screen.isModuleSearchMatch(module);
-    }
+    private double resolveSearchOverlayProgress() {
+        if (!(mc.currentScreen instanceof BaseModulesScreen screen)) return 0;
+        if (!screen.isSearchActive() || screen.isModuleSearchMatch(module)) return 0;
 
-    private Color maybeDim(Color color, boolean dimmedBySearch) {
-        if (!dimmedBySearch || color == null) return color;
+        WBaseModule moduleWidget = parent instanceof WBaseModule parentModule ? parentModule : null;
+        double moduleProgress = moduleWidget != null ? moduleWidget.effectiveInlineDimmingProgress() : 0;
+        double targetAlpha = DIMMING_OVERLAY_MAX_ALPHA * theme().darkAmount.get();
+        double moduleAlpha = DIMMING_OVERLAY_MAX_ALPHA * moduleProgress;
+        if (moduleAlpha >= targetAlpha) return 0;
 
-        Color dimmed = new Color(color);
-        dimmed.r = Math.max(0, (int) Math.round(dimmed.r * 0.4));
-        dimmed.g = Math.max(0, (int) Math.round(dimmed.g * 0.4));
-        dimmed.b = Math.max(0, (int) Math.round(dimmed.b * 0.4));
-        dimmed.a = Math.max(18, (int) Math.round(dimmed.a * 0.55));
-        dimmed.validate();
-        return dimmed;
+        double additionalAlpha = (targetAlpha - moduleAlpha) / (1 - moduleAlpha);
+        return additionalAlpha / DIMMING_OVERLAY_MAX_ALPHA;
     }
 
     @Override

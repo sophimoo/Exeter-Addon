@@ -142,6 +142,23 @@ public class BaseGuiTheme extends GuiTheme {
             .build()
     );
 
+    public final Setting<Boolean> darkenSettings = sgGeneral.add(new BoolSetting.Builder()
+            .name("darken-settings")
+            .description("Darkens other modules and inline settings while settings are hovered.")
+            .defaultValue(true)
+            .build()
+    );
+
+    public final Setting<Double> darkAmount = sgGeneral.add(new DoubleSetting.Builder()
+            .name("dark-amount")
+            .description("Strength of search and inline settings darkening.")
+            .defaultValue(1)
+            .min(0)
+            .max(1)
+            .sliderRange(0, 1)
+            .build()
+    );
+
     public final Setting<Boolean> modalWindows = sgGeneral.add(new BoolSetting.Builder()
             .name("modal-windows")
             .description("Open elements in modal windows")

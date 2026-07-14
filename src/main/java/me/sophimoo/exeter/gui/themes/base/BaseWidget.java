@@ -35,6 +35,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     double EXETER_ICON_SCALE = 1.4;
     double EXETER_ICON_ROTATION_SPEED = 120;
     double METEOR_ICON_ROTATION_SPEED = 14;
+    double DIMMING_OVERLAY_MAX_ALPHA = 0.6;
 
     default BaseGuiTheme theme() {
         return (BaseGuiTheme) getTheme();

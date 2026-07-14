@@ -1,9 +1,11 @@
 package me.sophimoo.exeter.gui.screens;
 
 import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
+import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.widgets.WBaseModule;
 import me.sophimoo.exeter.gui.themes.base.widgets.WBaseWindow;
 import meteordevelopment.meteorclient.gui.GuiTheme;
+import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.tabs.TabScreen;
 import meteordevelopment.meteorclient.gui.tabs.Tabs;
 import meteordevelopment.meteorclient.gui.utils.Cell;
@@ -11,6 +13,7 @@ import meteordevelopment.meteorclient.gui.utils.AlignmentX;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
 import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
+import meteordevelopment.meteorclient.gui.widgets.containers.WView;
 import meteordevelopment.meteorclient.gui.widgets.containers.WWindow;
 import meteordevelopment.meteorclient.gui.widgets.input.WTextBox;
 import meteordevelopment.meteorclient.systems.config.Config;
@@ -32,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static meteordevelopment.meteorclient.MeteorClient.mc;
 import static meteordevelopment.meteorclient.utils.Utils.getWindowHeight;
 import static meteordevelopment.meteorclient.utils.Utils.getWindowWidth;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_F;
@@ -42,15 +46,20 @@ public class BaseModulesScreen extends TabScreen {
     private static final double SEARCH_TEXT_BOX_MIN_WIDTH = 180;
     private static final double SEARCH_TEXT_BOX_HORIZONTAL_PADDING = 36;
 
+    private record DimmingOverlay(double x, double y, double width, double height, Color color) {}
+
     private final BaseGuiTheme theme;
     private WCategoryController controller;
     private WVerticalList footer;
     private Cell<WTextBox> searchTextCell;
     private WTextBox searchTextBox;
     private final List<WBaseModule> expandedModules = new ArrayList<>();
+    private final List<DimmingOverlay> dimmingOverlays = new ArrayList<>();
+    private WBaseModule dimmingInlineSettings;
     private final Set<Module> searchMatches = new HashSet<>();
     private String searchText = "";
     private boolean expandedModulesDirty;
+    private boolean dimmingOverlayScheduled;
     private boolean showGrid;
 
     public BaseModulesScreen(GuiTheme theme) {
@@ -61,6 +70,9 @@ public class BaseModulesScreen extends TabScreen {
     @Override
     public void initWidgets() {
         showGrid = false;
+        dimmingInlineSettings = null;
+        dimmingOverlays.clear();
+        dimmingOverlayScheduled = false;
 
         controller = add(new WCategoryController()).widget();
 
@@ -118,10 +130,66 @@ public class BaseModulesScreen extends TabScreen {
         if (theme.inlineModuleSettings.get()) expandedModulesDirty = true;
     }
 
+    public boolean shouldDimForInlineSettings(WBaseModule module) {
+        return dimmingInlineSettings != null && dimmingInlineSettings != module;
+    }
+
+    public void queueDimmingOverlay(GuiRenderer renderer, WWidget widget, double progress) {
+        double clampedProgress = Math.clamp(progress, 0, 1);
+        int alpha = (int) Math.round(255 * BaseWidget.DIMMING_OVERLAY_MAX_ALPHA * clampedProgress * animProgress);
+        if (alpha <= 0) return;
+
+        WView view = widget.getView();
+        double clipX = view != null ? view.x : 0;
+        double clipY = view != null ? view.y : 0;
+        double clipRight = view != null ? view.x + view.width : getWindowWidth();
+        double clipBottom = view != null ? view.y + view.height : getWindowHeight();
+        double x = Math.max(widget.x, clipX);
+        double y = Math.max(widget.y, clipY);
+        double right = Math.min(widget.x + widget.width, clipRight);
+        double bottom = Math.min(widget.y + widget.height, clipBottom);
+        if (right <= x || bottom <= y) return;
+
+        dimmingOverlays.add(new DimmingOverlay(x, y, right - x, bottom - y, new Color(0, 0, 0, alpha)));
+        if (dimmingOverlayScheduled) return;
+
+        dimmingOverlayScheduled = true;
+        renderer.absolutePost(() -> {
+            renderer.beginRender();
+            for (DimmingOverlay overlay : dimmingOverlays) {
+                renderer.quad(overlay.x(), overlay.y(), overlay.width(), overlay.height(), overlay.color());
+            }
+            renderer.endRender();
+            dimmingOverlays.clear();
+            dimmingOverlayScheduled = false;
+        });
+    }
+
+    @Override
+    protected void onRenderBefore(DrawContext context, float delta) {
+        super.onRenderBefore(context, delta);
+        WBaseModule hoveredSettings = null;
+        if (theme.inlineModuleSettings.get() && theme.darkenSettings.get()) {
+            double mouseX = mc.mouse.getScaledX(mc.getWindow()) * mc.getWindow().getScaleFactor();
+            double mouseY = mc.mouse.getScaledY(mc.getWindow()) * mc.getWindow().getScaleFactor();
+
+            for (int i = expandedModules.size() - 1; i >= 0; i--) {
+                WBaseModule module = expandedModules.get(i);
+                if (module.isSettingsHovered(mouseX, mouseY)) {
+                    hoveredSettings = module;
+                    break;
+                }
+            }
+        }
+
+        dimmingInlineSettings = hoveredSettings;
+    }
+
     private void refreshExpandedModules() {
         if (controller == null) return;
         expandedModules.clear();
         refreshModulePadding(controller);
+        if (dimmingInlineSettings != null && !expandedModules.contains(dimmingInlineSettings)) dimmingInlineSettings = null;
     }
 
     private void refreshModulePadding(WContainer container) {

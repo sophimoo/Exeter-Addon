@@ -13,6 +13,7 @@ import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
 import meteordevelopment.meteorclient.gui.widgets.containers.WSection;
 import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
+import meteordevelopment.meteorclient.gui.widgets.containers.WView;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.orbit.EventHandler;
@@ -29,6 +30,7 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
     private WKeybind keybindWidget = null;
     private boolean subscribedToEvents;
     private int settingsTickCooldown;
+    private double inlineDimmingProgress;
 
     public WBaseModule(Module module, String title) {
         this.module = module;
@@ -107,6 +109,36 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
     public boolean isSettingsExpanded() {
         return settingsExpanded;
+    }
+
+    public boolean isSettingsHovered(double mouseX, double mouseY) {
+        if (!settingsExpanded || settingsContainer == null || !settingsContainer.isOver(mouseX, mouseY)) return false;
+
+        WView view = settingsContainer.getView();
+        return view == null || view.isOver(mouseX, mouseY);
+    }
+
+    double effectiveInlineDimmingProgress() {
+        return inlineDimmingProgress * theme().darkAmount.get();
+    }
+
+    @Override
+    public boolean render(meteordevelopment.meteorclient.gui.renderer.GuiRenderer renderer, double mouseX, double mouseY, double delta) {
+        if (!visible) return true;
+
+        BaseModulesScreen modulesScreen = MeteorClient.mc.currentScreen instanceof BaseModulesScreen screen ? screen : null;
+        boolean dim = modulesScreen != null && modulesScreen.shouldDimForInlineSettings(this);
+        inlineDimmingProgress = stepAnimationProgress(
+            inlineDimmingProgress,
+            dim,
+            delta,
+            theme().selectionSelectSpeed.get(),
+            theme().selectionDeselectSpeed.get()
+        );
+
+        boolean result = super.render(renderer, mouseX, mouseY, delta);
+        if (modulesScreen != null) modulesScreen.queueDimmingOverlay(renderer, this, effectiveInlineDimmingProgress());
+        return result;
     }
 
     private void addBindSection(WVerticalList container) {
@@ -219,7 +251,9 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
             boolean scissor = animProgress != 1;
             if (scissor) renderer.scissorStart(x, y, width, animatedHeight);
+
             boolean toReturn = super.render(renderer, mouseX, mouseY, delta);
+
             if (scissor) renderer.scissorEnd();
 
             return toReturn;
