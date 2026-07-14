@@ -26,6 +26,13 @@ public class WBaseWindow extends WWindow implements BaseWidget {
         this.modulesScreen = modulesScreen;
     }
 
+    public void moveTo(double targetX, double targetY) {
+        moved = true;
+        movedX = targetX;
+        movedY = targetY;
+        move(targetX - x, targetY - y);
+    }
+
     @Override
     protected WHeader header(WWidget icon) {
         return new WBaseHeader(icon);

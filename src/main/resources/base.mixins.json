@@ -15,7 +15,6 @@
     "meteorclient.InventoryHudMixin",
     "meteorclient.WHorizontalListMixin",
     "meteorclient.WTableMixin",
-    "meteorclient.WWindowAccessor",
     "meteorclient.WindowScreenAccessor",
     "meteorclient.WidgetScreenModalMixin"
   ]
