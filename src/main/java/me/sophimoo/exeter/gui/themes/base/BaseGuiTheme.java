@@ -61,7 +61,6 @@ public class BaseGuiTheme extends GuiTheme {
     private final SettingGroup sgColors = settings.createGroup("Colors");
     private final SettingGroup sgTextColors = settings.createGroup("Text");
     private final SettingGroup sgSnapping = settings.createGroup("Snapping");
-    private final SettingGroup sgAlignment = settings.createGroup("Alignment");
     private final SettingGroup sgBlur = settings.createGroup("Blur");
     private final SettingGroup sgBackgroundColors = settings.createGroup("Background");
     private final SettingGroup sgOutline = settings.createGroup("Outline");
@@ -89,6 +88,14 @@ public class BaseGuiTheme extends GuiTheme {
             .onChanged(aDouble -> {
                 if (mc.currentScreen instanceof WidgetScreen) ((WidgetScreen) mc.currentScreen).invalidate();
             })
+            .build()
+    );
+
+    public final Setting<AlignmentX> categoryAlignment = sgGeneral.add(new EnumSetting.Builder<AlignmentX>()
+            .name("category-alignment")
+            .description("How category lists are aligned horizontally.")
+            .defaultValue(AlignmentX.Left)
+            .onChanged(v -> invalidateCurrentScreen())
             .build()
     );
 
@@ -236,38 +243,6 @@ public class BaseGuiTheme extends GuiTheme {
             .defaultValue(10)
             .range(5, 50)
             .sliderRange(5, 50)
-            .build()
-    );
-
-    // Alignment
-
-    public final Setting<AlignmentX> categoryAlignment = sgAlignment.add(new EnumSetting.Builder<AlignmentX>()
-            .name("category-alignment")
-            .description("How category lists are aligned horizontally.")
-            .defaultValue(AlignmentX.Left)
-            .onChanged(v -> invalidateCurrentScreen())
-            .build()
-    );
-
-    public final Setting<AlignmentX> categoryTitleAlignment = sgAlignment.add(new EnumSetting.Builder<AlignmentX>()
-            .name("category-title-alignment")
-            .description("How category window titles are aligned.")
-            .defaultValue(AlignmentX.Center)
-            .onChanged(v -> invalidateCurrentScreen())
-            .build()
-    );
-
-    public final Setting<AlignmentX> moduleAlignment = sgAlignment.add(new EnumSetting.Builder<AlignmentX>()
-            .name("module-title-alignment")
-            .description("How module titles are aligned horizontally.")
-            .defaultValue(AlignmentX.Center)
-            .build()
-    );
-
-    public final Setting<AlignmentY> moduleAlignmentY = sgAlignment.add(new EnumSetting.Builder<AlignmentY>()
-            .name("module-vertical-alignment")
-            .description("How module titles are aligned vertically.")
-            .defaultValue(AlignmentY.Center)
             .build()
     );
 
@@ -489,6 +464,20 @@ public class BaseGuiTheme extends GuiTheme {
             .build()
     );
 
+    public final Setting<AlignmentX> moduleAlignment = sgModuleRender.add(new EnumSetting.Builder<AlignmentX>()
+            .name("module-title-alignment")
+            .description("How module titles are aligned horizontally.")
+            .defaultValue(AlignmentX.Center)
+            .build()
+    );
+
+    public final Setting<AlignmentY> moduleAlignmentY = sgModuleRender.add(new EnumSetting.Builder<AlignmentY>()
+            .name("module-vertical-alignment")
+            .description("How module titles are aligned vertically.")
+            .defaultValue(AlignmentY.Center)
+            .build()
+    );
+
     public final Setting<Double> modulePaddingX = sgModuleRender.add(new DoubleSetting.Builder()
             .name("module-padding-x")
             .description("Horizontal padding between modules in module lists.")
@@ -529,6 +518,14 @@ public class BaseGuiTheme extends GuiTheme {
             .min(0)
             .max(50)
             .sliderRange(0, 50)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<AlignmentX> categoryTitleAlignment = sgCategoryTitleRender.add(new EnumSetting.Builder<AlignmentX>()
+            .name("category-title-alignment")
+            .description("How category window titles are aligned.")
+            .defaultValue(AlignmentX.Center)
             .onChanged(v -> invalidateCurrentScreen())
             .build()
     );
