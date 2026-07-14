@@ -9,9 +9,12 @@
   },
   "mixins": [
     "minecraft.MinecraftClientModalSetScreenMixin",
+    "meteorclient.EditSystemScreenMixin",
     "meteorclient.GuiRendererBlurMixin",
     "meteorclient.GuiRendererTextMixin",
     "meteorclient.InventoryHudMixin",
+    "meteorclient.WHorizontalListMixin",
+    "meteorclient.WTableMixin",
     "meteorclient.WWindowAccessor",
     "meteorclient.WindowScreenAccessor",
     "meteorclient.WidgetScreenModalMixin"

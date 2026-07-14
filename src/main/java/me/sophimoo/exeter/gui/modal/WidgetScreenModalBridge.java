@@ -1,5 +1,6 @@
 package me.sophimoo.exeter.gui.modal;
 
+import meteordevelopment.meteorclient.gui.GuiTheme;
 import meteordevelopment.meteorclient.gui.WidgetScreen;
 
 public interface WidgetScreenModalBridge {
@@ -12,4 +13,6 @@ public interface WidgetScreenModalBridge {
     void exeter$closeModal(WidgetScreen modal);
 
     void exeter$setModalHost(WidgetScreen host);
+
+    GuiTheme exeter$getTheme();
 }

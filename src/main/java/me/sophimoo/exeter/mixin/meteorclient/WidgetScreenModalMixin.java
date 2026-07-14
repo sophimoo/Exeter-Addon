@@ -162,6 +162,11 @@ public abstract class WidgetScreenModalMixin implements WidgetScreenModalBridge 
         exeter$modalHost = host;
     }
 
+    @Override
+    public GuiTheme exeter$getTheme() {
+        return theme;
+    }
+
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
     private void exeter$mouseClicked(Click click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
         WidgetScreen modal = exeter$topModal(exeter$modals);
