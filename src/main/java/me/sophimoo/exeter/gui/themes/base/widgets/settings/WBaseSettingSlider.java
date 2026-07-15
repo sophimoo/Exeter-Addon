@@ -203,6 +203,7 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
         RowAnimationState animationState = animateRow(delta, hoveredForAnimation, hoveredForAnimation, false, animationProgress, 0);
         animationProgress = animationState.primaryProgress();
 
+        boolean fullBar = theme().sliderStyle.get() == SliderStyle.FULL_BAR;
         RowSurfaceStyle surfaceStyle = itemRowSurfaceStyle(false, pressed, mouseOver);
         renderRowSurface(
             renderer,
@@ -212,10 +213,10 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
             height,
             animationState.effectiveAnimationMode(),
             0,
-            localHoverSurfaceProgress(animationProgress),
+            fullBar ? 0 : localHoverSurfaceProgress(animationProgress),
             surfaceStyle
         );
-        renderInterpolationHover(renderer, x, y, width, height, hoveredForAnimation, delta, surfaceStyle);
+        if (!fullBar) renderInterpolationHover(renderer, x, y, width, height, hoveredForAnimation, delta, surfaceStyle);
 
         double pad = pad();
         double textHeight = theme().textHeight();
@@ -230,10 +231,23 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
         double barY = getBarY();
         double barHeight = getBarHeight();
         double filled = barWidth * progress;
-        double barHoverProgress = theme().sliderStyle.get() == SliderStyle.BOTTOM_BAR ? 0 : animationProgress;
 
-        renderSliderSegment(renderer, barStartX, barY, barWidth, barHeight, "right-", barHoverProgress);
-        renderSliderSegment(renderer, barStartX, barY, filled, barHeight, "left-", barHoverProgress);
+        renderSliderSegment(renderer, barStartX, barY, barWidth, barHeight, "right-");
+        renderSliderSegment(renderer, barStartX, barY, filled, barHeight, "left-");
+
+        if (fullBar) {
+            renderRowHoverSurface(
+                renderer,
+                x,
+                y,
+                width,
+                height,
+                animationState.effectiveAnimationMode(),
+                localHoverSurfaceProgress(animationProgress),
+                surfaceStyle
+            );
+            renderInterpolationHover(renderer, x, y, width, height, hoveredForAnimation, delta, surfaceStyle);
+        }
 
         String valueText = formatValue();
           double actualValueWidth = theme().textWidth(valueText);

@@ -212,8 +212,8 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     }
 
     default void renderRowSurface(GuiRenderer renderer, double x, double y, double width, double height,
-                                    SelectionRenderingMode overlayAnimationMode, double overlayProgress,
-                                   double hoveredOverlayProgress, RowSurfaceStyle style) {
+                                  SelectionRenderingMode overlayAnimationMode, double overlayProgress,
+                                  double hoveredOverlayProgress, RowSurfaceStyle style) {
         double baseProgress = 1 - overlayProgress;
         if (baseProgress > 0 && style.baseLayer() != null) {
             renderSurfaceLayer(renderer, x, y, width, height, SelectionRenderingMode.FADE, baseProgress, style.baseLayer(), style.gradientDirection());
@@ -230,6 +230,12 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
         if (style.outlineThickness() > 0 && style.outlineColor() != null) {
             renderOutline(renderer, x, y, width, height, style.outlineThickness(), style.outlineColor());
         }
+    }
+
+    default void renderRowHoverSurface(GuiRenderer renderer, double x, double y, double width, double height,
+                                       SelectionRenderingMode animationMode, double progress, RowSurfaceStyle style) {
+        if (progress <= 0 || style.hoveredOverlayLayer() == null) return;
+        renderSurfaceLayer(renderer, x, y, width, height, animationMode, progress, style.hoveredOverlayLayer(), style.gradientDirection());
     }
 
     default Object getInterpolationKey() {
@@ -584,11 +590,11 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     }
 
     default void renderSliderSegment(GuiRenderer renderer, double x, double y, double width, double height,
-                                     String partKey, double hoverProgress) {
+                                     String partKey) {
         if (width <= 0 || height <= 0) return;
 
-        Color color = resolveTextStateColor(theme().sliderDirection.get(partKey), theme().itemHoveredColor.get(), hoverProgress);
-        Color gradient = resolveTextStateColor(theme().itemActiveGradientColor.get(), theme().itemHoveredGradientColor.get(), hoverProgress);
+        Color color = theme().sliderDirection.get(partKey);
+        Color gradient = theme().itemActiveGradientColor.get();
 
         if (theme().sliderGradient.get()) GradientRenderer.render(renderer, x, y, width, height, gradient, color, theme().gradientRender.get());
         else renderer.quad(x, y, width, height, color);
