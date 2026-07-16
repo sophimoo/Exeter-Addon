@@ -86,27 +86,6 @@ public class WorldFramebufferCapture {
         instance = this;
     }
 
-    public void updateSettings(int iterations, float offset, float scale) {
-        int clampedIterations = Math.min(iterations, MAX_BLUR_ITERATIONS);
-        boolean needsReinit = this.blurIterations != clampedIterations || this.blurScale != scale;
-        this.blurIterations = clampedIterations;
-        this.blurOffset = offset;
-        this.blurScale = scale;
-        previousOffset = -1; // Force uniform update
-
-        if (needsReinit && initialized) {
-            for (int i = 0; i < blurFbos.length; i++) {
-                if (blurFbos[i] != null) {
-                    blurFbos[i].close();
-                }
-            }
-            blurFbos = new GpuTextureView[blurIterations + 1];
-            for (int i = 0; i < blurFbos.length; i++) {
-                blurFbos[i] = createBlurFbo(i);
-            }
-        }
-    }
-
     private void ensureInitialized() {
         if (initialized) return;
 

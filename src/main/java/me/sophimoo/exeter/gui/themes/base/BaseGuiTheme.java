@@ -670,20 +670,17 @@ public class BaseGuiTheme extends GuiTheme {
     }
 
     private void updateBlurCapture() {
-        int strength = widgetBlurStrength.get();
-
-        if (strength > 0) {
-            float offset = strength * 0.5f;
-            float scale = blurTextureScale.get().floatValue();
-            if (blurCapture == null) {
-                blurCapture = new WorldFramebufferCapture(strength, offset, scale);
-            } else {
-                blurCapture.updateSettings(strength, offset, scale);
-            }
-        } else if (blurCapture != null) {
+        if (blurCapture != null) {
             blurCapture.close();
             blurCapture = null;
         }
+
+        int strength = widgetBlurStrength.get();
+        if (strength <= 0) return;
+
+        float offset = strength * 0.5f;
+        float scale = blurTextureScale.get().floatValue();
+        blurCapture = new WorldFramebufferCapture(strength, offset, scale);
     }
 
     private Setting<SettingColor> color(SettingGroup group, String name, String description, SettingColor color) {
