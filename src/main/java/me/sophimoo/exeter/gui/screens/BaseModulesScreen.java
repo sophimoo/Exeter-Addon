@@ -12,7 +12,6 @@ import meteordevelopment.meteorclient.gui.utils.Cell;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
-import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
 import meteordevelopment.meteorclient.gui.widgets.containers.WView;
 import meteordevelopment.meteorclient.gui.widgets.containers.WWindow;
 import meteordevelopment.meteorclient.gui.widgets.input.WTextBox;
@@ -50,7 +49,6 @@ public class BaseModulesScreen extends TabScreen {
 
     private final BaseGuiTheme theme;
     private WCategoryController controller;
-    private WVerticalList footer;
     private Cell<WTextBox> searchTextCell;
     private WTextBox searchTextBox;
     private final List<WBaseModule> expandedModules = new ArrayList<>();
@@ -75,13 +73,6 @@ public class BaseModulesScreen extends TabScreen {
         dimmingOverlayScheduled = false;
 
         controller = add(new WCategoryController()).widget();
-
-        WVerticalList footer = add(new WCategoryAlignedVerticalList()).pad(4).bottom().expandWidgetX().widget();
-        this.footer = footer;
-        searchTextCell = footer.add(theme.textBox(searchText)).minWidth(searchTextBoxMinWidth(searchText));
-        WTextBox text = searchTextCell.widget();
-        text.action = () -> updateSearch(text.get());
-        searchTextBox = text;
 
         updateSearch(searchText);
     }
@@ -415,44 +406,16 @@ public class BaseModulesScreen extends TabScreen {
         return showGrid;
     }
 
-    protected class WCategoryAlignedVerticalList extends WVerticalList {
-        @Override
-        protected void onCalculateWidgetPositions() {
-            double y = this.y;
-
-            for (int i = 0; i < cells.size(); i++) {
-                Cell<?> cell = cells.get(i);
-                WWidget widget = cell.widget();
-
-                if (i > 0) y += spacing();
-                y += cell.padTop();
-
-                double cellX = x + cell.padLeft();
-                double cellWidth = width - widthRemove - cell.padLeft() - cell.padRight();
-                AlignmentX alignment = BaseModulesScreen.this.theme.categoryAlignment.get();
-
-                if (widget.width < cellWidth) {
-                    if (alignment == AlignmentX.Center) cellX += (cellWidth - widget.width) / 2;
-                    else if (alignment == AlignmentX.Right) cellX += cellWidth - widget.width;
-                }
-
-                cell.x = cellX;
-                cell.y = y;
-                cell.width = widget.width;
-                cell.height = widget.height;
-                cell.alignWidget();
-
-                y += cell.height + cell.padBottom();
-            }
-        }
-    }
-
     protected class WCategoryController extends WContainer {
         public final List<WWindow> windows = new ArrayList<>();
         private Cell<WWindow> favoritesCell;
 
         @Override
         public void init() {
+            searchTextCell = add(theme.textBox(searchText)).minWidth(searchTextBoxMinWidth(searchText));
+            searchTextBox = searchTextCell.widget();
+            searchTextBox.action = () -> updateSearch(searchTextBox.get());
+
             for (Category category : Modules.loopCategories()) {
                 List<Module> modules = Modules.get().getGroup(category).stream()
                         .filter(m -> !Config.get().hiddenModules.get().contains(m))
@@ -484,15 +447,33 @@ public class BaseModulesScreen extends TabScreen {
         }
 
         @Override
+        public boolean render(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
+            if (super.render(renderer, mouseX, mouseY, delta)) return true;
+
+            searchTextBox.render(renderer, mouseX, mouseY, delta);
+            return false;
+        }
+
+        @Override
+        protected void renderWidget(WWidget widget, GuiRenderer renderer, double mouseX, double mouseY, double delta) {
+            if (widget != searchTextBox) super.renderWidget(widget, renderer, mouseX, mouseY, delta);
+        }
+
+        @Override
         public void calculateSize() {
-            if (footer != null) footer.calculateSize();
+            if (searchTextBox != null) searchTextBox.calculateSize();
 
             double listPad = theme.scale(8);
-            double footerHeight = footer != null ? footer.height : 0;
+            double searchHeight = searchTextBox != null ? searchTextBox.height : 0;
             double tabBarHeight = theme.pad() * 2 + theme.textHeight();
-            double maxViewHeight = getWindowHeight() - footerHeight - tabBarHeight - listPad * 2 - theme.textHeight(true) - theme.scale(8);
+            double moduleListTop = tabBarHeight + listPad + searchHeight + listPad;
+            double maxWindowHeight = getWindowHeight() - moduleListTop - listPad;
 
-            for (WWindow window : windows) window.view.maxHeight = Math.max(theme.scale(20), maxViewHeight);
+            for (WWindow window : windows) {
+                window.calculateSize();
+                double windowChromeHeight = window.height - window.view.height;
+                window.view.maxHeight = Math.max(theme.scale(20), maxWindowHeight - windowChromeHeight);
+            }
 
             super.calculateSize();
         }
@@ -502,8 +483,20 @@ public class BaseModulesScreen extends TabScreen {
             int ww = (int) getWindowWidth(), wh = (int) getWindowHeight();
             double gridPad = theme.scale(4);
             double listPad = theme.scale(8);
-            double topY = theme.pad() * 2 + theme.textHeight() + listPad;
-            double bottomY = (footer != null ? footer.y : wh) - listPad;
+            double searchY = theme.pad() * 2 + theme.textHeight() + listPad;
+            double topY = searchY;
+            if (searchTextCell != null) {
+                WWidget searchWidget = searchTextCell.widget();
+                double searchStartX = this.x + gridPad;
+
+                searchTextCell.x = searchStartX;
+                searchTextCell.y = searchY;
+                searchTextCell.width = searchWidget.width;
+                searchTextCell.height = searchWidget.height;
+                alignModuleListRow(List.of(searchTextCell), searchStartX, searchWidget.width, ww, searchY, searchY);
+                topY += searchWidget.height + listPad;
+            }
+            double bottomY = wh - listPad;
             double rowHeight = 0;
             double rowStartX = this.x + gridPad;
             double rowWidth = 0;
@@ -512,6 +505,8 @@ public class BaseModulesScreen extends TabScreen {
             double x = rowStartX, y = topY;
 
             for (Cell<?> cell : cells) {
+                if (cell == searchTextCell) continue;
+
                 WWidget widget = cell.widget();
 
                 if (!rowCells.isEmpty() && x + widget.width > ww) {
