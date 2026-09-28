@@ -1,8 +1,9 @@
 package me.sophimoo.exeter.mixin.meteorclient;
 
+import me.sophimoo.exeter.gui.widgets.ExeterStackedLayout;
+import me.sophimoo.exeter.gui.widgets.ExeterWidthConstrained;
 import me.sophimoo.exeter.gui.widgets.ExeterWrappingList;
 import meteordevelopment.meteorclient.gui.utils.Cell;
-import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
 import meteordevelopment.meteorclient.gui.widgets.containers.WHorizontalList;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,33 +15,42 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = WHorizontalList.class, remap = false)
 public abstract class WHorizontalListMixin extends WContainer implements ExeterWrappingList {
+    @Shadow protected double calculatedWidth;
+    @Shadow protected int fillXCount;
     @Shadow protected abstract double spacing();
 
     @Unique private boolean exeter$wrapping;
     @Unique private boolean exeter$stacked;
+    @Unique private double exeter$wrapWidth;
 
     @Override
     public void exeter$setWrapping(boolean wrapping) {
+        if (exeter$wrapping == wrapping) return;
         exeter$wrapping = wrapping;
-        if (wrapping) for (Cell<?> cell : cells) cell.expandX();
+        invalidate();
     }
 
     @Inject(method = "onCalculateSize", at = @At("RETURN"))
     private void exeter$calculateWrappedSize(CallbackInfo info) {
         if (!exeter$wrapping) return;
 
-        double availableWidth = exeter$availableWidth();
-        exeter$stacked = availableWidth > 0 && width > availableWidth;
+        exeter$wrapWidth = ExeterStackedLayout.availableWidth(this);
+        exeter$applyChildMaxWidths(0);
+        exeter$calculateHorizontalSize();
+
+        exeter$stacked = exeter$wrapWidth > 0 && width > exeter$wrapWidth;
         if (!exeter$stacked) return;
 
+        exeter$applyChildMaxWidths(exeter$wrapWidth);
         width = 0;
         height = 0;
 
-        for (int i = 0; i < cells.size(); i++) {
-            Cell<?> cell = cells.get(i);
-            if (i > 0) height += spacing();
-            width = Math.max(width, exeter$cellWidth(cell));
-            height += exeter$cellHeight(cell);
+        for (int start = 0, line = 0; start < cells.size(); line++) {
+            int end = ExeterStackedLayout.lineEnd(cells, start, exeter$wrapWidth, spacing());
+            if (line > 0) height += spacing();
+            width = Math.max(width, ExeterStackedLayout.lineWidth(cells, start, end, spacing()));
+            height += ExeterStackedLayout.lineHeight(cells, start, end);
+            start = end;
         }
     }
 
@@ -49,36 +59,62 @@ public abstract class WHorizontalListMixin extends WContainer implements ExeterW
         if (!exeter$stacked) return;
 
         double y = this.y;
-        for (int i = 0; i < cells.size(); i++) {
-            Cell<?> cell = cells.get(i);
-            if (i > 0) y += spacing();
+        for (int start = 0; start < cells.size();) {
+            int end = ExeterStackedLayout.lineEnd(cells, start, exeter$wrapWidth, spacing());
+            double rowHeight = ExeterStackedLayout.lineHeight(cells, start, end);
+            double rowWidth = ExeterStackedLayout.lineWidth(cells, start, end, spacing());
+            int expandCount = 0;
+            for (int i = start; i < end; i++) if (cells.get(i).expandCellX) expandCount++;
 
-            cell.x = x + cell.padLeft();
-            cell.y = y + cell.padTop();
-            cell.width = width - cell.padLeft() - cell.padRight();
-            cell.height = cell.widget().height;
-            cell.alignWidget();
+            double fillWidth = expandCount > 0 ? Math.max(0, (width - rowWidth) / expandCount) : 0;
+            double x = this.x;
 
-            y += exeter$cellHeight(cell);
+            for (int i = start; i < end; i++) {
+                Cell<?> cell = cells.get(i);
+                if (i > start) x += spacing();
+                cell.x = x + cell.padLeft();
+                cell.y = y + cell.padTop();
+                cell.width = cell.widget().width + (cell.expandCellX ? fillWidth : 0);
+                cell.height = rowHeight - cell.padTop() - cell.padBottom();
+                cell.alignWidget();
+                x += ExeterStackedLayout.cellWidth(cell);
+            }
+
+            y += rowHeight + spacing();
+            start = end;
         }
 
         info.cancel();
     }
 
     @Unique
-    private double exeter$availableWidth() {
-        WWidget ancestor = parent;
-        while (ancestor != null && ancestor.width <= 0) ancestor = ancestor.parent;
-        return ancestor != null ? ancestor.width : 0;
+    private void exeter$calculateHorizontalSize() {
+        width = 0;
+        height = 0;
+        fillXCount = 0;
+
+        for (int i = 0; i < cells.size(); i++) {
+            Cell<?> cell = cells.get(i);
+
+            if (i > 0) width += spacing();
+
+            width += ExeterStackedLayout.cellWidth(cell);
+            height = Math.max(height, ExeterStackedLayout.cellHeight(cell));
+
+            if (cell.expandCellX) fillXCount++;
+        }
+
+        calculatedWidth = width;
     }
 
     @Unique
-    private double exeter$cellWidth(Cell<?> cell) {
-        return cell.padLeft() + cell.widget().width + cell.padRight();
+    private void exeter$applyChildMaxWidths(double availableWidth) {
+        for (Cell<?> cell : cells) {
+            if (cell.widget() instanceof ExeterWidthConstrained constrained) {
+                constrained.exeter$setMaxWidth(Math.max(0, availableWidth - cell.padLeft() - cell.padRight()));
+                cell.widget().calculateSize();
+            }
+        }
     }
 
-    @Unique
-    private double exeter$cellHeight(Cell<?> cell) {
-        return cell.padTop() + cell.widget().height + cell.padBottom();
-    }
 }

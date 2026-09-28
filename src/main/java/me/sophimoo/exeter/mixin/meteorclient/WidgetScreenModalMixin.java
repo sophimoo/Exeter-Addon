@@ -126,7 +126,8 @@ public abstract class WidgetScreenModalMixin implements WidgetScreenModalBridge 
     private boolean exeter$shouldRenderDarkening() {
         WidgetScreen self = (WidgetScreen) (Object) this;
         if (self instanceof HudEditorScreen) return false;
-        return !(theme instanceof BaseGuiTheme baseTheme) || baseTheme.darkening.get();
+        if (!(theme instanceof BaseGuiTheme baseTheme)) return false;
+        return baseTheme.darkening.get();
     }
 
     @Unique

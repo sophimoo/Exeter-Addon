@@ -4,6 +4,11 @@ public final class InterpolationState {
     private static final long HoverGraceMs = 250;
     private static final double MorphSpeedMultiplier = 2.0;
 
+    private static double easeInOutCubic(double t) {
+        double c = Math.max(0, Math.min(1, t));
+        return c < 0.5 ? 4 * c * c * c : 1 - 4 * Math.pow(1 - c, 3);
+    }
+
     private double fromX, fromY, fromW, fromH;
     private double toX, toY, toW, toH;
     private double currentX, currentY, currentW, currentH;
@@ -69,7 +74,7 @@ public final class InterpolationState {
             transitionProgress = Math.min(1.0, transitionProgress + morphSpeed * delta * MorphSpeedMultiplier);
         }
 
-        double eased = 1.0 - Math.pow(1.0 - transitionProgress, 3);
+        double eased = easeInOutCubic(transitionProgress);
         currentX = fromX + (toX - fromX) * eased;
         currentY = fromY + (toY - fromY) * eased;
         currentW = fromW + (toW - fromW) * eased;
@@ -77,7 +82,7 @@ public final class InterpolationState {
     }
 
     public double getFadeProgress() {
-        return visible ? fadeProgress : 0.0;
+        return visible ? easeInOutCubic(fadeProgress) : 0.0;
     }
 
     public double[] getIntersection(double x, double y, double w, double h) {

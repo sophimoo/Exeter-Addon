@@ -4,7 +4,7 @@ import me.sophimoo.exeter.gui.screens.BaseModulesScreen;
 import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.ModuleBindUtils;
-import me.sophimoo.exeter.gui.widgets.ExeterStackedTable;
+import me.sophimoo.exeter.gui.widgets.ExeterCustomWidgetHost;
 import meteordevelopment.meteorclient.MeteorClient;
 import meteordevelopment.meteorclient.events.meteor.ModuleBindChangedEvent;
 import meteordevelopment.meteorclient.gui.utils.Cell;
@@ -63,12 +63,12 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
             WWidget customWidget = module.getWidget(theme);
             if (customWidget != null) {
-                ExeterStackedTable.mark(customWidget);
+                WWidget hostedCustomWidget = new ExeterCustomWidgetHost(customWidget);
                 hasModuleSettingsContent = true;
                 double padX = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.itemPaddingX.get() : 0;
                 double padY = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.itemPaddingY.get() : 0;
                 settingsContainer.add(theme.horizontalSeparator()).expandX().padHorizontal(padX);
-                Cell<WWidget> customCell = settingsContainer.add(customWidget).padHorizontal(padX).padVertical(padY);
+                Cell<WWidget> customCell = settingsContainer.add(hostedCustomWidget).padHorizontal(padX).padVertical(padY);
                 if (customWidget instanceof WContainer) customCell.expandX();
             }
 
@@ -239,7 +239,7 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
             double animatedHeight = expandedHeight * heightProgress;
             boolean animationChanged = previousAnimProgress != animProgress;
             if (settingsContainerCell != null) {
-                double padTop = (heightProgress > 0) ? theme().separatorPaddingY.get() : 0;
+                double padTop = theme().separatorPaddingY.get() * heightProgress;
                 if (settingsContainerCell.padTop() != theme().scale(padTop)) {
                     settingsContainerCell.padTop(padTop);
                     animationChanged = true;

@@ -2,7 +2,7 @@ package me.sophimoo.exeter.gui.screens;
 
 import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
 import me.sophimoo.exeter.gui.themes.base.utils.ModuleBindUtils;
-import me.sophimoo.exeter.gui.widgets.ExeterStackedTable;
+import me.sophimoo.exeter.gui.widgets.ExeterCustomWidgetHost;
 import meteordevelopment.meteorclient.MeteorClient;
 import meteordevelopment.meteorclient.events.meteor.ModuleBindChangedEvent;
 import meteordevelopment.meteorclient.gui.GuiTheme;
@@ -43,11 +43,11 @@ public class ModuleSettingsScreen extends WindowScreen {
 
         WWidget customWidget = module.getWidget(theme);
         if (customWidget != null) {
-            ExeterStackedTable.mark(customWidget);
+            WWidget hostedCustomWidget = new ExeterCustomWidgetHost(customWidget);
             double padX = baseTheme != null ? baseTheme.itemPaddingX.get() : 0;
             double padY = baseTheme != null ? baseTheme.itemPaddingY.get() : 0;
             wrapper.add(theme.horizontalSeparator()).expandX().padHorizontal(padX);
-            Cell<WWidget> cell = wrapper.add(customWidget).padHorizontal(padX).padVertical(padY);
+            Cell<WWidget> cell = wrapper.add(hostedCustomWidget).padHorizontal(padX).padVertical(padY);
             if (customWidget instanceof WContainer) cell.expandX();
         }
 

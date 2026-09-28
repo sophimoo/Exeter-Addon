@@ -118,7 +118,12 @@ public class BaseModulesScreen extends TabScreen {
     }
 
     public void requestExpandedModulesRefresh() {
-        if (theme.inlineModuleSettings.get()) expandedModulesDirty = true;
+        if (!theme.inlineModuleSettings.get()) return;
+
+        expandedModulesDirty = true;
+        refreshExpandedModules();
+        expandedModulesDirty = false;
+        invalidate();
     }
 
     public boolean shouldDimForInlineSettings(WBaseModule module) {

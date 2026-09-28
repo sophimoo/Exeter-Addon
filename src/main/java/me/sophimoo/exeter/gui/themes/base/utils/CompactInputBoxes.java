@@ -9,11 +9,36 @@ import net.minecraft.util.math.MathHelper;
 
 import java.util.function.Consumer;
 
-public final class CompactNumberTextBoxes {
-    private CompactNumberTextBoxes() {
+public final class CompactInputBoxes {
+    private CompactInputBoxes() {
     }
 
-    public static WTextBox create(GuiTheme theme, String value, CharFilter filter, Consumer<WTextBox> commit) {
+    public static WTextBox createInt(GuiTheme theme, String value, Consumer<WTextBox> commit) {
+        return createNumber(theme, value, CompactInputBoxes::isIntChar, commit);
+    }
+
+    public static WTextBox createDecimal(GuiTheme theme, String value, Consumer<WTextBox> commit) {
+        return createNumber(theme, value, CompactInputBoxes::isDecimalChar, commit);
+    }
+
+    public static WTextBox createString(
+        GuiTheme theme,
+        String value,
+        String placeholder,
+        CharFilter filter,
+        Class<? extends WTextBox.Renderer> renderer,
+        Consumer<WTextBox> update
+    ) {
+        WTextBox textBox = theme.textBox(value, placeholder, filter, renderer);
+        textBox.action = () -> {
+            update.accept(textBox);
+            updateWidth(theme, textBox);
+        };
+        updateWidth(theme, textBox);
+        return textBox;
+    }
+
+    private static WTextBox createNumber(GuiTheme theme, String value, CharFilter filter, Consumer<WTextBox> commit) {
         WTextBox textBox = theme.textBox(value, filter);
         textBox.action = () -> updateWidth(theme, textBox);
         textBox.actionOnUnfocused = () -> {
@@ -24,11 +49,11 @@ public final class CompactNumberTextBoxes {
         return textBox;
     }
 
-    public static boolean isIntChar(String text, char c) {
+    private static boolean isIntChar(String text, char c) {
         return Character.isDigit(c) || (c == '-' && text.isEmpty());
     }
 
-    public static boolean isDoubleChar(String text, char c) {
+    private static boolean isDecimalChar(String text, char c) {
         if (Character.isDigit(c)) return true;
         if (c == '-' && text.isEmpty()) return true;
         return c == '.' && !text.contains(".");

@@ -471,12 +471,24 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
             theme().selectionSelectSpeed.get(), theme().selectionDeselectSpeed.get());
     }
 
+    default double easeInOutCubic(double t) {
+        double c = Math.max(0, Math.min(1, t));
+        return c < 0.5 ? 4 * c * c * c : 1 - 4 * Math.pow(1 - c, 3);
+    }
+
+    default double easeInOutCubicInverse(double t) {
+        double c = Math.max(0, Math.min(1, t));
+        return c < 0.5 ? Math.cbrt(c / 4) : 1 - Math.cbrt((1 - c) / 4);
+    }
+
     default double stepAnimationProgress(double currentProgress, boolean shouldFadeIn, double delta, double fadeInSpeed, double fadeOutSpeed) {
         if (shouldFadeIn && fadeInSpeed == 0) return 1;
         if (!shouldFadeIn && fadeOutSpeed == 0) return 0;
 
-        double progress = currentProgress + delta * (shouldFadeIn ? fadeInSpeed : fadeOutSpeed) * (shouldFadeIn ? 1 : -1);
-        return Math.max(0, Math.min(1, progress));
+        double raw = easeInOutCubicInverse(currentProgress);
+        double rawProgress = raw + delta * (shouldFadeIn ? fadeInSpeed : fadeOutSpeed) * (shouldFadeIn ? 1 : -1);
+        rawProgress = Math.max(0, Math.min(1, rawProgress));
+        return easeInOutCubic(rawProgress);
     }
 
     default double stepExeterIndicatorRotation(double currentRotation, boolean active, double delta) {
@@ -508,9 +520,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     }
 
     default double dropdownHeightProgress(double progress, boolean expanding) {
-        double clampedProgress = Math.max(0, Math.min(1, progress));
-        if (expanding) return 1.0 - Math.pow(1.0 - clampedProgress, 3);
-        return Math.pow(clampedProgress, 3);
+        return Math.max(0, Math.min(1, progress));
     }
 
     private Color mapColor(Color color, UnaryOperator<Color> colorMapper) {
@@ -601,9 +611,14 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     }
 
     default void renderCenteredTextOrTexture(GuiRenderer renderer, String text, double textWidth, GuiTexture texture,
-                                             double x, double y, double width, double pad, Color color) {
+                                             double x, double y, double width, double pad, Color color,
+                                             MarqueeState marquee, boolean animate, double delta) {
         if (text != null) {
-            renderText(renderer, text, x + width / 2 - textWidth / 2, y + pad, color);
+            double textX = x + pad;
+            double textWidthAvailable = Math.max(0, width - pad * 2);
+            double centeredTextX = textX + Math.max(0, (textWidthAvailable - textWidth) / 2);
+            renderTextWithMarquee(renderer, marquee, text, textX, y, textWidthAvailable, theme().textHeight() + pad * 2,
+                y + pad, textWidth, animate, delta, true, centeredTextX, color);
         } else {
             double ts = theme().textHeight();
             renderer.quad(x + width / 2 - ts / 2, y + pad, ts, ts, texture, color);

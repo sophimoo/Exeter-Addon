@@ -59,7 +59,8 @@ public class WBaseWindow extends WWindow implements BaseWidget {
         if (scissor) renderer.scissorStart(x, y, width, (height - header.height) * animProgress + header.height);
 
         if (expanded || animProgress > 0) {
-            renderQuadWithOptionalBlur(renderer, x, y + header.height, width, height - header.height, theme().backgroundColor.get());
+            double thickness = theme.scale(theme().windowOutlineThickness.get());
+            renderQuadWithOptionalBlur(renderer, x + thickness, y + header.height + thickness, width - thickness * 2, height - header.height - thickness * 2, theme().backgroundColor.get());
         }
 
         super.render(renderer, mouseX, mouseY, delta);

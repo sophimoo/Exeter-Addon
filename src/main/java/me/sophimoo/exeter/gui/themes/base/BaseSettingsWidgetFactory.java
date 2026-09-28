@@ -2,7 +2,7 @@ package me.sophimoo.exeter.gui.themes.base;
 
 import me.sophimoo.exeter.gui.screens.settings.ExeterColorSettingScreen;
 import me.sophimoo.exeter.gui.modal.ModalScreenOps;
-import me.sophimoo.exeter.gui.themes.base.utils.CompactNumberTextBoxes;
+import me.sophimoo.exeter.gui.themes.base.utils.CompactInputBoxes;
 import me.sophimoo.exeter.gui.themes.base.utils.SettingScreenResolver;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
@@ -36,7 +36,6 @@ import meteordevelopment.meteorclient.gui.widgets.pressable.WMinus;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WPlus;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.hud.elements.keyboard.KeyboardHud;
-import meteordevelopment.meteorclient.utils.Utils;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 import net.minecraft.client.resource.language.I18n;
 import org.apache.commons.lang3.Strings;
@@ -150,7 +149,7 @@ public class BaseSettingsWidgetFactory extends SettingsWidgetFactory {
             return;
         }
 
-        WTextBox textBox = CompactNumberTextBoxes.create(theme, Integer.toString(setting.get()), CompactNumberTextBoxes::isIntChar, box -> {
+        WTextBox textBox = CompactInputBoxes.createInt(theme, Integer.toString(setting.get()), box -> {
             try {
                 int value = Integer.parseInt(box.get().trim());
                 setting.set(value);
@@ -168,7 +167,7 @@ public class BaseSettingsWidgetFactory extends SettingsWidgetFactory {
             return;
         }
 
-        WTextBox textBox = CompactNumberTextBoxes.create(theme, String.format(Locale.US, "%." + setting.decimalPlaces + "f", setting.get()), CompactNumberTextBoxes::isDoubleChar, box -> {
+        WTextBox textBox = CompactInputBoxes.createDecimal(theme, String.format(Locale.US, "%." + setting.decimalPlaces + "f", setting.get()), box -> {
             try {
                 double value = Double.parseDouble(box.get().trim());
                 setting.set(value);
@@ -182,9 +181,14 @@ public class BaseSettingsWidgetFactory extends SettingsWidgetFactory {
 
     private void stringW(WTable table, StringSetting setting) {
         CharFilter filter = setting.filter == null ? (text, c) -> true : setting.filter;
-        WTextBox textBox = theme.textBox(setting.get(), setting.placeholder, filter, setting.renderer);
-        textBox.minWidth = setting.wide ? Utils.getWindowWidth() - Utils.getWindowWidth() / 4.0 : 75;
-        textBox.action = () -> setting.set(textBox.get());
+        WTextBox textBox = CompactInputBoxes.createString(
+            theme,
+            setting.get(),
+            setting.placeholder,
+            filter,
+            setting.renderer,
+            box -> setting.set(box.get())
+        );
         addControlRow(table, setting, textBox);
     }
 
@@ -377,7 +381,7 @@ public class BaseSettingsWidgetFactory extends SettingsWidgetFactory {
             return;
         }
 
-        WTextBox textBox = CompactNumberTextBoxes.create(theme, String.format(Locale.US, "%." + setting.decimalPlaces + "f", getter.get()), CompactNumberTextBoxes::isDoubleChar, box -> {
+        WTextBox textBox = CompactInputBoxes.createDecimal(theme, String.format(Locale.US, "%." + setting.decimalPlaces + "f", getter.get()), box -> {
             try {
                 setter.accept(Double.parseDouble(box.get().trim()));
                 setting.onChanged();

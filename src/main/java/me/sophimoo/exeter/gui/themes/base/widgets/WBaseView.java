@@ -36,7 +36,10 @@ public class WBaseView extends WView implements BaseWidget {
 
     @Override
     public boolean isWidgetInView(WWidget widget) {
-        double tolerance = theme().inlineModuleSettings.get() ? Math.max(1, theme().scale(theme().windowOutlineThickness.get())) : 0;
-        return widget.y < y + height + tolerance && widget.y + widget.height > y - tolerance;
+        if (theme().inlineModuleSettings.get()) {
+            return widget.y <= y + height && widget.y + widget.height >= y;
+        }
+
+        return widget.y < y + height && widget.y + widget.height > y;
     }
 }
