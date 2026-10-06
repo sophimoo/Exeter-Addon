@@ -67,6 +67,7 @@ public class BaseGuiTheme extends GuiTheme {
     private final SettingGroup sgScrollbar = settings.createGroup("Scrollbar");
     private final SettingGroup sgSlider = settings.createGroup("Slider");
     private final SettingGroup sgSelectionRendering = settings.createGroup("Selection Rendering");
+    private final SettingGroup sgAnimationSpeeds = settings.createGroup("Animation Speeds");
     private final SettingGroup sgIndicatorRender = settings.createGroup("Indicator Rendering");
     private final SettingGroup sgGeneralRender = settings.createGroup("General Rendering");
     private final SettingGroup sgModuleRender = settings.createGroup("Module Rendering");
@@ -403,6 +404,58 @@ public class BaseGuiTheme extends GuiTheme {
             .name("selection-deselect-speed")
             .description("Speed of selection deselect animation.")
             .defaultValue(4)
+            .min(0)
+            .max(32)
+            .sliderRange(0, 32)
+            .build()
+    );
+
+    // Animation speeds
+
+    public final Setting<Double> hoverInSpeed = sgAnimationSpeeds.add(new DoubleSetting.Builder()
+            .name("hover-in-speed")
+            .description("Speed of hover in animations.")
+            .defaultValue(6)
+            .min(0)
+            .max(32)
+            .sliderRange(0, 32)
+            .build()
+    );
+
+    public final Setting<Double> hoverOutSpeed = sgAnimationSpeeds.add(new DoubleSetting.Builder()
+            .name("hover-out-speed")
+            .description("Speed of hover out animations.")
+            .defaultValue(4)
+            .min(0)
+            .max(32)
+            .sliderRange(0, 32)
+            .build()
+    );
+
+    public final Setting<Double> expandSpeed = sgAnimationSpeeds.add(new DoubleSetting.Builder()
+            .name("expand-speed")
+            .description("Speed of expand and toggle animations.")
+            .defaultValue(6)
+            .min(0)
+            .max(32)
+            .sliderRange(0, 32)
+            .build()
+    );
+
+    public final Setting<Double> collapseSpeed = sgAnimationSpeeds.add(new DoubleSetting.Builder()
+            .name("collapse-speed")
+            .description("Speed of collapse and toggle animations.")
+            .defaultValue(4)
+            .min(0)
+            .max(32)
+            .sliderRange(0, 32)
+            .build()
+    );
+
+    public final Setting<Double> morphSpeed = sgAnimationSpeeds.add(new DoubleSetting.Builder()
+            .name("morph-speed")
+            .description("Speed of highlight morphing in Interpolate mode.")
+            .defaultValue(6)
             .min(0)
             .max(32)
             .sliderRange(0, 32)

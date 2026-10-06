@@ -200,8 +200,8 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
         );
 
         boolean hoveredForAnimation = mouseOver || dragging;
-        RowAnimationState animationState = animateRow(delta, hoveredForAnimation, hoveredForAnimation, false, animationProgress, 0);
-        animationProgress = animationState.primaryProgress();
+        RowAnimationState animationState = animateRow(delta, hoveredForAnimation, false, hoveredForAnimation, 0, animationProgress);
+        animationProgress = animationState.hoverProgress();
 
         boolean fullBar = theme().sliderStyle.get() == SliderStyle.FULL_BAR;
         RowSurfaceStyle surfaceStyle = itemRowSurfaceStyle(false, pressed, mouseOver);

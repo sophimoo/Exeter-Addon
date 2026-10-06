@@ -136,8 +136,8 @@ public class WBaseWindow extends WWindow implements BaseWidget {
 
         @Override
         protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-            RowAnimationState animationState = animateRow(delta, mouseOver, mouseOver, false, hoverProgress, 0);
-            hoverProgress = animationState.primaryProgress();
+            RowAnimationState animationState = animateRow(delta, mouseOver, false, mouseOver, 0, hoverProgress);
+            hoverProgress = animationState.hoverProgress();
             activeProgress = stepProgress(activeProgress, WBaseWindow.this.expanded, delta);
 
             RowSurfaceStyle surfaceStyle = categoryTitleRowSurfaceStyle(activeProgress > 0, mouseOver);

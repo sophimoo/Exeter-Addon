@@ -142,8 +142,8 @@ public class WBaseSection extends WSection implements BaseWidget {
             ModuleSettingsIndicator indicatorStyle = resolveSeparatorIndicatorStyle();
             double iconWidth = indicatorWidth(indicatorStyle);
             double iconGap = indicatorGap(indicatorStyle);
-            RowAnimationState animationState = animateRow(delta, mouseOver, mouseOver, false, hoverProgress, 0);
-            hoverProgress = animationState.primaryProgress();
+            RowAnimationState animationState = animateRow(delta, mouseOver, false, mouseOver, 0, hoverProgress);
+            hoverProgress = animationState.hoverProgress();
             activeProgress = stepProgress(activeProgress, WBaseSection.this.expanded, delta);
             RowSurfaceStyle surfaceStyle = separatorRowSurfaceStyle(activeProgress > 0, mouseOver);
             renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), activeProgress, localHoverSurfaceProgress(hoverProgress), surfaceStyle);

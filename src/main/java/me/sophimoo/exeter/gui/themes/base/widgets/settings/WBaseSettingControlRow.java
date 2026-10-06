@@ -109,8 +109,8 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
             )
         );
 
-        RowAnimationState animationState = animateRow(delta, mouseOver, mouseOver, false, animationProgress, 0);
-        animationProgress = animationState.primaryProgress();
+        RowAnimationState animationState = animateRow(delta, mouseOver, false, mouseOver, 0, animationProgress);
+        animationProgress = animationState.hoverProgress();
 
         RowSurfaceStyle surfaceStyle = itemRowSurfaceStyle(false, false, mouseOver);
         renderRowSurface(

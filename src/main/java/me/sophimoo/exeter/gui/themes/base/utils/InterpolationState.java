@@ -74,11 +74,10 @@ public final class InterpolationState {
             transitionProgress = Math.min(1.0, transitionProgress + morphSpeed * delta * MorphSpeedMultiplier);
         }
 
-        double eased = easeInOutCubic(transitionProgress);
-        currentX = fromX + (toX - fromX) * eased;
-        currentY = fromY + (toY - fromY) * eased;
-        currentW = fromW + (toW - fromW) * eased;
-        currentH = fromH + (toH - fromH) * eased;
+        currentX = fromX + (toX - fromX) * transitionProgress;
+        currentY = fromY + (toY - fromY) * transitionProgress;
+        currentW = fromW + (toW - fromW) * transitionProgress;
+        currentH = fromH + (toH - fromH) * transitionProgress;
     }
 
     public double getFadeProgress() {

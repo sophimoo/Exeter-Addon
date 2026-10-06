@@ -132,8 +132,8 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
             inlineDimmingProgress,
             dim,
             delta,
-            theme().selectionSelectSpeed.get(),
-            theme().selectionDeselectSpeed.get()
+            theme().hoverInSpeed.get(),
+            theme().hoverOutSpeed.get()
         );
 
         boolean result = super.render(renderer, mouseX, mouseY, delta);

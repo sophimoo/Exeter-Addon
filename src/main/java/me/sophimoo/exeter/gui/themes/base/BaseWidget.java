@@ -80,8 +80,8 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
         double fadeInSpeed = theme().selectionSelectSpeed.get();
         double fadeOutSpeed = theme().selectionDeselectSpeed.get();
-        double hoverFadeInSpeed = fadeInSpeed;
-        double hoverFadeOutSpeed = fadeOutSpeed;
+        double hoverFadeInSpeed = theme().hoverInSpeed.get();
+        double hoverFadeOutSpeed = theme().hoverOutSpeed.get();
 
         return new RowAnimationState(
             effectiveAnimationMode,
@@ -250,7 +250,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
         InterpolationState interpolation = theme().getInterpolation(getInterpolationKey());
         interpolation.notifyHover(x, y, width, height, hovered);
-        interpolation.update(delta, theme().selectionSelectSpeed.get(), theme().selectionSelectSpeed.get(), theme().selectionDeselectSpeed.get());
+        interpolation.update(delta, theme().morphSpeed.get(), theme().hoverInSpeed.get(), theme().hoverOutSpeed.get());
 
         double[] isect = interpolation.getIntersection(x, y, width, height);
         if (isect == null) return;
@@ -468,7 +468,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
     default double stepProgress(double currentProgress, boolean shouldFadeIn, double delta) {
         return stepAnimationProgress(currentProgress, shouldFadeIn, delta,
-            theme().selectionSelectSpeed.get(), theme().selectionDeselectSpeed.get());
+            theme().expandSpeed.get(), theme().collapseSpeed.get());
     }
 
     default double easeInOutCubic(double t) {
