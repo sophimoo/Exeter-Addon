@@ -16,6 +16,7 @@ import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
 import meteordevelopment.meteorclient.gui.widgets.containers.WView;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
+import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.orbit.EventHandler;
 
 public class WBaseModule extends WVerticalList implements BaseWidget {
@@ -24,7 +25,7 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
     private boolean settingsExpanded = false;
     private WSettingsDropdown settingsContainer = null;
-    private Cell<WSettingsDropdown> settingsContainerCell = null;
+    private WModuleButton moduleButton;
     private WContainer moduleSettingsContainer = null;
     private boolean hasModuleSettingsContent;
     private WKeybind keybindWidget = null;
@@ -40,7 +41,7 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
     @Override
     public void init() {
-        add(new WModuleButton()).expandX();
+        moduleButton = add(new WModuleButton()).expandX().widget();
     }
 
     private void toggleSettings() {
@@ -74,7 +75,7 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
             addBindSection(settingsContainer);
 
-            settingsContainerCell = add(settingsContainer).expandX().padTop(0);
+            add(settingsContainer).expandX();
         }
 
         settingsContainer.setExpanded(settingsExpanded);
@@ -242,14 +243,6 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
             double heightProgress = dropdownHeightProgress(animProgress, expanded);
             double animatedHeight = expandedHeight * heightProgress;
             boolean animationChanged = previousAnimProgress != animProgress;
-            if (settingsContainerCell != null) {
-                double padTop = theme().separatorPaddingY.get() * heightProgress;
-                if (settingsContainerCell.padTop() != Math.round(theme().scale(padTop))) {
-                    settingsContainerCell.padTop(padTop);
-                    animationChanged = true;
-                }
-            }
-
             if (animationChanged) invalidate();
             if (animProgress <= 0) return false;
 
@@ -257,6 +250,15 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
             if (scissor) renderer.scissorStart(x, y, width, animatedHeight);
 
             boolean toReturn = super.render(renderer, mouseX, mouseY, delta);
+
+            double outlineHeight = Math.min(height, animatedHeight);
+            double thickness = Math.min(theme.scale(theme().moduleSettingsOutlineThickness.get()), Math.min(width, outlineHeight) / 2);
+            if (thickness > 0) {
+                Color color = interpolateColor(theme().moduleInactiveColor.get(), theme().moduleActiveColor.get(), moduleButton.indicatorProgress);
+                renderer.quad(x, y, thickness, outlineHeight - thickness, color);
+                renderer.quad(x + width - thickness, y, thickness, outlineHeight - thickness, color);
+                renderer.quad(x, y + outlineHeight - thickness, width, thickness, color);
+            }
 
             if (scissor) renderer.scissorEnd();
 

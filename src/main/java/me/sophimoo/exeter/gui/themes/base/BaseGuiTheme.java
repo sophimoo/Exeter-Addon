@@ -336,6 +336,17 @@ public class BaseGuiTheme extends GuiTheme {
             .build()
     );
 
+    public final Setting<Double> moduleSettingsOutlineThickness = sgOutline.add(new DoubleSetting.Builder()
+            .name("module-settings-outline-thickness")
+            .description("Thickness of the outline around inline module settings content.")
+            .defaultValue(0)
+            .min(0)
+            .max(5)
+            .sliderRange(0, 5)
+            .visible(inlineModuleSettings::get)
+            .build()
+    );
+
     // Scrollbar
 
     public final MultiStateColorSetting scrollbarColor = new MultiStateColorSetting(
