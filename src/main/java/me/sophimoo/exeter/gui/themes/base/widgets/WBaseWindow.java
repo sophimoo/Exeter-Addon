@@ -143,6 +143,7 @@ public class WBaseWindow extends WWindow implements BaseWidget {
             hoverProgress = animationState.hoverProgress();
             activeProgress = stepProgress(activeProgress, WBaseWindow.this.expanded, delta);
 
+            renderQuadWithOptionalBlur(renderer, x, y, width, height, new Color(0, 0, 0, 0));
             RowSurfaceStyle surfaceStyle = categoryTitleRowSurfaceStyle(activeProgress > 0, mouseOver);
             renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), activeProgress, localHoverSurfaceProgress(hoverProgress), surfaceStyle);
             renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
