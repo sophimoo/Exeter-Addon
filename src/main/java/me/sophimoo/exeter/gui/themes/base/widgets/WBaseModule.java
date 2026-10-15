@@ -111,6 +111,10 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
         return settingsExpanded;
     }
 
+    public double settingsExpansionProgress() {
+        return settingsContainer == null ? 0 : dropdownHeightProgress(settingsContainer.animProgress, settingsExpanded);
+    }
+
     public boolean isSettingsHovered(double mouseX, double mouseY) {
         if (!settingsExpanded || settingsContainer == null || !settingsContainer.isOver(mouseX, mouseY)) return false;
 
@@ -240,7 +244,7 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
             boolean animationChanged = previousAnimProgress != animProgress;
             if (settingsContainerCell != null) {
                 double padTop = theme().separatorPaddingY.get() * heightProgress;
-                if (settingsContainerCell.padTop() != theme().scale(padTop)) {
+                if (settingsContainerCell.padTop() != Math.round(theme().scale(padTop))) {
                     settingsContainerCell.padTop(padTop);
                     animationChanged = true;
                 }

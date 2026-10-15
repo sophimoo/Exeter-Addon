@@ -56,7 +56,6 @@ public class BaseModulesScreen extends TabScreen {
     private WBaseModule dimmingInlineSettings;
     private final Set<Module> searchMatches = new HashSet<>();
     private String searchText = "";
-    private boolean expandedModulesDirty;
     private boolean dimmingOverlayScheduled;
     private boolean showGrid;
 
@@ -104,12 +103,6 @@ public class BaseModulesScreen extends TabScreen {
     @Override
     public void tick() {
         super.tick();
-        if (expandedModulesDirty) {
-            refreshExpandedModules();
-            expandedModulesDirty = false;
-            invalidate();
-        }
-
         if (theme.inlineModuleSettings.get() && !expandedModules.isEmpty()) {
             for (WBaseModule module : expandedModules) {
                 module.tickSettings();
@@ -120,9 +113,7 @@ public class BaseModulesScreen extends TabScreen {
     public void requestExpandedModulesRefresh() {
         if (!theme.inlineModuleSettings.get()) return;
 
-        expandedModulesDirty = true;
         refreshExpandedModules();
-        expandedModulesDirty = false;
         invalidate();
     }
 
@@ -164,6 +155,7 @@ public class BaseModulesScreen extends TabScreen {
     @Override
     protected void onRenderBefore(DrawContext context, float delta) {
         super.onRenderBefore(context, delta);
+        refreshExpandedModules();
         WBaseModule hoveredSettings = null;
         if (theme.inlineModuleSettings.get() && theme.darkenSettings.get()) {
             double mouseX = mc.mouse.getScaledX(mc.getWindow()) * mc.getWindow().getScaleFactor();
@@ -194,16 +186,16 @@ public class BaseModulesScreen extends TabScreen {
             WWidget widget = cell.widget();
             if (widget instanceof WBaseModule module) {
                 if (module.isSettingsExpanded()) expandedModules.add(module);
-                cell.padBottom(spacingAfterModule(module));
+                double progress = theme.inlineModuleSettings.get() ? module.settingsExpansionProgress() : 0;
+                double gap = modulePaddingY() + (theme.separatorPaddingY.get() - modulePaddingY()) * progress;
+                if (cell.padBottom() != Math.round(theme.scale(gap))) {
+                    cell.padBottom(gap);
+                    invalidate();
+                }
             } else if (widget instanceof WContainer nested) {
                 refreshModulePadding(nested);
             }
         }
-    }
-
-    private double spacingAfterModule(WBaseModule module) {
-        if (theme.inlineModuleSettings.get() && module.isSettingsExpanded()) return theme.separatorPaddingY.get();
-        return modulePaddingY();
     }
 
     protected void addIcon(WContainer container, Object icon) {
@@ -219,7 +211,6 @@ public class BaseModulesScreen extends TabScreen {
         super.init();
         controller.refresh();
         refreshExpandedModules();
-        expandedModulesDirty = false;
         invalidate();
     }
 

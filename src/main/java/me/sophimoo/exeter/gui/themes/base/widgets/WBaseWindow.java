@@ -2,12 +2,14 @@ package me.sophimoo.exeter.gui.themes.base.widgets;
 
 import me.sophimoo.exeter.gui.screens.BaseModulesScreen;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleSettingsIndicator;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.Cell;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
 import meteordevelopment.meteorclient.gui.utils.WindowConfig;
 import meteordevelopment.meteorclient.gui.widgets.WLabel;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
+import meteordevelopment.meteorclient.gui.widgets.containers.WHorizontalList;
 import meteordevelopment.meteorclient.gui.widgets.containers.WWindow;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import net.minecraft.client.gui.Click;
@@ -85,8 +87,47 @@ public class WBaseWindow extends WWindow implements BaseWidget {
         private double activeProgress = WBaseWindow.this.expanded ? 1.0 : 0.0;
         private double hoverProgress;
 
+        private WHorizontalList list;
+        private WLabel titleLabel;
+        private WIndicator indicator;
+
         public WBaseHeader(WWidget icon) {
             super(icon);
+        }
+
+        private ModuleSettingsIndicator resolveIndicatorStyle() {
+            return theme().indicatorsOnCategoryTitles.get() ? theme().indicatorType.get() : ModuleSettingsIndicator.NONE;
+        }
+
+        private String safeIndicator(String value) {
+            return value == null ? "" : value;
+        }
+
+        @Override
+        public void init() {
+            list = add(theme.horizontalList()).expandX().widget();
+            list.spacing = 0;
+
+            if (WBaseWindow.this.icon != null) add(WBaseWindow.this.icon).centerY();
+            if (beforeHeaderInit != null) beforeHeaderInit.accept(this);
+
+            double pad = pad();
+            titleLabel = theme.label(title, true);
+            Cell<?> titleCell = add(titleLabel).expandCellX().centerY().padLeft(pad).padRight(pad);
+
+            AlignmentX alignment = theme().categoryTitleAlignment.get();
+            if (alignment == AlignmentX.Center) titleCell.center();
+            else if (alignment == AlignmentX.Right) titleCell.right().centerY();
+
+            if (resolveIndicatorStyle() != ModuleSettingsIndicator.NONE) {
+                indicator = add(new WIndicator()).right().centerY().padRight(pad).widget();
+            }
+        }
+
+        @Override
+        public <T extends WWidget> Cell<T> add(T widget) {
+            if (list != null) return list.add(widget);
+            return super.add(widget);
         }
 
         @Override
@@ -94,44 +135,6 @@ public class WBaseWindow extends WWindow implements BaseWidget {
             super.onCalculateSize();
             double pad = pad();
             height = resolveCategoryTitleRowHeight(Math.max(height, pad + theme().textHeight() + pad));
-        }
-
-        @Override
-        public void init() {
-            super.init();
-
-            Cell<?> titleCell = getTitleLabelCell();
-            if (titleCell == null) return;
-
-            double pad = pad();
-            titleCell.padLeft(pad).padRight(pad).centerY();
-
-            AlignmentX alignment = theme().categoryTitleAlignment.get();
-            if (alignment == AlignmentX.Center) {
-                titleCell.center();
-            } else if (alignment == AlignmentX.Right) {
-                titleCell.right().centerY();
-            }
-        }
-
-        @Override
-        protected void onCalculateWidgetPositions() {
-            super.onCalculateWidgetPositions();
-
-            if (theme().categoryTitleAlignment.get() == AlignmentX.Left) {
-                Cell<?> titleCell = getTitleLabelCell();
-                if (titleCell != null && titleCell.widget() instanceof WLabel label) {
-                    label.x = titleCell.x + titleCell.padLeft();
-                }
-            }
-        }
-
-        private Cell<?> getTitleLabelCell() {
-            for (Cell<?> cell : cells) {
-                if (cell.widget() instanceof WLabel) return cell;
-            }
-
-            return null;
         }
 
         @Override
@@ -144,9 +147,34 @@ public class WBaseWindow extends WWindow implements BaseWidget {
             renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), activeProgress, localHoverSurfaceProgress(hoverProgress), surfaceStyle);
             renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
 
-            Cell<?> titleCell = getTitleLabelCell();
-            if (titleCell != null && titleCell.widget() instanceof WLabel label) {
-                label.color = resolveCategoryTitleTextColor(activeProgress, hoverProgress);
+            Color textColor = resolveCategoryTitleTextColor(activeProgress, hoverProgress);
+            if (titleLabel != null) titleLabel.color = textColor;
+            if (indicator != null) indicator.color = textColor;
+        }
+
+        private class WIndicator extends WWidget implements BaseWidget {
+            private Color color;
+            private double exeterRotation;
+            private double meteorRotation = Double.NaN;
+
+            @Override
+            protected void onCalculateSize() {
+                width = indicatorWidth(resolveIndicatorStyle());
+                height = theme().textHeight();
+            }
+
+            @Override
+            protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
+                double pad = pad();
+                double rowY = WBaseHeader.this.y;
+                double rowHeight = WBaseHeader.this.height;
+
+                switch (resolveIndicatorStyle()) {
+                    case EXETER -> renderExeterIndicator(renderer, x, rowY, width, rowHeight, pad, exeterRotation = stepExeterIndicatorRotation(exeterRotation, WBaseWindow.this.expanded, delta), color);
+                    case METEOR -> renderMeteorIndicator(renderer, x, rowY, width, rowHeight, pad, meteorRotation = stepMeteorIndicatorRotation(meteorRotation, WBaseWindow.this.expanded, delta), color);
+                    case DROPDOWN -> renderText(renderer, activeProgress >= 0.5 ? safeIndicator(theme().expandedIndicator.get()) : safeIndicator(theme().collapsedIndicator.get()), x, rowY + (rowHeight - theme().textHeight()) / 2, color);
+                    default -> {}
+                }
             }
         }
 

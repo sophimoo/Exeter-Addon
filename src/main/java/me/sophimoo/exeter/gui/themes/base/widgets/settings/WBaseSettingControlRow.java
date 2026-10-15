@@ -161,7 +161,7 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
 
         for (WWidget widget = this; widget != null; widget = widget.parent) {
             if (widget instanceof WWindow window) {
-                return theme().shouldUseFixedCategoryWidth(window.id) ? theme().fixedCategoryWidth.get() : horizontalWidth;
+                return theme().shouldUseFixedCategoryWidth(window.id) ? theme().scaledFixedCategoryWidth() : horizontalWidth;
             }
         }
 

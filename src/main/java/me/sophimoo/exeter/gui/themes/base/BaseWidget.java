@@ -10,6 +10,7 @@ import me.sophimoo.exeter.gui.themes.base.utils.InterpolationState;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.SelectionRenderingMode;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleGradientDirection;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleIndicatorPosition;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleSettingsIndicator;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.TextHoverDisplacementDirection;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
@@ -416,10 +417,15 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
                                        boolean marqueeEnabled, double staticTextX, Color color, double displacementProgress) {
         double overflow = Math.max(0, textWidth - textAreaW);
 
-        if (marqueeEnabled && overflow > 0 && textAreaW > 0) {
-            double marqueeOffset = marqueeState.step(overflow, animate, delta);
+        if (overflow > 0 && textAreaW > 0) {
             renderer.scissorStart(textAreaX, textAreaY, textAreaW, textAreaH);
-            renderText(renderer, text, textAreaX - marqueeOffset, textY, color, displacementProgress);
+            if (marqueeEnabled) {
+                double marqueeOffset = marqueeState.step(overflow, animate, delta);
+                renderText(renderer, text, textAreaX - marqueeOffset, textY, color, displacementProgress);
+            } else {
+                marqueeState.reset();
+                renderText(renderer, text, staticTextX, textY, color, displacementProgress);
+            }
             renderer.scissorEnd();
             return;
         }
@@ -489,6 +495,18 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
         double rawProgress = raw + delta * (shouldFadeIn ? fadeInSpeed : fadeOutSpeed) * (shouldFadeIn ? 1 : -1);
         rawProgress = Math.max(0, Math.min(1, rawProgress));
         return easeInOutCubic(rawProgress);
+    }
+
+    default double indicatorWidth(ModuleSettingsIndicator style) {
+        return switch (style) {
+            case NONE -> 0;
+            case EXETER -> theme().textHeight() * EXETER_ICON_SCALE;
+            case METEOR -> theme().textHeight();
+            case DROPDOWN -> {
+                String collapsed = theme().collapsedIndicator.get(), expanded = theme().expandedIndicator.get();
+                yield Math.max(theme().textWidth(collapsed == null ? "" : collapsed), theme().textWidth(expanded == null ? "" : expanded));
+            }
+        };
     }
 
     default double stepExeterIndicatorRotation(double currentRotation, boolean active, double delta) {

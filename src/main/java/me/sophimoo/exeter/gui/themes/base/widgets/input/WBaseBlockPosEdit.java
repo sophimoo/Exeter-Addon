@@ -40,7 +40,7 @@ public class WBaseBlockPosEdit extends WVerticalList implements BaseWidget {
 
     @Override
     public void init() {
-        spacing = theme().scale(2);
+        spacing = 2;
         
         WHorizontalList coords = add(theme().horizontalList()).expandX().widget();
         addCoordTextBoxes(coords);

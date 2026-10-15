@@ -480,6 +480,22 @@ public class BaseGuiTheme extends GuiTheme {
             .build()
     );
 
+    public final Setting<Boolean> indicatorsOnCategoryTitles = sgIndicatorRender.add(new BoolSetting.Builder()
+            .name("indicators-on-category-titles")
+            .description("Applies the toggle indicator to category title bars.")
+            .defaultValue(true)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<Boolean> indicatorsOnModules = sgIndicatorRender.add(new BoolSetting.Builder()
+            .name("indicators-on-modules")
+            .description("Applies the toggle indicator to module rows.")
+            .defaultValue(true)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
     public final Setting<String> collapsedIndicator = sgIndicatorRender.add(new StringSetting.Builder()
             .name("collapsed-indicator")
             .description("Text shown on module rows when settings are collapsed.")

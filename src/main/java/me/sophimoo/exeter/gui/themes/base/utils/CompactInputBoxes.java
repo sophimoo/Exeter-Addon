@@ -79,7 +79,7 @@ public final class CompactInputBoxes {
         double settingsWidth = Utils.getWindowWidth() * 0.75;
 
         if (theme instanceof BaseGuiTheme baseTheme && baseTheme.fixedCategorySize.get()) {
-            settingsWidth = baseTheme.scale(baseTheme.fixedCategoryWidth.get());
+            settingsWidth = baseTheme.scaledFixedCategoryWidth();
         }
 
         return Math.max(theme.scale(40), settingsWidth / 2);

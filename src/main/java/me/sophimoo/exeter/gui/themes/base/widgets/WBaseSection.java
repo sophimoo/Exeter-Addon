@@ -152,10 +152,11 @@ public class WBaseSection extends WSection implements BaseWidget {
             double textAreaX = x + pad;
             double textAreaWidth = Math.max(0, width - pad * 2 - iconWidth - iconGap);
             if (titleWidth == 0) titleWidth = theme().textWidth(title);
+            boolean needsMarquee = titleWidth > textAreaWidth;
             RowTextLayout layout = resolveRowTextLayout(textAreaX, y, textAreaWidth, height, titleWidth, theme().moduleAlignment.get(), AlignmentY.Center);
 
             Color textColor = resolveSeparatorTextColor(activeProgress, hoverProgress);
-            renderRowTitle(renderer, marquee, title, titleWidth, delta, false, false, textColor, hoverProgress, layout);
+            renderRowTitle(renderer, marquee, title, titleWidth, delta, mouseOver, needsMarquee, textColor, hoverProgress, layout);
 
             if (indicatorStyle != ModuleSettingsIndicator.NONE) {
                 double iconX = x + width - pad - iconWidth;
@@ -187,21 +188,6 @@ public class WBaseSection extends WSection implements BaseWidget {
             checkbox.width = checkboxSize;
             checkbox.height = checkboxSize;
             cells.get(0).alignWidget();
-        }
-
-        private double indicatorWidth(ModuleSettingsIndicator style) {
-            return switch (style) {
-                case NONE -> 0;
-                case EXETER -> theme().textHeight() * EXETER_ICON_SCALE;
-                case METEOR -> theme().textHeight();
-                case DROPDOWN -> {
-                    String collapsedIndicator = theme().collapsedIndicator.get();
-                    String expandedIndicator = theme().expandedIndicator.get();
-                    if (collapsedIndicator == null) collapsedIndicator = "";
-                    if (expandedIndicator == null) expandedIndicator = "";
-                    yield Math.max(theme().textWidth(collapsedIndicator), theme().textWidth(expandedIndicator));
-                }
-            };
         }
 
         private double indicatorGap(ModuleSettingsIndicator style) {

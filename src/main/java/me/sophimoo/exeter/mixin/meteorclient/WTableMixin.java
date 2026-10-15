@@ -1,5 +1,6 @@
 package me.sophimoo.exeter.mixin.meteorclient;
 
+import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
 import me.sophimoo.exeter.gui.widgets.ExeterStackedTable;
 import me.sophimoo.exeter.gui.widgets.ExeterStackedLayout;
 import me.sophimoo.exeter.gui.widgets.ExeterWidthConstrained;
@@ -13,6 +14,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 
@@ -27,6 +29,11 @@ public abstract class WTableMixin extends WContainer implements ExeterStackedTab
     @Unique private boolean exeter$stacked;
     @Unique private boolean exeter$wrapped;
     @Unique private double exeter$wrapWidth;
+
+    @Inject(method = {"horizontalSpacing", "verticalSpacing"}, at = @At("RETURN"), cancellable = true)
+    private void exeter$roundLayoutSpacing(CallbackInfoReturnable<Double> info) {
+        if (theme instanceof BaseGuiTheme) info.setReturnValue((double) Math.round(info.getReturnValueD()));
+    }
 
     @Override
     public void exeter$setStacked(boolean stacked) {
