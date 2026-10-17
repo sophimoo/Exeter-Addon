@@ -61,8 +61,7 @@ public class WBaseWindow extends WWindow implements BaseWidget {
         if (scissor) renderer.scissorStart(x, y, width, (height - header.height) * animProgress + header.height);
 
         if (expanded || animProgress > 0) {
-            double thickness = theme.scale(theme().windowOutlineThickness.get());
-            renderQuadWithOptionalBlur(renderer, x + thickness, y + header.height + thickness, width - thickness * 2, height - header.height - thickness * 2, theme().backgroundColor.get());
+            renderQuadWithOptionalBlur(renderer, x, y + header.height, width, height - header.height, theme().backgroundColor.get());
         }
 
         super.render(renderer, mouseX, mouseY, delta);
@@ -143,7 +142,7 @@ public class WBaseWindow extends WWindow implements BaseWidget {
             hoverProgress = animationState.hoverProgress();
             activeProgress = stepProgress(activeProgress, WBaseWindow.this.expanded, delta);
 
-            renderQuadWithOptionalBlur(renderer, x, y, width, height, new Color(0, 0, 0, 0));
+            renderQuadWithOptionalBlur(renderer, x, y, width, height, theme().backgroundColor.get());
             RowSurfaceStyle surfaceStyle = categoryTitleRowSurfaceStyle(activeProgress > 0, mouseOver);
             renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), activeProgress, localHoverSurfaceProgress(hoverProgress), surfaceStyle);
             renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
