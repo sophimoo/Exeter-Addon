@@ -26,7 +26,6 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
 
     protected double animationProgress;
     protected double hoverOverlayProgress;
-    protected double indicatorProgress;
     protected double exeterIconRotation;
     protected double meteorIconRotation = Double.NaN;
     protected final MarqueeState marquee = new MarqueeState();
@@ -46,10 +45,8 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
 
         if (module.isActive()) {
             animationProgress = 1;
-            indicatorProgress = 1;
         } else {
             animationProgress = 0;
-            indicatorProgress = 0;
         }
 
         hoverOverlayProgress = 0;
@@ -95,8 +92,8 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         );
         renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
 
-        if (indicatorProgress > 0) {
-            renderRowIndicator(renderer, x, y, width, height, indicatorProgress, moduleIndicatorStyle(colorMapper.apply(theme().accentColor.get())));
+        if (animationProgress > 0) {
+            renderRowIndicator(renderer, x, y, width, height, animationProgress, moduleIndicatorStyle(colorMapper.apply(theme().accentColor.get())));
         }
 
         Color textColor = resolveTextColor();
@@ -124,8 +121,6 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
 
         animationProgress = rowAnimationState.primaryProgress();
         hoverOverlayProgress = rowAnimationState.hoverProgress();
-
-        indicatorProgress = stepProgress(indicatorProgress, isActive, delta);
     }
 
     protected final void renderTitle(GuiRenderer renderer, double pad, ModuleRowLayout layout, Color textColor, double textY, double delta) {
