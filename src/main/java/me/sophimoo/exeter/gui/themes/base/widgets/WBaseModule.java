@@ -254,7 +254,7 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
             double outlineHeight = Math.min(height, animatedHeight);
             double thickness = Math.min(theme.scale(theme().moduleSettingsOutlineThickness.get()), Math.min(width, outlineHeight) / 2);
             if (thickness > 0) {
-                Color color = interpolateColor(theme().moduleInactiveColor.get(), theme().moduleActiveColor.get(), moduleButton.indicatorProgress);
+                Color color = interpolateColor(theme().moduleInactiveColor.get(), theme().moduleActiveColor.get(), moduleButton.animationProgress);
                 renderer.quad(x, y, thickness, outlineHeight - thickness, color);
                 renderer.quad(x + width - thickness, y, thickness, outlineHeight - thickness, color);
                 renderer.quad(x, y + outlineHeight - thickness, width, thickness, color);
