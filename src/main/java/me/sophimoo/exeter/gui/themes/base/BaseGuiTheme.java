@@ -550,6 +550,14 @@ public class BaseGuiTheme extends GuiTheme {
 
     // Module rendering
 
+    public final Setting<Boolean> showModuleBinds = sgModuleRender.add(new BoolSetting.Builder()
+            .name("show-module-binds")
+            .description("Shows bound keys on module rows, to the left of the settings indicator.")
+            .defaultValue(true)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
     public final Setting<Double> moduleHeight = sgModuleRender.add(new DoubleSetting.Builder()
             .name("module-height")
             .description("Height of module buttons in module lists.")

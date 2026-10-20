@@ -35,8 +35,15 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         String expandedIndicator,
         ModuleSettingsIndicator indicatorStyle,
         double settingsIconWidth,
-        double settingsIconGap
-    ) {}
+        double settingsIconGap,
+        String bindText,
+        double bindWidth,
+        double bindGap
+    ) {
+        double trailingWidth() {
+            return settingsIconWidth + settingsIconGap + bindWidth + bindGap;
+        }
+    }
 
     protected WBaseModuleRow(Module module, String title) {
         this.module = module;
@@ -64,8 +71,8 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
 
         if (titleWidth == 0) titleWidth = theme().textWidth(title);
 
-        if (theme().fixedCategorySize.get()) width = pad + pad + layout.settingsIconWidth + layout.settingsIconGap;
-        else width = pad + titleWidth + layout.settingsIconWidth + layout.settingsIconGap + pad;
+        if (theme().fixedCategorySize.get()) width = pad + pad + layout.trailingWidth();
+        else width = pad + titleWidth + layout.trailingWidth() + pad;
         height = resolveModuleRowHeight(pad + theme().textHeight() + pad);
     }
 
@@ -100,6 +107,11 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         double textY = resolveTextY(pad);
         renderTitle(renderer, pad, layout, textColor, textY, delta);
 
+        if (!layout.bindText().isEmpty()) {
+            double bindX = x + width - pad - layout.settingsIconWidth - layout.settingsIconGap - layout.bindWidth;
+            renderText(renderer, layout.bindText(), bindX, textY, textColor);
+        }
+
         renderSettingsIcon(renderer, pad, layout, textY, delta, textColor);
         if (mc.currentScreen instanceof BaseModulesScreen screen) {
             screen.queueDimmingOverlay(renderer, this, resolveSearchOverlayProgress());
@@ -125,7 +137,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
 
     protected final void renderTitle(GuiRenderer renderer, double pad, ModuleRowLayout layout, Color textColor, double textY, double delta) {
         double textAreaX = this.x + pad;
-        double textAreaW = Math.max(0, width - pad * 2 - layout.settingsIconWidth - layout.settingsIconGap);
+        double textAreaW = Math.max(0, width - pad * 2 - layout.trailingWidth());
         double overflow = Math.max(0, titleWidth - textAreaW);
         boolean needsMarquee = overflow > 0 && theme().fixedCategorySize.get();
 
@@ -174,7 +186,10 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
             : ModuleSettingsIndicator.NONE;
         double settingsIconWidth = indicatorWidth(indicatorStyle);
         double settingsIconGap = settingsIconWidth > 0 ? pad() : 0;
-        return new ModuleRowLayout(collapsedIndicator, expandedIndicator, indicatorStyle, settingsIconWidth, settingsIconGap);
+        String bindText = theme().showModuleBinds.get() && module.keybind.isSet() ? "[" + module.keybind + "]" : "";
+        double bindWidth = bindText.isEmpty() ? 0 : theme().textWidth(bindText);
+        double bindGap = bindWidth > 0 ? pad() : 0;
+        return new ModuleRowLayout(collapsedIndicator, expandedIndicator, indicatorStyle, settingsIconWidth, settingsIconGap, bindText, bindWidth, bindGap);
     }
 
     protected final String safeIndicator(String value) {
