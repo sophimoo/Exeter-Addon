@@ -9,6 +9,7 @@ import meteordevelopment.meteorclient.gui.utils.Cell;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
 import meteordevelopment.meteorclient.gui.widgets.containers.WWindow;
+import meteordevelopment.meteorclient.gui.widgets.input.WTextBox;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 
 public class WBaseSettingControlRow extends WContainer implements BaseWidget {
@@ -39,7 +40,7 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
 
     @Override
     public void init() {
-        if (forceVerticalLayout) add(control).expandX();
+        if (forceVerticalLayout || control instanceof WTextBox) add(control).expandX();
         else add(control);
     }
 
@@ -78,11 +79,14 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
             cell.y = y + padY + theme().textHeight() + padY;
             cell.width = Math.max(0, width - padX * 2);
         } else {
-            double controlX = x + width - padX - widget.width;
+            double controlWidth = widget instanceof WTextBox
+                ? Math.max(0, width - titleWidth - padX * 3)
+                : widget.width;
+            double controlX = x + width - padX - controlWidth;
             double controlY = y + (height - widget.height) / 2;
             cell.x = controlX;
             cell.y = controlY;
-            cell.width = widget.width;
+            cell.width = controlWidth;
         }
         cell.height = widget.height;
         cell.alignWidget();

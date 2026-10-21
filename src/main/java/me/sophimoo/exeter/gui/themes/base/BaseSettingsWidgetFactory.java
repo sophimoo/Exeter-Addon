@@ -189,7 +189,7 @@ public class BaseSettingsWidgetFactory extends SettingsWidgetFactory {
             setting.renderer,
             box -> setting.set(box.get())
         );
-        addControlRow(table, setting, textBox);
+        addControlRow(table, setting.title, setting.description, textBox, setting.wide);
     }
 
     private void stringListW(WTable table, StringListSetting setting) {

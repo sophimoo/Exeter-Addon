@@ -1,7 +1,7 @@
 package me.sophimoo.exeter.gui.themes.base.widgets.input;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
- import me.sophimoo.exeter.gui.themes.base.widgets.WBaseLabel;
+ import meteordevelopment.meteorclient.gui.widgets.WLabel;
  import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
  import meteordevelopment.meteorclient.gui.utils.CharFilter;
  import meteordevelopment.meteorclient.gui.widgets.WWidget;
@@ -64,22 +64,24 @@ public class WBaseTextBox extends WTextBox implements BaseWidget {
     @SuppressWarnings("unchecked")
     @Override
     protected <T extends WWidget & ICompletionItem> T createCompletionsValueWidth(String completion, boolean selected) {
-        return (T) new CompletionItem(completion, false, selected);
+        return (T) new CompletionItem(completion, selected);
     }
 
-    private static class CompletionItem extends WBaseLabel implements ICompletionItem {
+    private static class CompletionItem extends WLabel implements BaseWidget, ICompletionItem {
         private static final Color SELECTED_COLOR = new Color(255, 255, 255, 15);
 
         private boolean selected;
 
-        public CompletionItem(String text, boolean title, boolean selected) {
-            super(text, title);
+        public CompletionItem(String text, boolean selected) {
+            super(text, false);
             this.selected = selected;
         }
 
         @Override
         protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-            super.onRender(renderer, mouseX, mouseY, delta);
+            if (!text.isEmpty()) {
+                renderText(renderer, text, x, y, color != null ? color : theme().textColor.get());
+            }
 
             if (selected) renderer.quad(this, SELECTED_COLOR);
         }
