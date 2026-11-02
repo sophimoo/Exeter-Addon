@@ -25,6 +25,7 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
     private boolean settingsExpanded = false;
     private WSettingsDropdown settingsContainer = null;
+    private Cell<WSettingsDropdown> settingsContainerCell = null;
     private WModuleButton moduleButton;
     private WContainer moduleSettingsContainer = null;
     private boolean hasModuleSettingsContent;
@@ -75,7 +76,7 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
             addBindSection(settingsContainer);
 
-            add(settingsContainer).expandX();
+            settingsContainerCell = add(settingsContainer).expandX().padTop(0);
         }
 
         settingsContainer.setExpanded(settingsExpanded);
@@ -243,6 +244,14 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
             double heightProgress = dropdownHeightProgress(animProgress, expanded);
             double animatedHeight = expandedHeight * heightProgress;
             boolean animationChanged = previousAnimProgress != animProgress;
+            if (settingsContainerCell != null) {
+                double padTop = theme().separatorPaddingY.get() * heightProgress;
+                if (settingsContainerCell.padTop() != Math.round(theme().scale(padTop))) {
+                    settingsContainerCell.padTop(padTop);
+                    animationChanged = true;
+                }
+            }
+
             if (animationChanged) invalidate();
             if (animProgress <= 0) return false;
 
@@ -251,16 +260,15 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
             boolean toReturn = super.render(renderer, mouseX, mouseY, delta);
 
-            double outlineHeight = Math.min(height, animatedHeight);
+            if (scissor) renderer.scissorEnd();
+
+            double outlineY = moduleButton.y + moduleButton.height;
+            double outlineHeight = Math.max(0, y - outlineY) + Math.min(height, animatedHeight);
             double thickness = Math.min(theme.scale(theme().moduleSettingsOutlineThickness.get()), Math.min(width, outlineHeight) / 2);
             if (thickness > 0) {
                 Color color = interpolateColor(theme().moduleInactiveColor.get(), theme().moduleActiveColor.get(), moduleButton.animationProgress);
-                renderer.quad(x, y, thickness, outlineHeight - thickness, color);
-                renderer.quad(x + width - thickness, y, thickness, outlineHeight - thickness, color);
-                renderer.quad(x, y + outlineHeight - thickness, width, thickness, color);
+                renderOutline(renderer, x, outlineY, width, outlineHeight, thickness, color);
             }
-
-            if (scissor) renderer.scissorEnd();
 
             return toReturn;
         }
