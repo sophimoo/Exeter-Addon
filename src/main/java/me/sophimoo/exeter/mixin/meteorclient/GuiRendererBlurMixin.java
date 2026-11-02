@@ -129,8 +129,8 @@ public abstract class GuiRendererBlurMixin implements BlurRendererAccess {
         flushBlurredQuads();
     }
 
-    @Inject(method = "quad(DDDDLmeteordevelopment/meteorclient/utils/render/color/Color;)V", at = @At("HEAD"))
-    private void onQuad(double x, double y, double width, double height, Color color, CallbackInfo ci) {
+    @Inject(method = "quad(DDDDLmeteordevelopment/meteorclient/utils/render/color/Color;Lmeteordevelopment/meteorclient/utils/render/color/Color;Lmeteordevelopment/meteorclient/utils/render/color/Color;Lmeteordevelopment/meteorclient/utils/render/color/Color;)V", at = @At("HEAD"))
+    private void onQuad(double x, double y, double width, double height, Color cTopLeft, Color cTopRight, Color cBottomRight, Color cBottomLeft, CallbackInfo ci) {
         if (blurQueue.isEmpty() && currentBlurTexture == null) return;
         flushBlurredQuads();
     }
