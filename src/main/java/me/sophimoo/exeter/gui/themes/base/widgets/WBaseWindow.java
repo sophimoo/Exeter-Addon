@@ -1,5 +1,6 @@
 package me.sophimoo.exeter.gui.themes.base.widgets;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import me.sophimoo.exeter.gui.screens.BaseModulesScreen;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleSettingsIndicator;
@@ -11,8 +12,11 @@ import meteordevelopment.meteorclient.gui.widgets.WLabel;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WHorizontalList;
 import meteordevelopment.meteorclient.gui.widgets.containers.WWindow;
+import meteordevelopment.meteorclient.mixininterface.IGameRenderer;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import net.minecraft.client.gui.Click;
+
+import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 public class WBaseWindow extends WWindow implements BaseWidget {
     private BaseModulesScreen modulesScreen;
@@ -57,8 +61,7 @@ public class WBaseWindow extends WWindow implements BaseWidget {
         
         if (!visible) return true;
 
-        boolean scissor = (animProgress != 0 && animProgress != 1) || (expanded && animProgress != 1);
-        if (scissor) renderer.scissorStart(x, y, width, (height - header.height) * animProgress + header.height);
+        renderer.scissorStart(x, y, width, (height - header.height) * animProgress + header.height);
 
         if (expanded || animProgress > 0) {
             renderQuadWithOptionalBlur(renderer, x, y + header.height, width, height - header.height, theme().backgroundColor.get());
@@ -66,7 +69,17 @@ public class WBaseWindow extends WWindow implements BaseWidget {
 
         super.render(renderer, mouseX, mouseY, delta);
 
-        if (scissor) renderer.scissorEnd();
+        renderer.scissorEnd();
+
+        // https://github.com/MeteorDevelopment/meteor-client/commit/6f385e2ecd0a0c18a781d65ca79e6d0ea3a1549f
+        // this commit introduces the mixin in meteor for this
+        var projection = RenderSystem.getProjectionMatrixBuffer();
+        var projectionType = RenderSystem.getProjectionType();
+        try {
+            ((IGameRenderer) mc.gameRenderer).meteor$flushGuiState();
+        } finally {
+            RenderSystem.setProjectionMatrix(projection, projectionType);
+        }
 
         if (expanded || animProgress > 0) {
             double thickness = theme.scale(theme().windowOutlineThickness.get());
