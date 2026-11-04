@@ -13,7 +13,7 @@ public final class AnimatedOverlayRenderer {
     public static void render(GuiRenderer renderer,
                               double x, double y, double width, double height,
                               SelectionRenderingMode mode, double progress,
-                              Color bgColor, Color gradientColor, ModuleGradientDirection gradientDir) {
+                               Color bgColor, Color gradientColor, ModuleGradientDirection gradientDir, double outlineThickness) {
         double rx = x;
         double ry = y;
         double rw = width;
@@ -39,6 +39,10 @@ public final class AnimatedOverlayRenderer {
             default -> rw = width * progress;
         }
 
-        GradientRenderer.render(renderer, rx, ry, rw, rh, renderGradientColor, renderColor, gradientDir);
+        if (outlineThickness > 0) {
+            GradientRenderer.renderOutline(renderer, rx, ry, rw, rh, outlineThickness, renderGradientColor, renderColor, gradientDir);
+        } else {
+            GradientRenderer.render(renderer, rx, ry, rw, rh, renderGradientColor, renderColor, gradientDir);
+        }
     }
 }

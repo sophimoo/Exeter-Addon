@@ -176,33 +176,27 @@ public class BaseModulesScreen extends TabScreen {
     private void refreshExpandedModules() {
         if (controller == null) return;
         expandedModules.clear();
-        refreshModulePadding(controller);
+        collectExpandedModules(controller);
         if (dimmingInlineSettings != null && !expandedModules.contains(dimmingInlineSettings)) dimmingInlineSettings = null;
     }
 
-    private void refreshModulePadding(WContainer container) {
+    private void collectExpandedModules(WContainer container) {
         if (container == null) return;
         for (Cell<?> cell : container.cells) {
             WWidget widget = cell.widget();
             if (widget instanceof WBaseModule module) {
                 if (module.isSettingsExpanded()) expandedModules.add(module);
-                double progress = theme.inlineModuleSettings.get() ? module.settingsExpansionProgress() : 0;
-                double gap = modulePaddingY() + (theme.separatorPaddingY.get() - modulePaddingY()) * progress;
-                if (cell.padBottom() != Math.round(theme.scale(gap))) {
-                    cell.padBottom(gap);
-                    invalidate();
-                }
             } else if (widget instanceof WContainer nested) {
-                refreshModulePadding(nested);
+                collectExpandedModules(nested);
             }
         }
     }
 
     protected void addIcon(WContainer container, Object icon) {
         if (icon instanceof net.minecraft.item.ItemStack stack) {
-            container.add(theme.item(stack)).pad(2);
+            container.add(theme.item(stack)).pad(theme.globalPadding.get());
         } else {
-            container.add(theme.label(icon != null ? icon.toString() : "")).pad(2);
+            container.add(theme.label(icon != null ? icon.toString() : "")).pad(theme.globalPadding.get());
         }
     }
 
@@ -237,6 +231,7 @@ public class BaseModulesScreen extends TabScreen {
 
     private WBaseWindow modulesWindow(String title) {
         WBaseWindow window = theme.window(title);
+        window.useSettingsPanel = false;
         if (theme.snapModuleCategories.get()) window.initSnapping(this);
         return window;
     }
@@ -244,8 +239,6 @@ public class BaseModulesScreen extends TabScreen {
     protected WWindow createCategory(WContainer c, Category category, List<Module> modules) {
         WBaseWindow w = modulesWindow(category.name);
         w.id = category.name;
-        w.padding = theme.windowOutlineThickness.get();
-        w.spacing = 0;
 
         if (theme.categoryIcons()) {
             String iconText = null;
@@ -268,10 +261,10 @@ public class BaseModulesScreen extends TabScreen {
 
             if (iconText != null && !iconText.isEmpty()) {
                 final String text = iconText;
-                w.beforeHeaderInit = wContainer -> wContainer.add(theme.label(text)).pad(2);
+                w.beforeHeaderInit = wContainer -> addIcon(wContainer, text);
             } else if (iconStack != null) {
                 final ItemStack stack = iconStack;
-                w.beforeHeaderInit = wContainer -> wContainer.add(theme.item(stack)).pad(2);
+                w.beforeHeaderInit = wContainer -> addIcon(wContainer, stack);
             }
         }
         c.add(w);
@@ -304,7 +297,7 @@ public class BaseModulesScreen extends TabScreen {
     private double searchTextBoxMinWidth(String text) {
         double contentWidth = text.isEmpty() ? 0 : theme.textWidth(text) + theme.scale(SEARCH_TEXT_BOX_HORIZONTAL_PADDING);
         double width = Math.max(theme.scale(SEARCH_TEXT_BOX_MIN_WIDTH), contentWidth);
-        double maxWidth = Math.max(theme.scale(SEARCH_TEXT_BOX_MIN_WIDTH), getWindowWidth() - theme.scale(16));
+        double maxWidth = Math.max(theme.scale(SEARCH_TEXT_BOX_MIN_WIDTH), getWindowWidth() - theme.pad() * 4);
 
         return Math.min(width, maxWidth);
     }
@@ -355,8 +348,6 @@ public class BaseModulesScreen extends TabScreen {
 
         WBaseWindow w = modulesWindow("Favorites");
         w.id = "favorites";
-        w.padding = theme.windowOutlineThickness.get();
-        w.spacing = 0;
 
         if (theme.categoryIcons()) {
             w.beforeHeaderInit = wContainer -> addIcon(wContainer, Items.NETHER_STAR.getDefaultStack());
@@ -459,7 +450,7 @@ public class BaseModulesScreen extends TabScreen {
         public void calculateSize() {
             if (searchTextBox != null) searchTextBox.calculateSize();
 
-            double listPad = theme.scale(8);
+            double listPad = theme.pad() * 2;
             double searchHeight = searchTextBox != null ? searchTextBox.height : 0;
             double tabBarHeight = theme.pad() * 2 + theme.textHeight();
             double moduleListTop = tabBarHeight + listPad + searchHeight + listPad;
@@ -477,8 +468,8 @@ public class BaseModulesScreen extends TabScreen {
         @Override
         protected void onCalculateWidgetPositions() {
             int ww = (int) getWindowWidth(), wh = (int) getWindowHeight();
-            double gridPad = theme.scale(4);
-            double listPad = theme.scale(8);
+            double gridPad = theme.pad();
+            double listPad = theme.pad() * 2;
             double searchY = theme.pad() * 2 + theme.textHeight() + listPad;
             double topY = searchY;
             if (searchTextCell != null) {

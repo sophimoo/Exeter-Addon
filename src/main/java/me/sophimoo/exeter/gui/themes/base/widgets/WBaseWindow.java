@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import me.sophimoo.exeter.gui.screens.BaseModulesScreen;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleSettingsIndicator;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.SelectionRenderingMode;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.Cell;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
@@ -19,6 +20,9 @@ import net.minecraft.client.gui.Click;
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 public class WBaseWindow extends WWindow implements BaseWidget {
+    public boolean useSettingsPanel = true;
+
+    private WBaseSettingsPanel settingsPanel;
     private BaseModulesScreen modulesScreen;
     // https://github.com/X-C-0/catppuccin-addon/blob/d642959fbaa9e5757013ea38f57556eb88c8b822/src/main/java/me/pindour/catppuccin/gui/themes/catppuccin/widgets/container/WCatppuccinWindow.java#L29
     private double mouseOffsetX;
@@ -26,6 +30,25 @@ public class WBaseWindow extends WWindow implements BaseWidget {
 
     public WBaseWindow(WWidget icon, String title) {
         super(icon, title);
+    }
+
+    @Override
+    public void init() {
+        super.init();
+        if (useSettingsPanel) {
+            settingsPanel = view.add(new WBaseSettingsPanel()).expandX().widget();
+        }
+    }
+
+    @Override
+    public <T extends WWidget> Cell<T> add(T widget) {
+        return settingsPanel != null ? settingsPanel.add(widget) : super.add(widget);
+    }
+
+    @Override
+    public void clear() {
+        if (settingsPanel != null) settingsPanel.clear();
+        else super.clear();
     }
 
     public void initSnapping(BaseModulesScreen modulesScreen) {
@@ -46,6 +69,10 @@ public class WBaseWindow extends WWindow implements BaseWidget {
 
     @Override
     public void calculateSize() {
+        padding = theme().windowOutlineThickness.get();
+        for (Cell<?> cell : cells) {
+            if (cell.widget() == view) cell.pad(padding);
+        }
         super.calculateSize();
 
         if (theme().shouldUseFixedCategoryWidth(id)) {
@@ -55,11 +82,8 @@ public class WBaseWindow extends WWindow implements BaseWidget {
 
     @Override
     public boolean render(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-        if (padding == 0) {
-            padding = theme.scale(theme().windowOutlineThickness.get());
-        }
-        
         if (!visible) return true;
+        if (padding != theme().windowOutlineThickness.get()) invalidate();
 
         renderer.scissorStart(x, y, width, (height - header.height) * animProgress + header.height);
 
@@ -86,9 +110,12 @@ public class WBaseWindow extends WWindow implements BaseWidget {
             if (thickness > 0) {
                 double contentY = y + header.height;
                 double contentHeight = (height - header.height) * animProgress;
-                Color outlineColor = theme().windowOutlineColor.get();
-
-                if (animProgress > 0) renderOutline(renderer, x, contentY, width, contentHeight, thickness, outlineColor);
+                if (animProgress > 0) {
+                    WBaseHeader categoryHeader = (WBaseHeader) header;
+                    renderRowSurface(renderer, x, contentY, width, contentHeight, SelectionRenderingMode.FADE,
+                        categoryHeader.activeProgress, localHoverSurfaceProgress(categoryHeader.hoverProgress),
+                        categoryTitleRowSurfaceStyle(categoryHeader.activeProgress > 0, categoryHeader.mouseOver), thickness);
+                }
             }
         }
 
@@ -157,7 +184,7 @@ public class WBaseWindow extends WWindow implements BaseWidget {
 
             renderQuadWithOptionalBlur(renderer, x, y, width, height, theme().backgroundColor.get());
             RowSurfaceStyle surfaceStyle = categoryTitleRowSurfaceStyle(activeProgress > 0, mouseOver);
-            renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), activeProgress, localHoverSurfaceProgress(hoverProgress), surfaceStyle);
+            renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), activeProgress, localHoverSurfaceProgress(hoverProgress), surfaceStyle, 0);
             renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
 
             Color textColor = resolveCategoryTitleTextColor(activeProgress, hoverProgress);

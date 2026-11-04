@@ -107,18 +107,18 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
         ModuleGradientDirection gradientDirection = theme().gradientRender.get();
         boolean renderGradient = gradientDirection != ModuleGradientDirection.NONE;
 
-        Color inactiveGradient = mapColor(theme().moduleInactiveGradientColor.get(), colorMapper);
-        Color activeGradient = mapColor(theme().moduleActiveGradientColor.get(), colorMapper);
-        Color hoveredGradient = mapColor(theme().moduleHoveredGradientColor.get(), colorMapper);
+        Color inactiveGradient = theme().moduleInactiveGradientColor.get();
+        Color activeGradient = theme().moduleActiveGradientColor.get();
+        Color hoveredGradient = theme().moduleHoveredGradientColor.get();
 
         return createRowSurfaceStyle(
-            mapColor(theme().moduleInactiveColor.get(), colorMapper),
+            theme().moduleInactiveColor.get(),
             inactiveGradient,
             renderGradient,
-            mapColor(active ? theme().moduleActiveColor.get() : theme().moduleHoveredColor.get(), colorMapper),
+            active ? theme().moduleActiveColor.get() : theme().moduleHoveredColor.get(),
             active ? activeGradient : hoveredGradient,
             renderGradient,
-            mapColor(theme().moduleHoveredColor.get(), colorMapper),
+            theme().moduleHoveredColor.get(),
             hoveredGradient,
             renderGradient,
             gradientDirection,
@@ -214,21 +214,21 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
     default void renderRowSurface(GuiRenderer renderer, double x, double y, double width, double height,
                                   SelectionRenderingMode overlayAnimationMode, double overlayProgress,
-                                  double hoveredOverlayProgress, RowSurfaceStyle style) {
+                                  double hoveredOverlayProgress, RowSurfaceStyle style, double surfaceOutlineThickness) {
         double baseProgress = 1 - overlayProgress;
         if (baseProgress > 0 && style.baseLayer() != null) {
-            renderSurfaceLayer(renderer, x, y, width, height, SelectionRenderingMode.FADE, baseProgress, style.baseLayer(), style.gradientDirection());
+            renderSurfaceLayer(renderer, x, y, width, height, SelectionRenderingMode.FADE, baseProgress, style.baseLayer(), style.gradientDirection(), surfaceOutlineThickness);
         }
 
         if (overlayProgress > 0 && style.overlayLayer() != null) {
-            renderSurfaceLayer(renderer, x, y, width, height, overlayAnimationMode, overlayProgress, style.overlayLayer(), style.gradientDirection());
+            renderSurfaceLayer(renderer, x, y, width, height, overlayAnimationMode, overlayProgress, style.overlayLayer(), style.gradientDirection(), surfaceOutlineThickness);
         }
 
         if (hoveredOverlayProgress > 0 && style.hoveredOverlayLayer() != null) {
-            renderSurfaceLayer(renderer, x, y, width, height, overlayAnimationMode, hoveredOverlayProgress, style.hoveredOverlayLayer(), style.gradientDirection());
+            renderSurfaceLayer(renderer, x, y, width, height, overlayAnimationMode, hoveredOverlayProgress, style.hoveredOverlayLayer(), style.gradientDirection(), surfaceOutlineThickness);
         }
 
-        if (style.outlineThickness() > 0 && style.outlineColor() != null) {
+        if (surfaceOutlineThickness == 0 && style.outlineThickness() > 0 && style.outlineColor() != null) {
             renderOutline(renderer, x, y, width, height, style.outlineThickness(), style.outlineColor());
         }
     }
@@ -236,7 +236,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     default void renderRowHoverSurface(GuiRenderer renderer, double x, double y, double width, double height,
                                        SelectionRenderingMode animationMode, double progress, RowSurfaceStyle style) {
         if (progress <= 0 || style.hoveredOverlayLayer() == null) return;
-        renderSurfaceLayer(renderer, x, y, width, height, animationMode, progress, style.hoveredOverlayLayer(), style.gradientDirection());
+        renderSurfaceLayer(renderer, x, y, width, height, animationMode, progress, style.hoveredOverlayLayer(), style.gradientDirection(), 0);
     }
 
     default Object getInterpolationKey() {
@@ -364,10 +364,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     }
 
     default void renderOutline(GuiRenderer renderer, double x, double y, double width, double height, double thickness, Color color) {
-        renderer.quad(x, y, width, thickness, color);
-        renderer.quad(x, y + height - thickness, width, thickness, color);
-        renderer.quad(x, y + thickness, thickness, height - 2 * thickness, color);
-        renderer.quad(x + width - thickness, y + thickness, thickness, height - 2 * thickness, color);
+        GradientRenderer.renderOutline(renderer, x, y, width, height, thickness, color, color, ModuleGradientDirection.NONE);
     }
 
     default void renderText(GuiRenderer renderer, String text, double x, double y, Color color) {
@@ -451,7 +448,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
 
     private void renderSurfaceLayer(GuiRenderer renderer, double x, double y, double width, double height,
                                     SelectionRenderingMode animationMode, double progress, SurfaceLayer layer,
-                                    ModuleGradientDirection gradientDirection) {
+                                    ModuleGradientDirection gradientDirection, double outlineThickness) {
         if (layer == null || layer.color() == null) return;
 
         AnimatedOverlayRenderer.render(
@@ -464,7 +461,8 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
             progress,
             layer.color(),
             layer.gradient(),
-            layer.renderGradient() ? gradientDirection : ModuleGradientDirection.NONE
+            layer.renderGradient() ? gradientDirection : ModuleGradientDirection.NONE,
+            outlineThickness
         );
     }
 
@@ -547,12 +545,7 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
     }
 
     default Color interpolateColor(Color from, Color to, double progress) {
-        double clampedProgress = Math.max(0, Math.min(1, progress));
-        int r = (int) Math.round(from.r + (to.r - from.r) * clampedProgress);
-        int g = (int) Math.round(from.g + (to.g - from.g) * clampedProgress);
-        int b = (int) Math.round(from.b + (to.b - from.b) * clampedProgress);
-        int a = (int) Math.round(from.a + (to.a - from.a) * clampedProgress);
-        return new Color(r, g, b, a);
+        return GradientRenderer.interpolateColor(from, to, progress);
     }
 
     default Color resolveTextStateColor(Color inactiveColor, Color activeColor, Color hoveredColor,

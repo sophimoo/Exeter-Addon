@@ -10,7 +10,7 @@
   "mixins": [
     "minecraft.MinecraftClientModalSetScreenMixin",
     "meteorclient.CellMixin",
-    "meteorclient.EditSystemScreenMixin",
+    "meteorclient.GuiTabScreenMixin",
     "meteorclient.GuiRendererBlurMixin",
     "meteorclient.GuiRendererTextMixin",
     "meteorclient.InventoryHudMixin",

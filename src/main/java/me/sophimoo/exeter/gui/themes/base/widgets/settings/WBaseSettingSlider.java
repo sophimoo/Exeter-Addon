@@ -182,22 +182,24 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
             return;
         }
 
-        WidgetSizeDebug.log(
-            theme(),
-            this,
-            "SettingSlider",
-            width,
-            height,
-            String.format(
-                Locale.US,
-                "padX=%.2f padY=%.2f globalPad=%.2f rowPadX=%.2f rowPadY=%.2f",
-                pad(),
-                theme().rowPadY(),
-                theme().pad(),
-                theme().rowPadX(),
-                theme().rowPadY()
-            )
-        );
+        if (theme().debugWidgetSizes.get()) {
+            WidgetSizeDebug.log(
+                theme(),
+                this,
+                "SettingSlider",
+                width,
+                height,
+                String.format(
+                    Locale.US,
+                    "padX=%.2f padY=%.2f globalPad=%.2f rowPadX=%.2f rowPadY=%.2f",
+                    pad(),
+                    theme().rowPadY(),
+                    theme().pad(),
+                    theme().rowPadX(),
+                    theme().rowPadY()
+                )
+            );
+        }
 
         boolean hoveredForAnimation = mouseOver || dragging;
         RowAnimationState animationState = animateRow(delta, hoveredForAnimation, false, hoveredForAnimation, 0, animationProgress);
@@ -214,7 +216,7 @@ public class WBaseSettingSlider extends WPressable implements BaseWidget {
             animationState.effectiveAnimationMode(),
             0,
             fullBar ? 0 : localHoverSurfaceProgress(animationProgress),
-            surfaceStyle
+            surfaceStyle, 0
         );
         if (!fullBar) renderInterpolationHover(renderer, x, y, width, height, hoveredForAnimation, delta, surfaceStyle);
 

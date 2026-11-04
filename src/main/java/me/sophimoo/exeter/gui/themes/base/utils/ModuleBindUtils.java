@@ -1,6 +1,5 @@
 package me.sophimoo.exeter.gui.themes.base.utils;
 
-import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
 import me.sophimoo.exeter.gui.themes.base.widgets.settings.WBindControlRow;
 import me.sophimoo.exeter.gui.themes.base.widgets.settings.WBindToggleRow;
 import meteordevelopment.meteorclient.gui.GuiTheme;
@@ -24,12 +23,10 @@ import java.util.function.Consumer;
 public final class ModuleBindUtils {
     private ModuleBindUtils() {}
 
-    public static WKeybind populateBindSection(Cell<WSection> bindSectionCell, double paddingX, double separatorPaddingY, double itemSpacing, Module module, GuiTheme theme) {
+    public static WKeybind populateBindSection(Cell<WSection> bindSectionCell, Module module, GuiTheme theme) {
         WSection bindSection = bindSectionCell.widget();
-        bindSection.spacing = 0;
 
-        WTable table = bindSection.add(theme.table()).expandX().padHorizontal(paddingX).padTop(separatorPaddingY).widget();
-        table.verticalSpacing = itemSpacing;
+        WTable table = bindSection.add(theme.table()).expandX().widget();
 
         WKeybind keybindWidget = addKeybindRow(table, module, theme);
         addToggleRows(table, module);
@@ -58,7 +55,6 @@ public final class ModuleBindUtils {
         table.row();
 
         WHorizontalList sharing = theme.horizontalList();
-        sharing.spacing = 0;
 
         WButton copy = sharing.add(theme.button(GuiRenderer.COPY)).expandX().widget();
         copy.action = () -> copyModuleToClipboard(module);

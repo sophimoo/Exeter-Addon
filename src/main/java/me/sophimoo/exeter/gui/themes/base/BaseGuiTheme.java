@@ -18,6 +18,9 @@ import meteordevelopment.meteorclient.gui.utils.AlignmentY;
 import meteordevelopment.meteorclient.gui.utils.CharFilter;
 import meteordevelopment.meteorclient.gui.widgets.*;
 import meteordevelopment.meteorclient.gui.widgets.containers.WSection;
+import meteordevelopment.meteorclient.gui.widgets.containers.WHorizontalList;
+import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
+import meteordevelopment.meteorclient.gui.widgets.containers.WTable;
 import meteordevelopment.meteorclient.gui.widgets.containers.WView;
 import meteordevelopment.meteorclient.gui.widgets.input.WDropdown;
 import meteordevelopment.meteorclient.gui.widgets.input.WSlider;
@@ -33,6 +36,7 @@ import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 import meteordevelopment.orbit.listeners.ConsumerListener;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -42,6 +46,14 @@ import java.util.Map;
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 public class BaseGuiTheme extends GuiTheme {
+    // resolve the setting when scaled, not when the widget is created.
+    // keep these far outside normal padding values so explicit offsets remain unchanged.
+    // stupid
+    public static final double ITEM_PADDING_X = -Double.MAX_VALUE;
+    public static final double ITEM_PADDING_Y = -Double.MAX_VALUE / 2;
+    public static final double SEPARATOR_PADDING_X = -Double.MAX_VALUE / 3;
+    public static final double SEPARATOR_PADDING_Y = -Double.MAX_VALUE / 4;
+
     // Blur capture instance - managed by the theme
     private WorldFramebufferCapture blurCapture;
 
@@ -314,8 +326,6 @@ public class BaseGuiTheme extends GuiTheme {
             "pressed-", new SettingColor(70, 70, 70, 200)
     );
 
-    public final Setting<SettingColor> windowOutlineColor = color(sgOutline, "window-outline", "Color of window outlines.", new SettingColor(145, 61, 226));
-
     public final Setting<Double> windowOutlineThickness = sgOutline.add(new DoubleSetting.Builder()
             .name("window-outline-thickness")
             .description("Thickness of window outlines.")
@@ -323,6 +333,7 @@ public class BaseGuiTheme extends GuiTheme {
             .min(0)
             .max(5)
             .sliderRange(0, 5)
+            .onChanged(v -> invalidateCurrentScreen())
             .build()
     );
 
@@ -344,6 +355,18 @@ public class BaseGuiTheme extends GuiTheme {
             .max(5)
             .sliderRange(0, 5)
             .visible(inlineModuleSettings::get)
+            .onChanged(v -> invalidateCurrentScreen())
+            .build()
+    );
+
+    public final Setting<Double> separatorSettingsOutlineThickness = sgOutline.add(new DoubleSetting.Builder()
+            .name("separator-settings-outline-thickness")
+            .description("Thickness of the outline around expanded separator settings content.")
+            .defaultValue(0)
+            .min(0)
+            .max(5)
+            .sliderRange(0, 5)
+            .onChanged(v -> invalidateCurrentScreen())
             .build()
     );
 
@@ -870,7 +893,10 @@ public class BaseGuiTheme extends GuiTheme {
 
     @Override
     public WBaseWindow window(WWidget icon, String title) {
-        return w(new WBaseWindow(icon, title));
+        WBaseWindow window = w(new WBaseWindow(icon, title));
+        window.padding = windowOutlineThickness.get();
+        window.spacing = 0;
+        return window;
     }
 
     //https://github.com/X-C-0/catppuccin-addon/blob/d642959fbaa9e5757013ea38f57556eb88c8b822/src/main/java/me/pindour/catppuccin/gui/themes/catppuccin/CatppuccinGuiTheme.java#L275
@@ -944,7 +970,9 @@ public class BaseGuiTheme extends GuiTheme {
 
     @Override
     public WKeybind keybind(meteordevelopment.meteorclient.utils.misc.Keybind keybind, meteordevelopment.meteorclient.utils.misc.Keybind defaultValue) {
-        return w(new WBaseKeybind(keybind, defaultValue));
+        WKeybind widget = w(new WBaseKeybind(keybind, defaultValue));
+        widget.spacing = ITEM_PADDING_X;
+        return widget;
     }
 
     @Override
@@ -959,17 +987,52 @@ public class BaseGuiTheme extends GuiTheme {
 
     @Override
     public WView view() {
-        return w(new WBaseView());
+        WView view = w(new WBaseView());
+        view.spacing = ITEM_PADDING_Y;
+        return view;
+    }
+
+    @Override
+    public WVerticalList verticalList() {
+        WVerticalList list = super.verticalList();
+        list.spacing = ITEM_PADDING_Y;
+        return list;
+    }
+
+    @Override
+    public WHorizontalList horizontalList() {
+        WHorizontalList list = super.horizontalList();
+        list.spacing = ITEM_PADDING_X;
+        return list;
+    }
+
+    @Override
+    public WTable table() {
+        WTable table = super.table();
+        table.horizontalSpacing = ITEM_PADDING_X;
+        table.verticalSpacing = ITEM_PADDING_Y;
+        return table;
     }
 
     @Override
     public WSection section(String title, boolean expanded, WWidget headerWidget) {
-        return w(new WBaseSection(title, expanded, headerWidget));
+        WSection section = w(new WBaseSection(title, expanded, headerWidget));
+        section.spacing = SEPARATOR_PADDING_Y;
+        return section;
     }
 
     @Override
     public WAccount account(WidgetScreen screen, Account<?> account) {
-        return w(new WBaseAccount(screen, account));
+        WAccount widget = w(new WBaseAccount(screen, account));
+        widget.spacing = ITEM_PADDING_X;
+        return widget;
+    }
+
+    @Override
+    public WItemWithLabel itemWithLabel(ItemStack stack, String name) {
+        WItemWithLabel widget = super.itemWithLabel(stack, name);
+        widget.spacing = ITEM_PADDING_X;
+        return widget;
     }
 
     @Override
@@ -1088,6 +1151,10 @@ public class BaseGuiTheme extends GuiTheme {
 
     @Override
     public double scale(double value) {
+        if (value == ITEM_PADDING_X) value = itemPaddingX.get();
+        else if (value == ITEM_PADDING_Y) value = itemPaddingY.get();
+        else if (value == SEPARATOR_PADDING_X) value = separatorPaddingX.get();
+        else if (value == SEPARATOR_PADDING_Y) value = separatorPaddingY.get();
         return value * scale.get();
     }
 

@@ -4,7 +4,6 @@ import me.sophimoo.exeter.gui.screens.BaseModulesScreen;
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleSettingsIndicator;
-import meteordevelopment.meteorclient.gui.utils.AlignmentY;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WPressable;
@@ -12,7 +11,6 @@ import meteordevelopment.meteorclient.systems.config.Config;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 
-import java.util.function.UnaryOperator;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
@@ -83,9 +81,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
 
         updateAnimationProgresses(mouseX, mouseY, delta);
         boolean isActive = module.isActive();
-        UnaryOperator<Color> colorMapper = UnaryOperator.identity();
-
-        RowSurfaceStyle surfaceStyle = moduleRowSurfaceStyle(isActive, pressed, mouseOver, colorMapper);
+        RowSurfaceStyle surfaceStyle = moduleRowSurfaceStyle(isActive, pressed, mouseOver, null);
         renderRowSurface(
             renderer,
             x,
@@ -95,17 +91,19 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
             rowAnimationState.effectiveAnimationMode(),
             animationProgress,
             localHoverSurfaceProgress(hoverOverlayProgress),
-            surfaceStyle
+            surfaceStyle, 0
         );
         renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
 
         if (animationProgress > 0) {
-            renderRowIndicator(renderer, x, y, width, height, animationProgress, moduleIndicatorStyle(colorMapper.apply(theme().accentColor.get())));
+            renderRowIndicator(renderer, x, y, width, height, animationProgress, moduleIndicatorStyle(theme().accentColor.get()));
         }
 
         Color textColor = resolveTextColor();
-        double textY = resolveTextY(pad);
-        renderTitle(renderer, pad, layout, textColor, textY, delta);
+        RowTextLayout textLayout = resolveRowTextLayout(x + pad, y + pad, width - pad * 2 - layout.trailingWidth(), height - pad * 2,
+            titleWidth, theme().moduleAlignment.get(), theme().moduleAlignmentY.get());
+        double textY = textLayout.textY();
+        renderTitle(renderer, textLayout, textColor, delta);
 
         if (!layout.bindText().isEmpty()) {
             double bindX = x + width - pad - layout.settingsIconWidth - layout.settingsIconGap - layout.bindWidth;
@@ -135,13 +133,9 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
         hoverOverlayProgress = rowAnimationState.hoverProgress();
     }
 
-    protected final void renderTitle(GuiRenderer renderer, double pad, ModuleRowLayout layout, Color textColor, double textY, double delta) {
-        double textAreaX = this.x + pad;
-        double textAreaW = Math.max(0, width - pad * 2 - layout.trailingWidth());
-        double overflow = Math.max(0, titleWidth - textAreaW);
+    protected final void renderTitle(GuiRenderer renderer, RowTextLayout textLayout, Color textColor, double delta) {
+        double overflow = Math.max(0, titleWidth - textLayout.areaWidth());
         boolean needsMarquee = overflow > 0 && theme().fixedCategorySize.get();
-
-        RowTextLayout layoutInfo = resolveRowTextLayout(textAreaX, this.y, textAreaW, height, titleWidth, theme().moduleAlignment.get(), theme().moduleAlignmentY.get());
 
         renderRowTitle(
             renderer,
@@ -153,7 +147,7 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
             needsMarquee,
             textColor,
             hoverOverlayProgress,
-            new RowTextLayout(layoutInfo.areaX(), layoutInfo.areaY(), layoutInfo.areaWidth(), layoutInfo.areaHeight(), textY, layoutInfo.staticTextX())
+            textLayout
         );
     }
 
@@ -198,15 +192,6 @@ public abstract class WBaseModuleRow extends WPressable implements BaseWidget {
 
     protected final Color resolveTextColor() {
         return resolveModuleTextColor(animationProgress, hoverOverlayProgress);
-    }
-
-    protected final double resolveTextY(double pad) {
-        double textHeight = theme().textHeight();
-        double availableHeight = height - pad * 2;
-        AlignmentY vAlign = theme().moduleAlignmentY.get();
-        if (vAlign == AlignmentY.Top) return y + pad;
-        if (vAlign == AlignmentY.Bottom) return y + pad + availableHeight - textHeight;
-        return y + pad + (availableHeight - textHeight) / 2;
     }
 
     protected abstract boolean isSettingsExpanded();

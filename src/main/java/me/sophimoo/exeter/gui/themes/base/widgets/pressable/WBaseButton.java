@@ -31,14 +31,16 @@ public class WBaseButton extends WButton implements BaseWidget, ExeterWidthConst
     protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
         double pad = pad();
 
-        WidgetSizeDebug.log(
-            theme(),
-            this,
-            "Button",
-            width,
-            height,
-            "pad=" + String.format(java.util.Locale.US, "%.2f", pad)
-        );
+        if (theme().debugWidgetSizes.get()) {
+            WidgetSizeDebug.log(
+                theme(),
+                this,
+                "Button",
+                width,
+                height,
+                "pad=" + String.format(java.util.Locale.US, "%.2f", pad)
+            );
+        }
 
         renderBackground(renderer, this, pressed, mouseOver);
         renderCenteredTextOrTexture(renderer, text, textWidth, texture, x, y, width, pad,

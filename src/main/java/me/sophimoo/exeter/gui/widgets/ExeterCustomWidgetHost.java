@@ -1,5 +1,6 @@
 package me.sophimoo.exeter.gui.widgets;
 
+import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
 import meteordevelopment.meteorclient.gui.utils.Cell;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
@@ -16,6 +17,9 @@ public class ExeterCustomWidgetHost extends WContainer {
     @Override
     public void init() {
         var cell = add(content);
+        if (theme instanceof BaseGuiTheme) {
+            cell.padHorizontal(BaseGuiTheme.ITEM_PADDING_X).padVertical(BaseGuiTheme.ITEM_PADDING_Y);
+        }
         if (expandContentX) cell.expandX();
     }
 
@@ -28,7 +32,8 @@ public class ExeterCustomWidgetHost extends WContainer {
 
         double availableWidth = ExeterStackedLayout.availableWidth(this);
         if (availableWidth > 0) {
-            constrain(content, availableWidth);
+            Cell<?> cell = cells.get(0);
+            constrain(content, Math.max(0, availableWidth - cell.padLeft() - cell.padRight()));
             super.calculateSize();
         }
     }

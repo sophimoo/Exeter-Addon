@@ -1,6 +1,7 @@
 package me.sophimoo.exeter.gui.themes.base.widgets.input;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
+import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
 import meteordevelopment.meteorclient.MeteorClient;
 import meteordevelopment.meteorclient.events.entity.player.InteractBlockEvent;
 import meteordevelopment.meteorclient.events.entity.player.StartBreakingBlockEvent;
@@ -40,7 +41,7 @@ public class WBaseBlockPosEdit extends WVerticalList implements BaseWidget {
 
     @Override
     public void init() {
-        spacing = 2;
+        spacing = BaseGuiTheme.ITEM_PADDING_Y;
         
         WHorizontalList coords = add(theme().horizontalList()).expandX().widget();
         addCoordTextBoxes(coords);

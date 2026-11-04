@@ -16,7 +16,7 @@ import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
 import meteordevelopment.meteorclient.gui.widgets.containers.WView;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
-import meteordevelopment.meteorclient.utils.render.color.Color;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.SelectionRenderingMode;
 import meteordevelopment.orbit.EventHandler;
 
 public class WBaseModule extends WVerticalList implements BaseWidget {
@@ -25,10 +25,8 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
     private boolean settingsExpanded = false;
     private WSettingsDropdown settingsContainer = null;
-    private Cell<WSettingsDropdown> settingsContainerCell = null;
     private WModuleButton moduleButton;
     private WContainer moduleSettingsContainer = null;
-    private boolean hasModuleSettingsContent;
     private WKeybind keybindWidget = null;
     private boolean subscribedToEvents;
     private int settingsTickCooldown;
@@ -49,34 +47,23 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
         settingsExpanded = !settingsExpanded;
 
         if (settingsContainer == null) {
-            settingsContainer = new WSettingsDropdown();
-            settingsContainer.theme = theme;
-            settingsContainer.spacing = 0;
+            settingsContainer = add(new WSettingsDropdown()).expandX().widget();
+            settingsContainer.content.spacing = BaseGuiTheme.SEPARATOR_PADDING_Y;
 
-            moduleSettingsContainer = settingsContainer.add(theme.verticalList()).expandX().widget();
-
-            if (moduleSettingsContainer instanceof WVerticalList verticalList) verticalList.spacing = 0;
-
-            WWidget settingsWidget = theme.settings(module.settings);
-
-            hasModuleSettingsContent = hasSettingsContent(settingsWidget);
-
-            moduleSettingsContainer.add(settingsWidget).expandX();
+            if (module.settings.groups.stream().anyMatch(group -> group.iterator().hasNext())) {
+                moduleSettingsContainer = settingsContainer.add(theme.verticalList()).expandX().widget();
+                moduleSettingsContainer.add(theme.settings(module.settings)).expandX();
+            }
 
             WWidget customWidget = module.getWidget(theme);
             if (customWidget != null) {
                 WWidget hostedCustomWidget = new ExeterCustomWidgetHost(customWidget);
-                hasModuleSettingsContent = true;
-                double padX = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.itemPaddingX.get() : 0;
-                double padY = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.itemPaddingY.get() : 0;
-                settingsContainer.add(theme.horizontalSeparator()).expandX().padHorizontal(padX);
-                Cell<WWidget> customCell = settingsContainer.add(hostedCustomWidget).padHorizontal(padX).padVertical(padY);
+                settingsContainer.add(theme.horizontalSeparator()).expandX();
+                Cell<WWidget> customCell = settingsContainer.add(hostedCustomWidget);
                 if (customWidget instanceof WContainer) customCell.expandX();
             }
 
             addBindSection(settingsContainer);
-
-            settingsContainerCell = add(settingsContainer).expandX().padTop(0);
         }
 
         settingsContainer.setExpanded(settingsExpanded);
@@ -147,28 +134,16 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
         return result;
     }
 
-    private void addBindSection(WVerticalList container) {
-        double paddingX = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.itemPaddingX.get() : 6;
-        double separatorPaddingX = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.separatorPaddingX.get() : 0;
-        double separatorPaddingY = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.separatorPaddingY.get() : 6;
-        double itemSpacing = (theme instanceof BaseGuiTheme baseTheme) ? baseTheme.itemPaddingY.get() : 0;
-
+    private void addBindSection(WContainer container) {
         Cell<WSection> bindSectionCell = container.add(theme.section("Bind", false)).expandX();
-        bindSectionCell.widget().cells.get(0).padHorizontal(separatorPaddingX);
-        if (hasModuleSettingsContent) bindSectionCell.padTop(separatorPaddingY);
 
-        keybindWidget = ModuleBindUtils.populateBindSection(bindSectionCell, paddingX, separatorPaddingY, itemSpacing, module, theme);
+        keybindWidget = ModuleBindUtils.populateBindSection(bindSectionCell, module, theme);
         keybindWidget.actionOnSet = () -> {
             Modules.get().setModuleToBind(module);
             if (MeteorClient.mc.currentScreen instanceof BaseModulesScreen screen) {
                 screen.unfocusSearchTextBox();
             }
         };
-    }
-
-    private boolean hasSettingsContent(WWidget settingsWidget) {
-        if (settingsWidget instanceof WContainer container) return !container.cells.isEmpty();
-        return true;
     }
 
     @EventHandler
@@ -181,6 +156,9 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
     private class WModuleButton extends WBaseModuleRow {
         public WModuleButton() {
             super(WBaseModule.this.module, WBaseModule.this.title);
+            if (module.addon != null && module.addon != MeteorClient.ADDON) {
+                tooltip += "\nFrom: " + module.addon.name;
+            }
         }
 
         @Override
@@ -194,7 +172,7 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
         }
     }
 
-    private class WSettingsDropdown extends WVerticalList {
+    private class WSettingsDropdown extends WBaseSettingsPanel {
         private boolean expanded;
         private double animProgress;
         private double expandedHeight;
@@ -215,6 +193,8 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
         @Override
         public void calculateSize() {
+            outlinePadding = theme().moduleSettingsOutlineThickness.get();
+            insetBottom = outlinePadding > 0;
             boolean animating = animProgress > 0 && animProgress < 1;
             double heightProgress = dropdownHeightProgress(animProgress, expanded);
 
@@ -244,13 +224,6 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
             double heightProgress = dropdownHeightProgress(animProgress, expanded);
             double animatedHeight = expandedHeight * heightProgress;
             boolean animationChanged = previousAnimProgress != animProgress;
-            if (settingsContainerCell != null) {
-                double padTop = theme().separatorPaddingY.get() * heightProgress;
-                if (settingsContainerCell.padTop() != Math.round(theme().scale(padTop))) {
-                    settingsContainerCell.padTop(padTop);
-                    animationChanged = true;
-                }
-            }
 
             if (animationChanged) invalidate();
             if (animProgress <= 0) return false;
@@ -264,10 +237,11 @@ public class WBaseModule extends WVerticalList implements BaseWidget {
 
             double outlineY = moduleButton.y + moduleButton.height;
             double outlineHeight = Math.max(0, y - outlineY) + Math.min(height, animatedHeight);
-            double thickness = Math.min(theme.scale(theme().moduleSettingsOutlineThickness.get()), Math.min(width, outlineHeight) / 2);
+            double thickness = Math.min(Math.round(theme.scale(theme().moduleSettingsOutlineThickness.get())), Math.min(width, outlineHeight) / 2);
             if (thickness > 0) {
-                Color color = interpolateColor(theme().moduleInactiveColor.get(), theme().moduleActiveColor.get(), moduleButton.animationProgress);
-                renderOutline(renderer, x, outlineY, width, outlineHeight, thickness, color);
+                renderRowSurface(renderer, x, outlineY, width, outlineHeight, SelectionRenderingMode.FADE,
+                    moduleButton.animationProgress, localHoverSurfaceProgress(moduleButton.hoverOverlayProgress),
+                    moduleRowSurfaceStyle(module.isActive(), false, moduleButton.mouseOver, null), thickness);
             }
 
             return toReturn;

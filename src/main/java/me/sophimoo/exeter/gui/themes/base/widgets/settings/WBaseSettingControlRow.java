@@ -94,24 +94,26 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
 
     @Override
     protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-        WidgetSizeDebug.log(
-            theme(),
-            this,
-            verticalLayout ? "SettingControlRow(vertical)" : "SettingControlRow(horizontal)",
-            width,
-            height,
-            String.format(
-                java.util.Locale.US,
-                "padX=%.2f padY=%.2f globalPad=%.2f rowPadX=%.2f rowPadY=%.2f controlW=%.2f controlH=%.2f",
-                pad(),
-                theme().rowPadY(),
-                theme().pad(),
-                theme().rowPadX(),
-                theme().rowPadY(),
-                control.width,
-                control.height
-            )
-        );
+        if (theme().debugWidgetSizes.get()) {
+            WidgetSizeDebug.log(
+                theme(),
+                this,
+                verticalLayout ? "SettingControlRow(vertical)" : "SettingControlRow(horizontal)",
+                width,
+                height,
+                String.format(
+                    java.util.Locale.US,
+                    "padX=%.2f padY=%.2f globalPad=%.2f rowPadX=%.2f rowPadY=%.2f controlW=%.2f controlH=%.2f",
+                    pad(),
+                    theme().rowPadY(),
+                    theme().pad(),
+                    theme().rowPadX(),
+                    theme().rowPadY(),
+                    control.width,
+                    control.height
+                )
+            );
+        }
 
         RowAnimationState animationState = animateRow(delta, mouseOver, false, mouseOver, 0, animationProgress);
         animationProgress = animationState.hoverProgress();
@@ -126,7 +128,7 @@ public class WBaseSettingControlRow extends WContainer implements BaseWidget {
             animationState.effectiveAnimationMode(),
             0,
             localHoverSurfaceProgress(animationProgress),
-            surfaceStyle
+            surfaceStyle, 0
         );
         renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
 

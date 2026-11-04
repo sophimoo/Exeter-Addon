@@ -10,6 +10,11 @@ public class WBaseTooltip extends WTooltip implements BaseWidget {
     }
 
     @Override
+    public void init() {
+        add(theme.label(text)).pad(theme().globalPadding.get());
+    }
+
+    @Override
     protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
         renderer.quad(this, theme().backgroundColor.get());
     }

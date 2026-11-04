@@ -1,12 +1,10 @@
 package me.sophimoo.exeter.gui.screens.settings;
 
 import me.sophimoo.exeter.gui.themes.base.widgets.settings.WBaseSettingSlider;
-import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
 import meteordevelopment.meteorclient.gui.GuiTheme;
 import meteordevelopment.meteorclient.gui.WidgetScreen;
 import meteordevelopment.meteorclient.gui.WindowScreen;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
-import meteordevelopment.meteorclient.gui.utils.Cell;
 import meteordevelopment.meteorclient.gui.widgets.WQuad;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WHorizontalList;
@@ -56,19 +54,6 @@ public class ExeterColorSettingScreen extends WindowScreen {
 
     @Override
     public void initWidgets() {
-        double paddingX = theme instanceof BaseGuiTheme baseTheme ? baseTheme.itemPaddingX.get() : 0;
-        double paddingY = theme instanceof BaseGuiTheme baseTheme ? baseTheme.itemPaddingY.get() : 0;
-        double outline = theme instanceof BaseGuiTheme baseTheme ? baseTheme.windowOutlineThickness.get() : 0;
-
-        window.padding = outline;
-        window.spacing = 0;
-        window.view.spacing = paddingY;
-        for (Cell<?> cell : window.cells) {
-            if (cell.widget() == window.view) {
-                cell.padHorizontal(outline + paddingX).padVertical(outline + paddingY);
-            }
-        }
-
         displayQuad = add(theme.quad(setting.get())).expandX().widget();
 
         brightnessQuad = add(new WBrightnessQuad()).expandX().widget();
@@ -86,7 +71,6 @@ public class ExeterColorSettingScreen extends WindowScreen {
         add(new WBaseSettingSlider(aSetting)).expandX();
 
         WHorizontalList rainbowList = add(theme.horizontalList()).expandX().widget();
-        rainbowList.spacing = paddingX;
         rainbowList.add(theme.label("Rainbow: "));
         rainbow = theme.checkbox(setting.get().rainbow);
         rainbow.action = () -> {
@@ -96,7 +80,6 @@ public class ExeterColorSettingScreen extends WindowScreen {
         rainbowList.add(rainbow).expandCellX().right();
 
         WHorizontalList bottomList = add(theme.horizontalList()).expandX().widget();
-        bottomList.spacing = paddingX;
 
         WButton backButton = bottomList.add(theme.button("Back")).expandX().widget();
         backButton.action = this::close;

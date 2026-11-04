@@ -1,6 +1,7 @@
 package me.sophimoo.exeter.gui.themes.base.widgets.input;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
+import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
  import meteordevelopment.meteorclient.gui.widgets.WLabel;
  import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
  import meteordevelopment.meteorclient.gui.utils.CharFilter;
@@ -41,7 +42,16 @@ public class WBaseTextBox extends WTextBox implements BaseWidget {
  
      @Override
      protected WContainer createCompletionsRootWidget() {
-        return new WVerticalList() {
+        WVerticalList list = new WVerticalList() {
+            @Override
+            protected void onCalculateSize() {
+                for (int i = 0; i < cells.size(); i++) {
+                    cells.get(i).padHorizontal(theme().itemPaddingX.get());
+                    if (i == cells.size() - 1) cells.get(i).padBottom(theme().itemPaddingY.get());
+                }
+                super.onCalculateSize();
+            }
+
             @Override
             protected void onRender(GuiRenderer renderer1, double mouseX, double mouseY, double delta) {
                 double s = theme().scale(2);
@@ -59,6 +69,8 @@ public class WBaseTextBox extends WTextBox implements BaseWidget {
                 renderer1.quad(x + width - s, y, s, height - s, c);
             }
         };
+        list.spacing = BaseGuiTheme.ITEM_PADDING_Y;
+        return list;
     }
 
     @SuppressWarnings("unchecked")

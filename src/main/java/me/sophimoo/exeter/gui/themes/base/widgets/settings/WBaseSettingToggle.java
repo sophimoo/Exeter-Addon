@@ -76,6 +76,8 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
     }
 
     private void logDebugInfo() {
+        if (!theme().debugWidgetSizes.get()) return;
+
         WidgetSizeDebug.log(
             theme(),
             this,
@@ -105,7 +107,7 @@ public class WBaseSettingToggle extends WPressable implements BaseWidget {
             animationState.effectiveAnimationMode(),
             animationProgress,
             localHoverSurfaceProgress(hoverOverlayProgress),
-            surfaceStyle
+            surfaceStyle, 0
         );
         renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
     }

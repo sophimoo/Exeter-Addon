@@ -96,7 +96,7 @@ public class BaseSettingsWidgetFactory extends SettingsWidgetFactory {
     @Override
     public WWidget create(GuiTheme theme, Settings settings, String filter) {
         WVerticalList list = theme.verticalList();
-        if (theme instanceof BaseGuiTheme baseTheme) list.spacing = baseTheme.separatorPaddingY.get();
+        if (theme instanceof BaseGuiTheme) list.spacing = BaseGuiTheme.SEPARATOR_PADDING_Y;
 
         for (SettingGroup group : settings.groups) {
             group(list, group, filter);
@@ -109,16 +109,10 @@ public class BaseSettingsWidgetFactory extends SettingsWidgetFactory {
     }
 
     private void group(WVerticalList list, SettingGroup group, String filter) {
-        double padding = moduleSettingsPaddingX();
-        double separatorPaddingX = separatorPaddingX();
-        double separatorPadding = separatorPaddingY();
         WSection section = list.add(theme.section(group.name, group.sectionExpanded)).expandX().widget();
-        section.cells.get(0).padHorizontal(separatorPaddingX);
-        section.spacing = 0;
         section.action = () -> group.sectionExpanded = section.isExpanded();
 
-        WTable table = section.add(theme.table()).expandX().padHorizontal(padding).padTop(separatorPadding).widget();
-        table.verticalSpacing = itemSpacing();
+        WTable table = section.add(theme.table()).expandX().widget();
 
         for (Setting<?> setting : group) {
             if (!Strings.CI.contains(setting.title, filter)) continue;
@@ -447,30 +441,6 @@ public class BaseSettingsWidgetFactory extends SettingsWidgetFactory {
         } else {
             ModalScreenOps.open(screen);
         }
-    }
-
-    private double itemSpacing() {
-        BaseGuiTheme baseTheme = baseTheme();
-        return baseTheme != null ? baseTheme.itemPaddingY.get() : 0;
-    }
-
-    private BaseGuiTheme baseTheme() {
-        return theme instanceof BaseGuiTheme baseTheme ? baseTheme : null;
-    }
-
-    private double moduleSettingsPaddingX() {
-        BaseGuiTheme baseTheme = baseTheme();
-        return baseTheme != null ? baseTheme.itemPaddingX.get() : 6;
-    }
-
-    private double separatorPaddingY() {
-        BaseGuiTheme baseTheme = baseTheme();
-        return baseTheme != null ? baseTheme.separatorPaddingY.get() : 3;
-    }
-
-    private double separatorPaddingX() {
-        BaseGuiTheme baseTheme = baseTheme();
-        return baseTheme != null ? baseTheme.separatorPaddingX.get() : 0;
     }
 
     @FunctionalInterface

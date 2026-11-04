@@ -11,6 +11,7 @@ import meteordevelopment.meteorclient.gui.utils.Cell;
 import meteordevelopment.meteorclient.gui.widgets.WKeybind;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
+import meteordevelopment.meteorclient.gui.widgets.containers.WHorizontalList;
 import meteordevelopment.meteorclient.gui.widgets.containers.WSection;
 import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
 import meteordevelopment.meteorclient.systems.modules.Module;
@@ -24,35 +25,43 @@ public class ModuleSettingsScreen extends WindowScreen {
     private WContainer settingsContainer;
 
     public ModuleSettingsScreen(GuiTheme theme, Module module) {
-        super(theme, module.name);
+        super(theme, module.title);
         this.module = module;
         this.baseTheme = theme instanceof BaseGuiTheme bt ? bt : null;
     }
 
     @Override
     public void initWidgets() {
-        WVerticalList wrapper = new WVerticalList();
-        wrapper.spacing = 0;
-        wrapper.theme = theme;
+        WVerticalList description = add(theme.verticalList()).expandX()
+            .pad(baseTheme != null ? baseTheme.globalPadding.get() : 0).widget();
 
-        WWidget settingsWidget = theme.settings(module.settings);
-        if (settingsWidget instanceof WContainer swContainer && !swContainer.cells.isEmpty()) {
-            settingsContainer = swContainer;
-            wrapper.add(settingsWidget).expandX();
+        if (module.addon != null && module.addon != MeteorClient.ADDON) {
+            WHorizontalList addon = add(theme.horizontalList()).expandX().widget();
+            addon.add(theme.label("From: ").color(theme.textSecondaryColor()));
+            addon.add(theme.label(module.addon.name).color(module.addon.color));
         }
+
+        WVerticalList wrapper = theme.verticalList();
+        if (baseTheme != null) wrapper.spacing = BaseGuiTheme.SEPARATOR_PADDING_Y;
+        settingsContainer = wrapper.add(theme.verticalList()).expandX().widget();
+        settingsContainer.add(theme.settings(module.settings)).expandX();
 
         WWidget customWidget = module.getWidget(theme);
         if (customWidget != null) {
             WWidget hostedCustomWidget = new ExeterCustomWidgetHost(customWidget);
-            double padX = baseTheme != null ? baseTheme.itemPaddingX.get() : 0;
-            double padY = baseTheme != null ? baseTheme.itemPaddingY.get() : 0;
+            double padX = baseTheme != null ? BaseGuiTheme.ITEM_PADDING_X : 0;
             wrapper.add(theme.horizontalSeparator()).expandX().padHorizontal(padX);
-            Cell<WWidget> cell = wrapper.add(hostedCustomWidget).padHorizontal(padX).padVertical(padY);
+            Cell<WWidget> cell = wrapper.add(hostedCustomWidget);
             if (customWidget instanceof WContainer) cell.expandX();
         }
 
         addBindSection(wrapper);
         add(wrapper).expandX();
+
+        window.calculateSize();
+        window.calculateWidgetPositions();
+        description.add(theme.label(module.description, Math.max(1, description.width / theme.scale(1)))).expandX();
+
         MeteorClient.EVENT_BUS.subscribe(this);
     }
 
@@ -89,18 +98,10 @@ public class ModuleSettingsScreen extends WindowScreen {
     }
 
     private void addBindSection(WVerticalList container) {
-        double paddingX = baseTheme != null ? baseTheme.itemPaddingX.get() : 6;
-        double separatorPaddingX = baseTheme != null ? baseTheme.separatorPaddingX.get() : 0;
-        double separatorPaddingY = baseTheme != null ? baseTheme.separatorPaddingY.get() : 6;
-        double itemSpacing = baseTheme != null ? baseTheme.itemPaddingY.get() : 0;
-
         Cell<WSection> bindSectionCell = container.add(theme.section("Bind", true))
-            .expandX()
-            .padTop(separatorPaddingY)
-            .padBottom(separatorPaddingY);
-        bindSectionCell.widget().cells.get(0).padHorizontal(separatorPaddingX);
+            .expandX();
 
-        keybindWidget = ModuleBindUtils.populateBindSection(bindSectionCell, paddingX, separatorPaddingY, itemSpacing, module, theme);
+        keybindWidget = ModuleBindUtils.populateBindSection(bindSectionCell, module, theme);
         keybindWidget.actionOnSet = () -> Modules.get().setModuleToBind(module);
     }
 }

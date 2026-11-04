@@ -1,11 +1,14 @@
 package me.sophimoo.exeter.gui.themes.base.widgets;
 
 import me.sophimoo.exeter.gui.themes.base.BaseWidget;
+import me.sophimoo.exeter.gui.themes.base.BaseGuiTheme;
 import me.sophimoo.exeter.gui.themes.base.utils.MarqueeState;
 import me.sophimoo.exeter.gui.themes.base.utils.enums.ModuleSettingsIndicator;
+import me.sophimoo.exeter.gui.themes.base.utils.enums.SelectionRenderingMode;
 import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
 import meteordevelopment.meteorclient.gui.utils.AlignmentX;
 import meteordevelopment.meteorclient.gui.utils.AlignmentY;
+import meteordevelopment.meteorclient.gui.utils.Cell;
 import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.gui.widgets.containers.WSection;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WCheckbox;
@@ -25,6 +28,17 @@ public class WBaseSection extends WSection implements BaseWidget {
     }
 
     @Override
+    public void init() {
+        super.init();
+        cells.get(0).padHorizontal(BaseGuiTheme.SEPARATOR_PADDING_X);
+    }
+
+    @Override
+    public <T extends WWidget> Cell<T> add(T widget) {
+        return super.add(widget).padHorizontal(BaseGuiTheme.ITEM_PADDING_X);
+    }
+
+    @Override
     public void setExpanded(boolean expanded) {
         if (this.expanded != expanded) super.setExpanded(expanded);
     }
@@ -34,8 +48,17 @@ public class WBaseSection extends WSection implements BaseWidget {
         width = 0;
         height = 0;
 
+        double outlineInset = Math.round(theme.scale(theme().separatorSettingsOutlineThickness.get())) / theme.scale(1);
+        double bottomPadding = outlineInset > 0 ? Math.round(theme.scale(theme().itemPaddingY.get())) / theme.scale(1) : 0;
         for (int i = 0; i < cells.size(); i++) {
             var cell = cells.get(i);
+            if (i > 0) {
+                cell.padHorizontal(outlineInset > 0
+                    ? theme().separatorPaddingX.get() + theme().itemPaddingX.get() + outlineInset
+                    : BaseGuiTheme.ITEM_PADDING_X);
+                cell.padTop(i == 1 ? outlineInset : 0);
+                cell.padBottom(i == cells.size() - 1 ? outlineInset + bottomPadding : 0);
+            }
             if (i > 0) height += spacing();
 
             width = Math.max(width, cell.padLeft() + cell.widget().width + cell.padRight());
@@ -72,6 +95,17 @@ public class WBaseSection extends WSection implements BaseWidget {
         }
 
         if (scissor) renderer.scissorEnd();
+
+        WWidget header = cells.get(0).widget();
+        double outlineY = header.y + header.height;
+        double outlineHeight = Math.max(0, scissorHeight - (outlineY - y));
+        double thickness = Math.min(Math.round(theme.scale(theme().separatorSettingsOutlineThickness.get())), Math.min(header.width, outlineHeight) / 2);
+        if (animProgress > 0 && thickness > 0) {
+            WBaseHeader baseHeader = (WBaseHeader) header;
+            renderRowSurface(renderer, header.x, outlineY, header.width, outlineHeight, SelectionRenderingMode.FADE,
+                activeProgress, localHoverSurfaceProgress(baseHeader.hoverProgress),
+                separatorRowSurfaceStyle(activeProgress > 0, header.mouseOver), thickness);
+        }
 
         return false;
     }
@@ -146,7 +180,7 @@ public class WBaseSection extends WSection implements BaseWidget {
             hoverProgress = animationState.hoverProgress();
             activeProgress = stepProgress(activeProgress, WBaseSection.this.expanded, delta);
             RowSurfaceStyle surfaceStyle = separatorRowSurfaceStyle(activeProgress > 0, mouseOver);
-            renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), activeProgress, localHoverSurfaceProgress(hoverProgress), surfaceStyle);
+            renderRowSurface(renderer, x, y, width, height, animationState.effectiveAnimationMode(), activeProgress, localHoverSurfaceProgress(hoverProgress), surfaceStyle, 0);
             renderInterpolationHover(renderer, x, y, width, height, mouseOver, delta, surfaceStyle);
 
             double textAreaX = x + pad;
