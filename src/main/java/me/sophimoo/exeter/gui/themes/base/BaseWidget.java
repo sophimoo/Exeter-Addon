@@ -461,7 +461,8 @@ public interface BaseWidget extends meteordevelopment.meteorclient.gui.utils.Bas
             progress,
             layer.color(),
             layer.gradient(),
-            layer.renderGradient() ? gradientDirection : ModuleGradientDirection.NONE,
+            layer.renderGradient() && (outlineThickness <= 0 || theme().gradientOutline.get())
+                ? gradientDirection : ModuleGradientDirection.NONE,
             outlineThickness
         );
     }

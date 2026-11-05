@@ -555,6 +555,13 @@ public class BaseGuiTheme extends GuiTheme {
             .build()
     );
 
+    public final Setting<Boolean> gradientOutline = sgGeneralRender.add(new BoolSetting.Builder()
+            .name("gradient-outline")
+            .description("Applies gradients to outlines. Disable to use solid outline colors.")
+            .defaultValue(true)
+            .build()
+    );
+
     public final Setting<ModuleIndicatorPosition> activeIndicatorPosition = sgGeneralRender.add(new EnumSetting.Builder<ModuleIndicatorPosition>()
             .name("active-indicator-position")
             .description("Position of the active module indicator bar. 'None' to disable.")
