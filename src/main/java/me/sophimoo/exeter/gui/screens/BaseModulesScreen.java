@@ -447,9 +447,7 @@ public class BaseModulesScreen extends TabScreen {
         }
 
         @Override
-        public void calculateSize() {
-            if (searchTextBox != null) searchTextBox.calculateSize();
-
+        protected void onCalculateSize() {
             double listPad = theme.pad() * 2;
             double searchHeight = searchTextBox != null ? searchTextBox.height : 0;
             double tabBarHeight = theme.pad() * 2 + theme.textHeight();
@@ -457,12 +455,15 @@ public class BaseModulesScreen extends TabScreen {
             double maxWindowHeight = getWindowHeight() - moduleListTop - listPad;
 
             for (WWindow window : windows) {
-                window.calculateSize();
                 double windowChromeHeight = window.height - window.view.height;
-                window.view.maxHeight = Math.max(theme.scale(20), maxWindowHeight - windowChromeHeight);
+                double maxViewHeight = Math.max(theme.scale(20), maxWindowHeight - windowChromeHeight);
+                if (window.view.maxHeight != maxViewHeight) {
+                    window.view.maxHeight = maxViewHeight;
+                    window.calculateSize();
+                }
             }
 
-            super.calculateSize();
+            super.onCalculateSize();
         }
 
         @Override

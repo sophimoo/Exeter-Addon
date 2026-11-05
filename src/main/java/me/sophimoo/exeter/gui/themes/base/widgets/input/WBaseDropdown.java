@@ -28,11 +28,6 @@ public class WBaseDropdown<T> extends WDropdown<T> implements BaseWidget {
         double pad = pad();
 
         maxValueWidth = 0;
-        for (T value : values) {
-            double valueWidth = theme.textWidth(value.toString());
-            maxValueWidth = Math.max(maxValueWidth, valueWidth);
-        }
-
         root.calculateSize();
 
         width = pad + maxValueWidth + pad;
@@ -91,7 +86,9 @@ public class WBaseDropdown<T> extends WDropdown<T> implements BaseWidget {
         protected void onCalculateSize() {
             double pad = pad();
 
-            width = pad + theme().textWidth(value.toString()) + pad;
+            double textWidth = theme().textWidth(value.toString());
+            maxValueWidth = Math.max(maxValueWidth, textWidth);
+            width = pad + textWidth + pad;
             height = pad + theme().textHeight() + pad;
         }
 
